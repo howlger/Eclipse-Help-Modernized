@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<svg version="1.1" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xlink="http://www.w3.org/1999/xlink">
+<defs>
+<linearGradient id="b" x1="6.7194" x2="6.7194" y1="1036.2" y2="1052.1" gradientTransform="matrix(.88159 0 0 .88159 1.0763 123.84)" gradientUnits="userSpaceOnUse">
+<stop stop-color="#ba7f0d" offset="0"/>
+<stop stop-color="#a2660b" offset="1"/>
+</linearGradient>
+<linearGradient id="a" x1="8.9881" x2="8.9881" y1="1038.5" y2="1051" gradientTransform="matrix(.88159 0 0 .88159 1.0763 123.84)" gradientUnits="userSpaceOnUse">
+<stop stop-color="#ffe" offset="0"/>
+<stop stop-color="#ffecad" offset="1"/>
+</linearGradient>
+</defs>
+<g transform="translate(0 -1036.4)">
+<path d="m10.774 1038.4 0.04323 4.1601 3.9787 1.2159-3.5812 2.1175 0.9364 4.0536-3.6244-2.0427-3.0423 2.8378-0.043231-4.1601-3.9787-1.2159 3.5812-2.1175-0.9364-4.0536 3.6244 2.0426z" fill="url(#a)" stroke="url(#b)" stroke-width=".88158"/>
+</g>
+</svg>

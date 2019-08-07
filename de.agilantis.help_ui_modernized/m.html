@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2019 Holger Voormann and others.
+
+This program and the accompanying materials are made
+available under the terms of the Eclipse Public License 2.0
+which is available at https://www.eclipse.org/legal/epl-2.0/
+
+SPDX-License-Identifier: EPL-2.0
+-->
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Help</title>
+  <link rel="stylesheet" type="text/css" href="m.css">
+  <script type="text/javascript" src="m.js"></script>
+  <script type="text/javascript">
+    function h(a, c, d, e) {
+        if (typeof _eh != 'undefined')
+            _eh.h(a, '', true, d, c, e)
+    };
+    function v(a, c, d, e) {
+        if (typeof _eh != 'undefined')
+            _eh.h(a, 's', true, d, c, e)
+    };
+    function addEvent(o, type, fn){
+       if (o.addEventListener) o.addEventListener(type, fn, false);
+       else if (o.attachEvent) {
+          o['e'+type+fn] = fn;
+          o[type+fn] = function() { o['e'+type+fn](window.event); }
+          o.attachEvent('on'+type, o[type+fn]);
+       }
+    }
+    function updateContentFrameSize() {
+        // see https://stackoverflow.com/a/49261999 and https://stackoverflow.com/a/819455
+        var contentFrame = document.getElementById('m-content');
+        var tocWidth = 240;
+        var magic = 1;
+
+        // start with 0x0 (otherwise issues in Chrome)
+        contentFrame.width  = '0';
+        contentFrame.height  = '0';
+
+        // available/required width
+        var innerWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+        var initialContentFrameWidth = innerWidth - tocWidth;
+        contentFrame.width  = (initialContentFrameWidth - magic) + 'px';
+        contentFrame.height = contentFrame.contentWindow.document.body.scrollHeight + 'px';
+
+        // with vertical scrollbar less space is available
+        var currentContentFrameWidth = contentFrame.contentWindow.document.body.scrollWidth;
+        if (initialContentFrameWidth != currentContentFrameWidth) {
+            contentFrame.width  = (currentContentFrameWidth - magic) + 'px';
+            contentFrame.height = contentFrame.contentWindow.document.body.scrollHeight + 'px';
+        }
+
+    }
+    function initContentFrame() {
+        updateContentFrameSize();
+        addEvent(window, 'resize', updateContentFrameSize);
+    }
+    function initSearchField() {
+        var callbackFn = function(responseText) {
+            var nodes = getNodes(parseXml(responseText));
+            var firstId;
+            var tocs = [];
+            for (var i = 0; i < nodes.length; i++) {
+                 var n = nodes[i];
+                 if (n.tagName != 'node') continue;
+                 var title = n.getAttribute('title');
+                 var id = n.getAttribute('id');
+                 var href = n.getAttribute('href');
+                 if (!firstId) firstId = id;
+                 tocs.push(title ? title : '');
+                 tocs.push(id ? id : '');
+                 tocs.push(href  ? href : '');
+            }
+            _eh.e(document.getElementById('f'), tocs, firstId, true, 10,
+                function shortenBookName(bookName) {
+                    return bookName.replace(
+                            /\s+Documentation(\s+\-\s+[0-9,\-]+\s+Preview)?$/i,
+                            '')
+                });
+        }
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+            if (request.readyState == 4 && request.status == 200)
+                callbackFn(request.responseText);
+        }
+        request.open('GET', '../../advanced/tocfragment');
+        request.send();
+    };
+
+    function remoteRequest(url, callbackFn) {
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+            if (request.readyState == 4 && request.status == 200)
+                callbackFn(request.responseText);
+        }
+        request.open('GET', url);
+        request.send();
+        if (openRequest && openRequest.abort) openRequest.abort();
+        if (!uncancelable) openRequest = request;
+    }
+
+    var parseXml;
+    if (typeof window.DOMParser != "undefined") {
+        parseXml = function(xmlStr) {
+            return ( new window.DOMParser() ).parseFromString(xmlStr, "text/xml");
+        };
+    } else if (typeof window.ActiveXObject != "undefined" &&
+           new window.ActiveXObject("Microsoft.XMLDOM")) {
+        parseXml = function(xmlStr) {
+            var xmlDoc = new window.ActiveXObject("Microsoft.XMLDOM");
+            xmlDoc.async = "false";
+            xmlDoc.loadXML(xmlStr);
+            return xmlDoc;
+        };
+    }
+
+    function loadTocChildren(item, toc, path) {
+        var callbackFn = function(responseText) {
+            showLoadedTocChildren(item, parseXml(responseText), toc, path);
+        }
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+            if (request.readyState == 4 && request.status == 200)
+                callbackFn(request.responseText);
+        }
+        request.open('GET', '../../advanced/tocfragment' + (toc ? '?toc=' + toc : '') + (path ? '&path=' + path : ''));
+        request.send();
+    }
+
+    function createElement(parent, name, clazz, text) {
+        var element = document.createElement(name);
+        if (parent) {
+            parent.appendChild(element);
+        }
+        if (clazz) {
+            element.setAttribute('class', clazz);
+        }
+        if (text) {
+            element.appendChild(document.createTextNode(text));
+        }
+        return element;
+    }
+
+    function getNodes(xml, toc, path) {
+        var books = xml.documentElement.childNodes;
+        if (!toc) return books;
+        var book;
+        for (var i = 0; i < books.length; i++) {
+            book = books[i];
+            if (book.tagName == 'node' && toc == book.getAttribute('id')) {
+                if (!path) return book.childNodes;
+                break;
+            }
+        }
+        var nodes = book.childNodes;
+        tocLevelLoop: while (true) {
+            for (var i = 0; i < nodes.length; i++) {
+                n = nodes[i];
+                if (n.tagName != 'node') continue;
+                var id = n.getAttribute('id');
+                if (path == id) return n.childNodes;
+                if (id && path.length > id.length && path.substring(0, id.length + 1) == id + '_') {
+                    nodes = n.childNodes;
+                    continue tocLevelLoop;
+                }
+            }
+            break;
+        }
+        return [];
+    }
+
+    function showLoadedTocChildren(item, xml, toc, path) {
+        var ul = createElement(item, 'ul');
+        var nodes = getNodes(xml, toc, path);
+        var nodeNr = -1;
+        for (var i = 0; i < nodes.length; i++) {
+            var n = nodes[i];
+            if (n.tagName != 'node') continue;
+            nodeNr++;
+            var li = createElement(ul, 'li', 'closed');
+            if (n.getAttribute('is_leaf') != 'true') {
+                var handle = createElement(li, 'span');
+                handle.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor" fill-rule="evenodd"></path></svg>';
+                addEvent(handle, 'click', (function(li, toc, path) {
+                    return function() { toggleTocItem(li, toc, path) };
+                })(li, toc ? toc : n.getAttribute('id'), toc ? (path ? path + '_' : '') + nodeNr : undefined));
+            }
+            var a = createElement(li, 'a');
+            a.setAttribute('href', '../../n' + n.getAttribute('href').substring(3));
+            a.setAttribute('target', 'm-content');
+            var icon = n.getAttribute('image');
+            if (icon) {
+                var iconImg = createElement(a, 'img');
+                iconImg.setAttribute('src', '../../advanced/images/' + icon + '.svg');
+            }
+            a.appendChild(document.createTextNode(n.getAttribute('title')));
+        }
+    }
+    function toggleTocItem(li, toc, path) {
+        var isOpen = li.getAttribute('class') == 'open' || li.getAttribute('class') == 'open loaded';
+        li.setAttribute('class', isOpen ? 'closed' : 'open');
+        var nodes = li.childNodes;
+        for (var i = 0; i < nodes.length; i++) {
+            if (nodes[i].tagName == 'UL') return;
+        }
+        loadTocChildren(li, toc, path);
+    }
+  </script>
+</head>
+<body onload="initSearchField();document.getElementById('focusByDefault').focus();addEvent(window, 'resize', updateContentFrameSize);loadTocChildren(document.getElementById('m-toc'));">
+  <header id="m-header">
+    <form id="f" class="f" action="/help/index.jsp" target="_top" method="GET" accept-charset="utf-8">
+      <input type="hidden" name="tab" value="search">
+      <input id="focusByDefault" name="searchWord">
+      <input class="s" type="submit" value="Search">
+      <input id="b" type="hidden" name="b" value="">
+    </form>
+  </header>
+  <div id="m-toc"></div>
+  <iframe id="m-content" name="m-content" src="content.html" onload="updateContentFrameSize()" frameborder="0" scrolling="no" allowfullscreen></iframe>
+</body>
+</html>
