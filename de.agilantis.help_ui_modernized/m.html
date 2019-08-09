@@ -35,6 +35,8 @@ SPDX-License-Identifier: EPL-2.0
     function updateContentFrameSize() {
         // see https://stackoverflow.com/a/49261999 and https://stackoverflow.com/a/819455
         var contentFrame = document.getElementById('m-content');
+        var contentFrameDocument = contentFrame.contentWindow.document;
+        var contentFrameDocumentElement = contentFrameDocument.documentElement || contentFrameDocument.body;
         var tocWidth = 240;
         var magic = 1;
 
@@ -43,16 +45,19 @@ SPDX-License-Identifier: EPL-2.0
         contentFrame.height  = '0';
 
         // available/required width
-        var innerWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-        var initialContentFrameWidth = innerWidth - tocWidth;
-        contentFrame.width  = (initialContentFrameWidth - magic) + 'px';
-        contentFrame.height = contentFrame.contentWindow.document.body.scrollHeight + 'px';
+        // var innerWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+        var clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
+        var widthAvailable = clientWidth - tocWidth - magic;
+        var widthMinRequired = contentFrameDocumentElement.scrollWidth;
+        contentFrame.width  = (widthMinRequired > widthAvailable ? widthMinRequired : widthAvailable) + 'px';
+        contentFrame.height = contentFrameDocumentElement.scrollHeight + 'px';
 
         // with vertical scrollbar less space is available
-        var currentContentFrameWidth = contentFrame.contentWindow.document.body.scrollWidth;
-        if (initialContentFrameWidth != currentContentFrameWidth) {
-            contentFrame.width  = (currentContentFrameWidth - magic) + 'px';
-            contentFrame.height = contentFrame.contentWindow.document.body.scrollHeight + 'px';
+        var newClientWidth = document.documentElement.clientWidth || document.body.clientWidth;
+        if (newClientWidth < clientWidth) {
+            widthAvailable = newClientWidth - tocWidth - magic;
+            contentFrame.width  = (widthMinRequired > widthAvailable ? widthMinRequired : widthAvailable) + 'px';
+            contentFrame.height = contentFrameDocumentElement.scrollHeight + 'px';
         }
 
     }
@@ -200,6 +205,7 @@ SPDX-License-Identifier: EPL-2.0
             }
             a.appendChild(document.createTextNode(n.getAttribute('title')));
         }
+        updateContentFrameSize();
     }
     function toggleTocItem(li, toc, path) {
         var isOpen = li.getAttribute('class') == 'open' || li.getAttribute('class') == 'open loaded';
