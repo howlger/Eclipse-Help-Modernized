@@ -124,6 +124,25 @@ SPDX-License-Identifier: EPL-2.0
         };
     }
 
+    // TODO remove when integrated into Eclipse
+    // (the following function is only required to support older Eclipse versions having GIF instead of SVG icons)
+    var iconExtension = '.svg';
+    function loadTocChildrenInit(item, toc, path) {
+        var callbackFn = function(responseText) {
+            if(responseText.indexOf('"images/e_restore.gif"') > 0) {
+                iconExtension = '.gif';
+            }
+            loadTocChildren(item, toc, path);
+        }
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+            if (request.readyState == 4 && request.status == 200)
+                callbackFn(request.responseText);
+        }
+        request.open('GET', '../../advanced/contentToolbar.jsp');
+        request.send();
+    }
+
     function loadTocChildren(item, toc, path) {
         var callbackFn = function(responseText) {
             showLoadedTocChildren(item, parseXml(responseText), toc, path);
@@ -201,7 +220,7 @@ SPDX-License-Identifier: EPL-2.0
             var icon = n.getAttribute('image');
             if (icon) {
                 var iconImg = createElement(a, 'img');
-                iconImg.setAttribute('src', '../../advanced/images/' + icon + '.svg');
+                iconImg.setAttribute('src', '../../advanced/images/' + icon + iconExtension);
             }
             a.appendChild(document.createTextNode(n.getAttribute('title')));
         }
@@ -218,7 +237,7 @@ SPDX-License-Identifier: EPL-2.0
     }
   </script>
 </head>
-<body onload="initSearchField();document.getElementById('focusByDefault').focus();addEvent(window, 'resize', updateContentFrameSize);loadTocChildren(document.getElementById('m-toc'));">
+<body onload="initSearchField();document.getElementById('focusByDefault').focus();addEvent(window, 'resize', updateContentFrameSize);loadTocChildrenInit(document.getElementById('m-toc'));">
   <header id="m-header">
     <form id="f" class="f" action="/help/index.jsp" target="_top" method="GET" accept-charset="utf-8">
       <input type="hidden" name="tab" value="search">
