@@ -124,6 +124,25 @@ SPDX-License-Identifier: EPL-2.0
         };
     }
 
+    function init() {
+        var callbackFn = function(responseText) {
+            var start = responseText.indexOf('title="Topic View" src=\'');
+            if( start > 0) {
+                var end = responseText.indexOf("'", start + 24);
+                console.log(responseText.substring(start + 24, end) + "###" + start + ".."+end);
+                document.getElementById('m-content').src = '../' + responseText.substring(start + 24, end).replace(/&#47;/g, '/').replace(/&#46;/g, '.');
+                loadTocChildrenInit(document.getElementById('m-toc'));
+            }
+        }
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+            if (request.readyState == 4 && request.status == 200)
+                callbackFn(request.responseText);
+        }
+        request.open('GET', '../../advanced/content.jsp');
+        request.send();
+    }
+
     // TODO remove when integrated into Eclipse
     // (the following function is only required to support older Eclipse versions having GIF instead of SVG icons)
     var iconExtension = '.svg';
@@ -237,7 +256,7 @@ SPDX-License-Identifier: EPL-2.0
     }
   </script>
 </head>
-<body onload="initSearchField();document.getElementById('focusByDefault').focus();addEvent(window, 'resize', updateContentFrameSize);loadTocChildrenInit(document.getElementById('m-toc'));">
+<body onload="initSearchField();document.getElementById('focusByDefault').focus();addEvent(window, 'resize', updateContentFrameSize);init();">
   <header id="m-header">
     <form id="f" class="f" action="/help/index.jsp" target="_top" method="GET" accept-charset="utf-8">
       <input type="hidden" name="tab" value="search">
@@ -247,6 +266,6 @@ SPDX-License-Identifier: EPL-2.0
     </form>
   </header>
   <div id="m-toc"></div>
-  <iframe id="m-content" name="m-content" src="content.html" onload="updateContentFrameSize()" frameborder="0" scrolling="no" allowfullscreen></iframe>
+  <iframe id="m-content" name="m-content" onload="updateContentFrameSize()" frameborder="0" scrolling="no" allowfullscreen></iframe>
 </body>
 </html>
