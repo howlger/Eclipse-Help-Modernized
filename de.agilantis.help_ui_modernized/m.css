@@ -30,7 +30,7 @@ iframe {
     overflow: hidden;
 }
 #m-content {
-    margin-left: 240px;
+    margin-left: 360px;
     padding: 0;
     float: left;
 }
@@ -44,7 +44,7 @@ div#m-toc {
     margin: 1em 0;
     padding: 0;
     float: left;
-    width: 240px;
+    width: 360px;
     position: absolute;
 }
 #m-toc ul {
