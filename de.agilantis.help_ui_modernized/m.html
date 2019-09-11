@@ -16,6 +16,8 @@ SPDX-License-Identifier: EPL-2.0
   <link rel="stylesheet" type="text/css" href="m.css">
   <script type="text/javascript" src="m.js"></script>
   <script type="text/javascript">
+    var tocWidth = 360;
+    var sliderWidth = 16;
     function h(a, c, d, e) {
         if (typeof _eh != 'undefined')
             _eh.h(a, '', true, d, c, e)
@@ -37,7 +39,6 @@ SPDX-License-Identifier: EPL-2.0
         var contentFrame = document.getElementById('m-content');
         var contentFrameDocument = contentFrame.contentWindow.document;
         var contentFrameDocumentElement = contentFrameDocument.documentElement || contentFrameDocument.body;
-        var tocWidth = 360;
         var magic = 1;
 
         // start with 0x0 (otherwise issues in Chrome)
@@ -51,6 +52,8 @@ SPDX-License-Identifier: EPL-2.0
         var widthMinRequired = contentFrameDocumentElement.scrollWidth;
         contentFrame.width  = (widthMinRequired > widthAvailable ? widthMinRequired : widthAvailable) + 'px';
         contentFrame.height = contentFrameDocumentElement.scrollHeight + 'px';
+        var slider = document.getElementById('m-slider');
+        slider.style.height = contentFrame.height;
 
         // with vertical scrollbar less space is available
         var newClientWidth = document.documentElement.clientWidth || document.body.clientWidth;
@@ -58,6 +61,7 @@ SPDX-License-Identifier: EPL-2.0
             widthAvailable = newClientWidth - tocWidth - magic;
             contentFrame.width  = (widthMinRequired > widthAvailable ? widthMinRequired : widthAvailable) + 'px';
             contentFrame.height = contentFrameDocumentElement.scrollHeight + 'px';
+            slider.style.height = contentFrame.height;
         }
 
     }
@@ -125,6 +129,8 @@ SPDX-License-Identifier: EPL-2.0
     }
 
     function init() {
+
+        // load TOC
         var callbackFn = function(responseText) {
             var start = responseText.indexOf('title="Topic View" src=\'');
             if( start > 0) {
@@ -140,6 +146,37 @@ SPDX-License-Identifier: EPL-2.0
         }
         request.open('GET', '../../advanced/content.jsp');
         request.send();
+
+        // activate slider
+        var slider = document.getElementById("m-slider");
+        slider.mousemove = function (e) {
+            tocWidth = e.pageX + 8;
+            document.getElementById("m-toc").style.width = tocWidth - sliderWidth + 'px';
+            document.getElementById("m-content").style.marginLeft = tocWidth + 'px';
+            slider.style.marginLeft = tocWidth - sliderWidth + 'px';
+            updateContentFrameSize();
+        };
+        slider.onmousedown = function (e) {
+            try{
+                document.getElementById("m-ovrl").style.display = 'block';
+                document.documentElement.addEventListener('mousemove', slider.doDrag, false);
+                document.documentElement.addEventListener('mouseup', slider.stopDrag, false);
+            } catch (e) {
+            }
+        }
+        slider.doDrag = function (e) {
+            if (e.which != 1){
+                slider.stopDrag(e);
+                return;
+            }
+            slider.mousemove(e);
+        }
+        slider.stopDrag = function (e) {
+            document.getElementById("m-ovrl").style.display = 'none';
+            document.documentElement.removeEventListener('mousemove', slider.doDrag, false);
+            document.documentElement.removeEventListener('mouseup', slider.stopDrag, false);
+        }
+
     }
 
     // TODO remove when integrated into Eclipse
@@ -254,6 +291,7 @@ SPDX-License-Identifier: EPL-2.0
   </script>
 </head>
 <body onload="initSearchField();document.getElementById('focusByDefault').focus();addEvent(window, 'resize', updateContentFrameSize);init();">
+  <div id="m-ovrl"></div>
   <header id="m-header">
     <form id="f" class="f" action="/help/index.jsp" target="_top" method="GET" accept-charset="utf-8">
       <input type="hidden" name="tab" value="search">
@@ -263,6 +301,7 @@ SPDX-License-Identifier: EPL-2.0
     </form>
   </header>
   <div id="m-toc"></div>
+  <div id="m-slider"></div>
   <iframe id="m-content" name="m-content" onload="updateContentFrameSize()" frameborder="0" scrolling="no" allowfullscreen></iframe>
 </body>
 </html>

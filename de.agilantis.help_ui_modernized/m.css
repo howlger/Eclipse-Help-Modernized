@@ -30,23 +30,56 @@ iframe {
     overflow: hidden;
 }
 #m-content {
+    position: absolute;
     margin-left: 360px;
     padding: 0;
     float: left;
 }
 
-div#m-toc {
+#m-toc {
+    position: absolute;
     margin: 4px 0 0 -8px;
+    padding: 0;
+    float: left;
+    width: 344px; /* = 360px - slider width 16px */
     overflow-x: auto;
     overflow-y: hidden;
 }
-#m-toc {
-    margin: 1em 0;
-    padding: 0;
-    float: left;
-    width: 360px;
+#m-ovrl {
+    display: none;
+    z-index: 1;
     position: absolute;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    opacity: 0.5;
 }
+#m-slider {
+    z-index: 2;
+    position: absolute;
+    float: left;
+    width: 16px;
+    margin: 0 0 0 344px;
+    height: 80%;
+    cursor: e-resize;
+}
+#m-slider:before {
+    content: '\2022  \2022  \2022';
+    color: #fff;
+    width: 7px;
+    position: absolute;
+    top: 50%;
+    left: 5px;
+    font-weight: 300;
+    line-height: 12px;
+    font-size: 20px;
+    text-align: center;
+    margin-top: -15px;
+}
+#m-slider:hover {
+    background-color: #999;
+}
+
 #m-toc ul {
     margin: 0;
     padding: 0 0 0 8px;
@@ -70,14 +103,14 @@ div#m-toc {
     list-style: none;
     position: relative;
 }
-#m-toc span {
-
+#m-toc span, #m-slider {
     /* prevent text selection */
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none; /* otherwise in MS Edge a blinking text cursor will be shown */
-
+}
+#m-toc span {
     display: inline-block;
     position: absolute;
     top: -.05em;
