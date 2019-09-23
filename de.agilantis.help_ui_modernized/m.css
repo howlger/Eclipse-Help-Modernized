@@ -52,7 +52,6 @@ iframe {
     height: 100%;
     width: 100%;
     overflow: hidden;
-    opacity: 0.5;
 }
 #m-slider {
     z-index: 2;
