@@ -17,7 +17,7 @@ SPDX-License-Identifier: EPL-2.0
   <script type="text/javascript" src="m.js"></script>
   <script type="text/javascript">
     var tocWidth = 360;
-    var sliderWidth = 16;
+    var sliderWidth = 10;
     function h(a, c, d, e) {
         if (typeof _eh != 'undefined')
             _eh.h(a, '', true, d, c, e)
@@ -148,6 +148,7 @@ SPDX-License-Identifier: EPL-2.0
         var slider = document.getElementById("m-slider");
         slider.mousemove = function (e) {
             tocWidth = e.pageX + 8;
+            if (tocWidth < sliderWidth) tocWidth = sliderWidth;
             document.getElementById("m-sidebar").style.width = tocWidth + 'px';
             updateContentFrameSize();
         };
@@ -171,7 +172,11 @@ SPDX-License-Identifier: EPL-2.0
             document.documentElement.removeEventListener('mousemove', slider.doDrag, false);
             document.documentElement.removeEventListener('mouseup', slider.stopDrag, false);
         }
-
+        slider.ondblclick = function (e) {
+            tocWidth = -tocWidth;
+            document.getElementById("m-sidebar").style.width = (tocWidth < sliderWidth ? sliderWidth : tocWidth) + 'px';
+            updateContentFrameSize();
+        }
     }
 
     // TODO remove when integrated into Eclipse
