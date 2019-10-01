@@ -395,10 +395,12 @@
 //                           + encodeURIComponent(searchWord)
 //                           + (toc ? '&quickSearch=true&quickSearchType=QuickSearchToc&toc=' + encodeURIComponent(toc) : '')
 //                           + (href ? '&topic=' + encodeURIComponent(href)  : '');
-            document.getElementById('m-content').src = baseUrl
-                           + 'advanced/searchView.jsp?view=search&e=h&tab=search&searchWord='
-                           + encodeURIComponent(searchWord)
-                           + (toc ? '&quickSearch=true&quickSearchType=QuickSearchToc&toc=' + encodeURIComponent(toc) : '');
+            var query = getQuery();
+            document.getElementById('m-content').src = window.location.href.replace('/m.html', '/m_search.html')
+              + '?searchWord='
+              + query.replace(/(\&|$)/, '*$1')
+              + '&maxHits=500'
+              + (query.indexOf('&toc=') < 0 ? '' : '&quickSearch=true&quickSearchType=QuickSearchToc&showSearchCategories=false');
             hideProposals();
 
         }

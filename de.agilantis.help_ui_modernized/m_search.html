@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Search Results</title>
+  <link rel="stylesheet" type="text/css" href="m.css">
+  <script type="text/javascript">
+
+    ///////////////////////////////////////////////////////////////////////////
+    // copied functions from m.js
+    function createElement(parent, name, clazz, text) {
+        var element = document.createElement(name);
+        if (parent) {
+            parent.appendChild(element);
+        }
+        if (clazz) {
+            element.setAttribute('class', classPrefix + clazz);
+        }
+        if (text) {
+            element.appendChild(document.createTextNode(text));
+        }
+        return element;
+    }
+    var openRequest;
+    function remoteRequest(url, callbackFn, uncancelable) {
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+            if (request.readyState == 4 && request.status == 200)
+                callbackFn(request.responseText);
+        }
+        request.open('GET', url);
+        request.send();
+        if (openRequest && openRequest.abort) openRequest.abort();
+        if (!uncancelable) openRequest = request;
+    }
+    ///////////////////////////////////////////////////////////////////////////
+
+    function init() {
+        var href = window.location.href;
+        if (!href || href.indexOf('/m_search.html?') < 0) return;
+        function callback(data) {
+            var element = createElement(null, 'div');
+            var match = new RegExp('window.location.replace[^\\?]*\\?([^"]*)').exec(data);
+            if (match == null) return;
+            element.innerHTML = match[1].replace(/\\u([0-9A-F]{4})/g,'&#x$1;');
+            var lines = [(element.textContent ? element.textContent : element.innerText).replace(/\*(?=\&)|(^searchWord=)|(\&maxHits=.+$)/g,'')];
+            var pattern = new RegExp('<tr[^<]*<td[^<]*<img[^<]*</td[^<]*<td[^<]*<a\\s+(?:(?:class|id|title|onmouseover|onmouseout)\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*href="([^"]*)"(?:\\s+o\\w+="[^"]*")*\\s+title="([^"]*)"[^>]*>([^<]*)</a>(?:(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*</tr){1,2}(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*\\sclass=["\']description["\'][^>]*>([^<]*)', 'g');
+            for (; (match = pattern.exec(data)) != null;) {
+                var items = [];
+                for (var i = 1; i < 5; i++) {
+                    element.innerHTML = match[i];
+                    items.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
+                }
+                lines.push(items[2]);
+                lines.push(items[3]);
+                lines.push(items[0].substring(8));
+                lines.push(items[1]);
+            }
+            if (lines.length < 1) return;
+            //renderProposals(lines, true);
+
+            var results = document.getElementById("results");
+
+            // remove "Searching..."
+            while (results.firstChild) {
+                results.removeChild(results.firstChild);
+            }
+
+            // show results
+            for (var i = 1; i < lines.length-2; i+=4) {
+                var r = createElement(results, 'h4');
+                createElement(r, 'a', false, lines[i]).setAttribute('href', '../../topic' + lines[i+2]);
+                createElement(results, 'p', false, lines[i+1]);
+            }
+            parent.updateContentFrameSize();
+
+        }
+        var url = href.replace('/m_search.html?', '/../../advanced/searchView.jsp?');
+        remoteRequest(url, callback);
+    }
+  </script>
+</head>
+<body onLoad="init()">
+<div id="results"><p>Searching...</p></div>
+</body>
+</html>

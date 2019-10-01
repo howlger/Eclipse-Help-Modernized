@@ -136,6 +136,16 @@ aside {
 #m-toc a img {
     margin: 0 4px -2px -20px;
 }
+div#results {
+    margin: 1em;
+    padding: 0;
+}
+div#results h4 {
+    margin: 1em 0 .2em;
+}
+div#results p {
+    margin: .2em 0 1em;
+}
 
 
 /*******************************************************************************
