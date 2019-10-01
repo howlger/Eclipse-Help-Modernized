@@ -29,16 +29,16 @@ iframe {
     border: 0;
     overflow: hidden;
 }
-#m-main {
+main {
     display: table;
     table-layout: fixed;
     width: 100%;
 }
-#m-main .m-content {
+main .m-content {
     display: table-cell;
     width: *;
 }
-#m-sidebar {
+aside {
     display: table-cell;
     width: 360px;
     position: relative;

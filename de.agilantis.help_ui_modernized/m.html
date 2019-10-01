@@ -149,7 +149,7 @@ SPDX-License-Identifier: EPL-2.0
         slider.mousemove = function (e) {
             tocWidth = e.pageX + 8;
             if (tocWidth < sliderWidth) tocWidth = sliderWidth;
-            document.getElementById("m-sidebar").style.width = tocWidth + 'px';
+            document.getElementsByTagName('aside')[0].style.width = tocWidth + 'px';
             updateContentFrameSize();
         };
         slider.onmousedown = function (e) {
@@ -174,7 +174,7 @@ SPDX-License-Identifier: EPL-2.0
         }
         slider.ondblclick = function (e) {
             tocWidth = -tocWidth;
-            document.getElementById("m-sidebar").style.width = (tocWidth < sliderWidth ? sliderWidth : tocWidth) + 'px';
+            document.getElementsByTagName('aside')[0].style.width = (tocWidth < sliderWidth ? sliderWidth : tocWidth) + 'px';
             updateContentFrameSize();
         }
     }
@@ -300,14 +300,14 @@ SPDX-License-Identifier: EPL-2.0
       <input id="b" type="hidden" name="b" value="">
     </form>
   </header>
-  <div id="m-main">
-      <div id="m-sidebar">
-        <div id="m-toc"></div>
+  <main>
+      <aside>
+        <nav id="m-toc"></nav>
         <div id="m-slider"></div>
-      </div>
+      </aside>
       <div class="m-content">
         <iframe id="m-content" name="m-content" onload="updateContentFrameSize()" frameborder="0" scrolling="no" allowfullscreen></iframe>
       </div>
-  </div>
+  </main>
 </body>
 </html>
