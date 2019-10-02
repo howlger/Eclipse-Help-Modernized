@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Modernized Help UI (Prototype)
 Bundle-SymbolicName: de.agilantis.help_ui_modernized;singleton:=true
-Bundle-Version: 0.1.0.qualifier
+Bundle-Version: 0.2.0.qualifier
 Bundle-Vendor: Holger Voormann
 Automatic-Module-Name: de.agilantis.help_ui_modernized
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
