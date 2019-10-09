@@ -219,7 +219,7 @@ html, body {
  * content
  ******************************************************************************/
 .-ehe {
-    margin: 0 1em 0.5em 0;
+    margin: 0 0 0.5em 0;
 }
 .header, .content {
     z-index: 2;
@@ -287,43 +287,31 @@ html, body {
 
 .s {
     display: inline-block;
-    position: relative;
+    background: url("s.svg") center no-repeat;
+    width: 2em;
     height: 2em;
-    line-height: 1.8em;
-    vertical-align: bottom;
+    line-height: 1.5em;
+    vertical-align: top;
     outline: none;
-    margin: 0 0 0.5em 0;
-    color: #ffffff;
-    background: #a00145;
-    font-weight: bold;
     cursor: pointer;
-    border: 1px solid #b83e72;
-    border-radius: 3px;
+    border: 1px solid #dddddd;
     -webkit-appearance: none;
     box-sizing: border-box;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
+    margin-left: -4px;
+
 }
 .s::-moz-focus-inner {border:0;padding:0;}
 .tabs li a:hover {
     color: #333333;
 }
 .s:hover, .s:focus {
-    background: #6b012e;
-    background: -moz-linear-gradient(top,  #a00145 0%, #840138 100%);
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#a00145), color-stop(100%,#840138));
-    background: -webkit-linear-gradient(top,  #a00145 0%,#840138 100%);
-    background: -o-linear-gradient(top,  #a00145 0%,#840138 100%);
-    background: -ms-linear-gradient(top,  #a00145 0%,#840138 100%);
-    background: linear-gradient(to bottom,  #a00145 0%,#840138 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#a00145',endColorstr='#840138',GradientType=0);
-    border: 1px solid #993d66 !important;
-    -moz-box-shadow:    1px 1px 2px #dddddd;
-    -webkit-box-shadow: 1px 1px 2px #dddddd;
-    box-shadow:         1px 1px 2px rgba(0, 0, 0, 0.2), 0 0 5px rgba(236, 82, 149, 0.5);
+    background: url("s.svg") center no-repeat;
+    border: 1px solid #999999 !important;
 }
 .s:focus {
-    border: 1px solid #ffffff !important;
+    border: 1px solid #993d66 !important;
 }
 .content {
     background: #ffffff;
@@ -769,6 +757,7 @@ a:hover {
 }
 .-ehl {
     margin-left: -1px;
+    display: none;
 }
 .-ehm {
     -moz-box-sizing: border-box;
@@ -931,4 +920,10 @@ a:hover {
     border: 1px solid #999999;
     box-shadow:  0 2px 4px rgba(0, 0, 0, 0.2);
     z-index: 9;
+}
+@media screen and (max-width: 1000px) {
+  .s  {
+    float: none;
+    display: none;
+  }
 }
