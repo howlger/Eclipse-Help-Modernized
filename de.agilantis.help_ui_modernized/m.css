@@ -128,7 +128,6 @@ aside {
 #m-toc span {
     display: inline-block;
     position: absolute;
-    top: -.05em;
     left: -2px;
     cursor: pointer;
     animation: fly-left 3s ease-in forwards;
@@ -205,23 +204,15 @@ html, body, .header, .header h1, .footer p, .content, .footer {
     padding: 0;
 }
 html, body {
-    color: #000000;
-    font-family: Helvetica,Univers,Times,arial,sans-serif;
-    font-size: 13px;
-
-    /* use background image which is also displayed by Internet Explorer 8
-       instead of gradient which is not displayed by Internet Explorer 8 */
-    /*
-    background: #eeeeee url(data:image/gif;base64,R0lGODlhawIBAOMJAO7u7u/v7/Dw8PHx8fLy8vPz8/T09PX19fb29v///////////////////////////yH5BAEKAA8ALAAAAABrAgEAAARTkMhJi704Y8O7/98hjmRJImiqrmzrvqgpz3Rt3zOo73zv/zyNcEgsGo9EinLJbDqf0OhgSq1ar9isdsu9Cr7gsHhMLpvP6HFgzW673/C4fE5/AyIAOw==) repeat-y;
-    */
-    /* background: #f1f1f1;
-       background: -moz-linear-gradient(left,  #f2f2f2 0%, #f6f6f6 12%, #eeeeee 100%);
-       background: -webkit-gradient(linear, left top, right top, color-stop(0%,#f2f2f2), color-stop(12%,#f6f6f6), color-stop(100%,#eeeeee));
-       background: -webkit-linear-gradient(left,  #f2f2f2 0%,#f6f6f6 12%, #eeeeee 100%);
-       background: -o-linear-gradient(left,  #f2f2f2 0%, #f6f6f6 12%, #eeeeee 100%);
-       background: -ms-linear-gradient(left,  #f2f2f2 0%, #f6f6f6 12%, #eeeeee 100%);
-       background: linear-gradient(to right,  #f2f2f2 0%, #f6f6f6 12%, #eeeeee 100%); */
-    /* avoid 'filter' here, otherwise in IE8 the vertical scrollbar will ignore the menu with the proposals (DOC-2880) */
+    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #212529;
+    text-align: left;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
 }
 
 /*******************************************************************************
@@ -300,7 +291,6 @@ html, body {
     height: 2em;
     line-height: 1.8em;
     vertical-align: bottom;
-    font-family: Helvetica,Univers,Times,arial,sans-serif;
     outline: none;
     margin: 0 0 0.5em 0;
     color: #ffffff;
@@ -539,7 +529,6 @@ a:hover {
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
-    font-family: Helvetica,Univers,Times,arial,sans-serif;
     outline: none;
 }
 .-ehi:hover, .-eho:hover, .-ehl:hover, .-ehp:hover, .-ehs:hover {
@@ -686,7 +675,6 @@ a:hover {
     line-height: 1.8em;
     box-sizing: border-box;
     vertical-align: bottom;
-    font-family: Helvetica,Univers,Times,arial,sans-serif;
     outline: none;
     -moz-box-sizing: border-box;
     -webkit-box-sizing: border-box;
