@@ -61,28 +61,38 @@ aside {
 #m-slider {
     top: 0;
     right: 0;
-    width: 10px;
+    width: 12px;
     height: 100%;
-    opacity: 0.5;
     position: absolute;
     z-index: 2;
     cursor: e-resize;
 }
-#m-slider:before {
-    content: '\2022  \2022  \2022';
-    color: #fff;
-    width: 6px;
-    position: absolute;
+#m-slider div {
+    position: fixed;
     top: 50%;
-    left: 2px;
-    font-weight: 300;
-    line-height: 12px;
-    font-size: 20px;
-    text-align: center;
-    margin-top: -15px;
+    margin-top: 18px;
+    width: 12px;
+    height: 36px;
+    cursor: default;
 }
-#m-slider:hover {
-    background-color: #999;
+#m-slider:hover div, #m-slider.o div {
+    background-color: #a00145;
+}
+#m-slider div span {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 4px 4px 4px 0;
+    border-color: transparent #eee transparent transparent;
+    margin: 14px 4px;
+}
+#m-slider.o div span {
+    border-width: 4px 0 4px 4px;
+    border-color: transparent transparent transparent #eee;
+}
+#m-slider:hover, #m-slider.o {
+    background-color: #ccc;
 }
 
 #m-toc ul {

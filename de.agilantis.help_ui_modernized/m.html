@@ -17,7 +17,7 @@ SPDX-License-Identifier: EPL-2.0
   <script type="text/javascript" src="m.js"></script>
   <script type="text/javascript">
     var tocWidth = 360;
-    var sliderWidth = 10;
+    var sliderWidth = 12;
     function h(a, c, d, e) {
         if (typeof _eh != 'undefined')
             _eh.h(a, '', true, d, c, e)
@@ -149,7 +149,10 @@ SPDX-License-Identifier: EPL-2.0
         slider.mousemove = function (e) {
             tocWidth = e.pageX + 8;
             if (tocWidth < sliderWidth) tocWidth = sliderWidth;
-            document.getElementsByTagName('aside')[0].style.width = tocWidth + 'px';
+            var asideStyle = document.getElementsByTagName('aside')[0].style;
+            asideStyle.transition = '';
+            asideStyle.width = tocWidth + 'px';
+            document.getElementById("m-slider").setAttribute('class', '');
             updateContentFrameSize();
         };
         slider.onmousedown = function (e) {
@@ -172,11 +175,16 @@ SPDX-License-Identifier: EPL-2.0
             document.documentElement.removeEventListener('mousemove', slider.doDrag, false);
             document.documentElement.removeEventListener('mouseup', slider.stopDrag, false);
         }
-        slider.ondblclick = function (e) {
+        var toggle_toc = function (e) {
             tocWidth = -tocWidth;
-            document.getElementsByTagName('aside')[0].style.width = (tocWidth < sliderWidth ? sliderWidth : tocWidth) + 'px';
+            var asideStyle = document.getElementsByTagName('aside')[0].style;
+            asideStyle.transition = 'width .25s ease-in';
+            asideStyle.width = (tocWidth < sliderWidth ? sliderWidth : tocWidth) + 'px';
+            document.getElementById("m-slider").setAttribute('class', tocWidth < sliderWidth ? 'o' : '');
             updateContentFrameSize();
         }
+        slider.ondblclick = toggle_toc;
+        document.getElementById("m-slider_").onclick = toggle_toc;
     }
 
     // TODO remove when integrated into Eclipse
@@ -303,7 +311,7 @@ SPDX-License-Identifier: EPL-2.0
   <main>
       <aside>
         <nav id="m-toc"></nav>
-        <div id="m-slider"></div>
+        <div id="m-slider"><div id="m-slider_"><span></span></div></div>
       </aside>
       <div class="m-content">
         <iframe id="m-content" name="m-content" onload="updateContentFrameSize()" frameborder="0" scrolling="no" allowfullscreen></iframe>
