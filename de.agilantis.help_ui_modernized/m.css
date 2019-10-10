@@ -964,4 +964,13 @@ a:hover {
     float: none;
     display: none;
   }
+  header {
+    height: 85px;
+    min-height: 85px;
+
+  }
+  .-ehp, .-ehq {
+    display: block;
+    width: 100%;
+  }
 }
