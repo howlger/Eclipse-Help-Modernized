@@ -301,7 +301,7 @@ SPDX-License-Identifier: EPL-2.0
 </head>
 <body onload="initSearchField();document.getElementById('focusByDefault').focus();addEvent(window, 'resize', updateContentFrameSize);init();">
   <div id="m-ovrl"></div>
-  <header id="m-header">
+  <header>
     <div id="logo">
        <a href="m.html" title="Home"><img src="logo.svg" alt="Home"></a>
     </div>
@@ -311,6 +311,14 @@ SPDX-License-Identifier: EPL-2.0
       <input class="s" type="submit" value="">
       <input id="b" type="hidden" name="b" value="">
     </form>
+    <div id="dropdown">
+        <span id="hamburger"></span>
+        <div id="dropdown-content">
+            <a href="#" onclick="window.print();">Print</a> <a
+                href="../com.verigy.itee.help.smartest.ui.8.3.1/244454.htm">Help</a>
+            <a href="#">About</a>
+        </div>
+    </div>
   </header>
   <main>
       <aside>

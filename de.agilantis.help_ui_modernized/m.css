@@ -19,6 +19,8 @@ header {
     height: 60px;
     min-height: 60px;
     text-align: center;
+    display: flex;
+    justify-content: space-between;
 }
 #m-b {
     text-align: left;
@@ -92,7 +94,7 @@ aside {
     border-color: transparent transparent transparent #eee;
 }
 #m-slider:hover, #m-slider.o {
-    background-color: #ccc;
+    background-color: #343a40;
 }
 
 #m-toc ul {
@@ -197,7 +199,7 @@ div#results p {
 /*******************************************************************************
  * page
  ******************************************************************************/
-html, body, .header, .header h1, .footer p, .content, .footer {
+html, body, .footer p, .content, .footer {
     border: 0 none;
     border-collapse: collapse;
     margin: 0;
@@ -221,27 +223,14 @@ html, body {
 .-ehe {
     margin: 0 0 0.5em 0;
 }
-.header, .content {
+.content {
     z-index: 2;
 }
 
-.header h1, .footer p {
+.footer p {
     font-size: 1em;
     padding: 0 0.5em 0 1.5em;
     line-height: 2em;
-}
-.header {
-    color: #ffffff;
-    text-shadow: 0 1px 0 #333333;
-    background: #aa0148;
-    background: -moz-linear-gradient(left, #750131 0%, #aa0148 100%);
-    background: -webkit-gradient(linear, left top, right top, color-stop(0%,#750131), color-stop(100%,#aa0148));
-    background: -webkit-linear-gradient(left, #750131 0%, #aa0148 100%);
-    background: -o-linear-gradient(left, #750131 0%, #aa0148 100%);
-    background: -ms-linear-gradient(left, #750131 0%, #aa0148 100%);
-    background: linear-gradient(to right, #750131 0%, #aa0148 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#750131',endColorstr='#aa0148',GradientType=1)
-            progid:DXImageTransform.Microsoft.Shadow(color='#e4e4e4', Direction=180, Strength=3);
 }
 
 .smt8logo {
@@ -287,7 +276,7 @@ html, body {
     vertical-align: top;
     outline: none;
     cursor: pointer;
-    border: 1px solid #dddddd;
+    border: 0;
     -webkit-appearance: none;
     box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -306,6 +295,58 @@ html, body {
 .s:focus {
     border: 1px solid #993d66 !important;
 }
+
+#dropdown {
+  float: right;
+  position: relative;
+  margin: 1em;
+}
+#dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #343a40;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+#dropdown-content a {
+  color: white;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+#dropdown-content a:hover {
+  color: black;
+  text-decoration: none;
+  background-color: #ddd;
+}
+#dropdown:hover #dropdown-content {
+    display: block;
+    left:auto;
+    right:0;
+    margin-right:-10px;
+}
+
+/* https://superdevresources.com/css-hamburger-menu/ */
+#hamburger {
+    position: relative;
+    display: inline-block;
+    width: 1.25em;
+    height: 0.8em;
+    margin-right: 0.3em;
+    border-top: 0.2em solid #fff;
+    border-bottom: 0.2em solid #fff;
+}
+#hamburger:before {
+    content: "";
+    position: absolute;
+    top: 0.3em;
+    left: 0px;
+    width: 100%;
+    border-top: 0.2em solid #fff;
+}
+
+
 .content {
     background: #ffffff;
     border-top: 1px solid #d6d6d6;
