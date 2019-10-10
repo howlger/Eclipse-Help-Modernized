@@ -15,8 +15,7 @@ html, body {
 }
 
 header {
-    background-color: #eee;
-/*     padding: 4px; */
+    background-color: #343a40 !important;
     height: 60px;
     min-height: 60px;
     text-align: center;
@@ -281,7 +280,7 @@ html, body {
 
 .s {
     display: inline-block;
-    background: url("s.svg") center no-repeat;
+    background: #ffffff url("s.svg") center no-repeat;
     width: 2em;
     height: 2em;
     line-height: 1.5em;
@@ -301,7 +300,7 @@ html, body {
     color: #333333;
 }
 .s:hover, .s:focus {
-    background: url("s.svg") center no-repeat;
+    background: #ffffff url("s_h.svg") center no-repeat;
     border: 1px solid #999999 !important;
 }
 .s:focus {
