@@ -16,9 +16,10 @@ html, body {
 
 header {
     background-color: #eee;
-    padding: 4px;
+/*     padding: 4px; */
+    height: 60px;
+    min-height: 60px;
     text-align: center;
-    box-shadow: inset 0 -1px 3px rgba(0,0,0,0.08);
 }
 #m-b {
     text-align: left;
@@ -223,20 +224,6 @@ html, body {
 }
 .header, .content {
     z-index: 2;
-/* because of issues in Internet Explorer 8 use background image as shadows (see
-/* below) instead of box-shadow/filter (see next 2 lines): */
-/*     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
-/*     filter: progid:DXImageTransform.Microsoft.Shadow(color='#e4e4e4', Direction=180, Strength=3); */
-}
-/* shadows */
-#f {
-    background: url(data:image/gif;base64,R0lGODlhAQACAIAAAMfHx+jo6CH5BAAAAAAALAAAAAABAAIAAAICRAoAOw==) repeat-x;
-}
-.footer {
-    background: url(data:image/gif;base64,R0lGODlhAQACAIAAAN3d3ezs7CH5BAAAAAAALAAAAAABAAIAAAICRAoAOw==) repeat-x;
-}
-.tabs {
-    background: url(data:image/gif;base64,R0lGODlhAQACAIAAAOjo6Ozs7CH5BAAAAAAALAAAAAABAAIAAAICDAoAOw==) bottom repeat-x;
 }
 
 .header h1, .footer p {
@@ -279,6 +266,13 @@ html, body {
 }
 .footer a:hover {
     color: #000000;
+}
+
+#logo {
+  float: left;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0.3em 0 0.3em 0.6em;
 }
 
 .f {
@@ -923,6 +917,10 @@ a:hover {
 }
 @media screen and (max-width: 1000px) {
   .s  {
+    float: none;
+    display: none;
+  }
+  #logo  {
     float: none;
     display: none;
   }
