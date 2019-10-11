@@ -7,6 +7,8 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
+
+/* desktop styles */
 html, body {
     margin: 0;
     padding: 0;
@@ -20,8 +22,10 @@ header {
     min-height: 60px;
     text-align: center;
     display: flex;
+    flex-direction: row;
     justify-content: space-between;
 }
+
 #m-b {
     text-align: left;
     background-color: #fff;
@@ -69,6 +73,7 @@ aside {
     z-index: 2;
     cursor: e-resize;
 }
+
 #m-slider div {
     position: fixed;
     top: 50%;
@@ -120,6 +125,15 @@ aside {
     list-style: none;
     position: relative;
 }
+
+/*
+#m-toc li > a:hover {
+    background: #e8f2fe;
+    width: 100%;
+    height: 100%;
+}
+*/
+
 #m-toc span, #m-slider {
     /* prevent text selection */
     user-select: none;
@@ -206,16 +220,15 @@ html, body, .footer p, .content, .footer {
     padding: 0;
 }
 html, body {
-    font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Lucida Grande", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     font-size: 1rem;
     font-weight: 400;
     line-height: 1.5;
     color: #212529;
     text-align: left;
     background-color: #fff;
-    display: flex;
-    flex-direction: column;
 }
+
 
 /*******************************************************************************
  * content
@@ -257,8 +270,6 @@ html, body {
 }
 
 #logo {
-  float: left;
-  display: inline-block;
   vertical-align: middle;
   margin: 0.3em 0 0.3em 0.6em;
 }
@@ -303,6 +314,7 @@ html, body {
 }
 #dropdown-content {
   display: none;
+  text-align: left;
   position: absolute;
   background-color: #343a40;
   min-width: 160px;
@@ -955,22 +967,45 @@ a:hover {
     box-shadow:  0 2px 4px rgba(0, 0, 0, 0.2);
     z-index: 9;
 }
-@media screen and (max-width: 1000px) {
+
+/* print styles */
+@media print only {
+  aside { display: none; }
+}
+
+/* large tablet styles */
+@media screen and (max-width: 991px) {
+
+}
+
+/* medium tablet styles */
+@media screen and (max-width: 767px) {
   .s  {
-    float: none;
     display: none;
   }
   #logo  {
-    float: none;
     display: none;
   }
   header {
     height: 85px;
     min-height: 85px;
-
   }
   .-ehp, .-ehq {
     display: block;
     width: 100%;
+  }
+}
+
+/* phone styles */
+@media screen and (max-width: 479px) {
+  .s  {
+    display: none;
+  }
+  #logo  {
+    display: none;
+  }
+  header {
+    height: 85px;
+    min-height: 85px;
   }
 }

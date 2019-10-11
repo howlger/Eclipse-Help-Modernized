@@ -15,6 +15,7 @@ SPDX-License-Identifier: EPL-2.0
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <title>Help</title>
   <link rel="stylesheet" type="text/css" href="m.css">
+  <link rel="stylesheet" type="text/css" media="print" href="m_print.css">
   <script type="text/javascript" src="m.js"></script>
   <script type="text/javascript">
     var tocWidth = 360;
@@ -61,7 +62,8 @@ SPDX-License-Identifier: EPL-2.0
             contentFrame.width  = (widthMinRequired > widthAvailable ? widthMinRequired : widthAvailable) + 'px';
             contentFrame.height = contentFrameDocumentElement.scrollHeight + 'px';
         }
-
+        // add cursor in search field
+        document.getElementById('focusByDefault').focus();
     }
     function initContentFrame() {
         updateContentFrameSize();
@@ -299,7 +301,7 @@ SPDX-License-Identifier: EPL-2.0
     }
   </script>
 </head>
-<body onload="initSearchField();document.getElementById('focusByDefault').focus();addEvent(window, 'resize', updateContentFrameSize);init();">
+<body onload="initSearchField();addEvent(window, 'resize', updateContentFrameSize);init();">
   <div id="m-ovrl"></div>
   <header>
     <div id="logo">
@@ -314,9 +316,10 @@ SPDX-License-Identifier: EPL-2.0
     <div id="dropdown">
         <span id="hamburger"></span>
         <div id="dropdown-content">
-            <a href="#" onclick="window.print();">Print</a> <a
-                href="../com.verigy.itee.help.smartest.ui.8.3.1/244454.htm">Help</a>
-            <a href="#">About</a>
+            <a href="#" title="Print selected topic" onclick="window.print();">Print topic</a>
+            <a href="#" title="Print selected topic and its subtopics">Print section</a>
+            <a href="../com.verigy.itee.help.smartest.ui.8.3.1/244454.htm" title="How to use the help viewer">Help</a>
+            <a href="#" title="Details on the help viewer">About</a>
         </div>
     </div>
   </header>
