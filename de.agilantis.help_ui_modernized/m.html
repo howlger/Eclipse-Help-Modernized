@@ -133,6 +133,7 @@ SPDX-License-Identifier: EPL-2.0
         // load TOC
         var callbackFn = function(responseText) {
             var start = responseText.indexOf('title="Topic View" src=\'');
+
             if( start > 0) {
                 var end = responseText.indexOf("'", start + 24);
                 document.getElementById('m-content').src = '../' + responseText.substring(start + 24, end).replace(/&#47;/g, '/').replace(/&#46;/g, '.');
@@ -210,6 +211,7 @@ SPDX-License-Identifier: EPL-2.0
     }
 
     function loadTocChildren(item, toc, path) {
+        console.log("toc " + toc);
         var callbackFn = function(responseText) {
             showLoadedTocChildren(item, parseXml(responseText), toc, path);
         }
@@ -302,37 +304,42 @@ SPDX-License-Identifier: EPL-2.0
   </script>
 </head>
 <body onload="initSearchField();addEvent(window, 'resize', updateContentFrameSize);init();">
-  <div id="m-ovrl"></div>
-  <header>
-    <div id="logo">
-       <a href="m.html" title="Home"><img src="logo.svg" alt="Home"></a>
-    </div>
-    <form id="f" class="f" action="/help/index.jsp" target="_top" method="GET" accept-charset="utf-8">
-      <input type="hidden" name="tab" value="search">
-      <input id="focusByDefault" name="searchWord"
-      alt="&#42; &#61; any string&#44; &#63; &#61; any character&#44; &#34;&#34; &#61; phrase&#44; AND&#44; OR&#44; NOT &#61; boolean operators "
-      title="&#42; &#61; any string&#44; &#63; &#61; any character&#44; &#34;&#34; &#61; phrase&#44; AND&#44; OR&#44; NOT &#61; boolean operators ">
-      <input class="s" type="submit" value="">
-      <input id="b" type="hidden" name="b" value="">
-    </form>
-    <div id="dropdown">
-        <span id="hamburger"></span>
-        <div id="dropdown-content">
-            <a href="#" title="Print selected topic" onclick="window.print();">Print topic</a>
-            <a href="#" title="Print selected topic and its subtopics">Print section</a>
-            <a href="../com.verigy.itee.help.smartest.ui.8.3.1/244454.htm" title="How to use the help viewer">Help</a>
-            <a href="#" title="Details on the help viewer">About</a>
+  <div id="container">
+      <div id="m-ovrl"></div>
+      <header>
+        <div id="logo">
+            <a href="m.html" title="Home"><img src="logo.svg" alt="Home"></a>
         </div>
+        <div id="search">
+            <form id="f" class="f" action="/help/index.jsp" target="_top" method="GET" accept-charset="utf-8">
+              <input type="hidden" name="tab" value="search">
+              <input id="focusByDefault" name="searchWord"
+              alt="&#42; &#61; any string&#44; &#63; &#61; any character&#44; &#34;&#34; &#61; phrase&#44; AND&#44; OR&#44; NOT &#61; boolean operators "
+              title="&#42; &#61; any string&#44; &#63; &#61; any character&#44; &#34;&#34; &#61; phrase&#44; AND&#44; OR&#44; NOT &#61; boolean operators ">
+              <input class="s" type="submit" value="">
+              <input id="b" type="hidden" name="b" value="">
+            </form>
+        </div>
+        <div id="menu">
+            <span id="hamburger"></span>
+            <div id="menu-content">
+                <a href="#" title="Print selected topic" onclick="window.print();">Print topic</a>
+                <a href="#" title="Print selected topic and its subtopics">Print section</a>
+                <a href="../com.verigy.itee.help.smartest.ui.8.3.1/244454.htm" title="How to use the help viewer">Help</a>
+                <a href="#" title="Details on the help viewer">About</a>
+            </div>
+        </div>
+      </header>
+      <main>
+          <aside>
+            <nav id="m-toc"></nav>
+            <div id="m-slider"><div id="m-slider_"><span></span></div></div>
+          </aside>
+          <div class="m-content">
+            <iframe id="m-content" name="m-content" onload="updateContentFrameSize()" frameborder="0" scrolling="no" allowfullscreen></iframe>
+          </div>
+      </main>
+      <footer><p></p></footer>
     </div>
-  </header>
-  <main>
-      <aside>
-        <nav id="m-toc"></nav>
-        <div id="m-slider"><div id="m-slider_"><span></span></div></div>
-      </aside>
-      <div class="m-content">
-        <iframe id="m-content" name="m-content" onload="updateContentFrameSize()" frameborder="0" scrolling="no" allowfullscreen></iframe>
-      </div>
-  </main>
 </body>
 </html>
