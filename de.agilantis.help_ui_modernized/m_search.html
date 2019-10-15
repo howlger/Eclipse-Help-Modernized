@@ -7,8 +7,17 @@
   <link rel="stylesheet" type="text/css" href="m.css">
   <script type="text/javascript">
 
+    var classPrefix = '';
     ///////////////////////////////////////////////////////////////////////////
     // copied functions from m.js
+    function preventDefault(e) {
+        e = e || window.event;
+        e.returnValue = false; if (e.preventDefault) e.preventDefault();
+    }
+    function stopPropagation(e) {
+        e = e || window.event;
+        e.cancelBubble = true; if (e.stopPropagation) e.stopPropagation();
+    }
     function createElement(parent, name, clazz, text) {
         var element = document.createElement(name);
         if (parent) {
@@ -34,6 +43,29 @@
         if (openRequest && openRequest.abort) openRequest.abort();
         if (!uncancelable) openRequest = request;
     }
+    function addHighlightedText(element, text, searchWord) {
+        var searchWordLowerCase = searchWord.toLowerCase();
+        var textLowerCase = text.toLowerCase();
+        var hIndex = textLowerCase.indexOf(searchWordLowerCase);
+        if (hIndex < 0) {
+            element.appendChild(document.createTextNode(text));
+            return;
+        }
+
+        var lastEnd = 0;
+        while (hIndex >=0) {
+            element.appendChild(document.createTextNode(text.substring(lastEnd, hIndex)));
+            lastEnd = hIndex + searchWord.length;
+            if (   hIndex == 0
+                || text.substring(hIndex - 1, hIndex).replace(/\w/, "").length != 0) {
+                createElement(element, 'strong', false, text.substring(hIndex, lastEnd));
+            } else {
+                element.appendChild(document.createTextNode(text.substring(hIndex, lastEnd)));
+            }
+            hIndex = textLowerCase.indexOf(searchWordLowerCase, lastEnd);
+        }
+        element.appendChild(document.createTextNode(text.substring(lastEnd)));
+    }
     ///////////////////////////////////////////////////////////////////////////
 
     function init() {
@@ -45,35 +77,80 @@
             if (match == null) return;
             element.innerHTML = match[1].replace(/\\u([0-9A-F]{4})/g,'&#x$1;');
             var lines = [(element.textContent ? element.textContent : element.innerText).replace(/\*(?=\&)|(^searchWord=)|(\&maxHits=.+$)/g,'')];
-            var pattern = new RegExp('<tr[^<]*<td[^<]*<img[^<]*</td[^<]*<td[^<]*<a\\s+(?:(?:class|id|title|onmouseover|onmouseout)\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*href="([^"]*)"(?:\\s+o\\w+="[^"]*")*\\s+title="([^"]*)"[^>]*>([^<]*)</a>(?:(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*</tr){1,2}(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*\\sclass=["\']description["\'][^>]*>([^<]*)', 'g');
+            var pattern = new RegExp('<tr[^<]*<td[^<]*<img[^<]*</td[^<]*<td[^<]*<a\\s+(?:(?:class|id|title|onmouseover|onmouseout)\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*href="([^"]*)"(?:\\s+o\\w+="[^"]*")*\\s+title="([^"]*)"[^>]*>([^<]*)</a>(?:(?:(?!<[/]?tr)[\\s\\S])*</tr\\s*>\\s*<tr(?:(?!</tr)(?!class="location">)[\\s\\S])*class="location">((?:(?!</div)[\\s\\S])*))?(?:(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*</tr){1,2}(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*\\sclass=["\']description["\'][^>]*>([^<]*)', 'g');
             for (; (match = pattern.exec(data)) != null;) {
                 var items = [];
-                for (var i = 1; i < 5; i++) {
+                for (var i = 1; i < 6; i++) {
                     element.innerHTML = match[i];
                     items.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
                 }
                 lines.push(items[2]);
-                lines.push(items[3]);
+                lines.push(items[4] ? items[4] : items[3]);
                 lines.push(items[0].substring(8));
                 lines.push(items[1]);
+                var breadcrumb = [];
+                if (match[4]) {
+                    var breadcrumbPattern = new RegExp('<a\\s+href="([^"]+)">([^<]+)</a>', 'g');
+                    for (; (breadcrumbMatch = breadcrumbPattern.exec(match[4])) != null;) {
+                        for (var i = 1; i < 3; i++) {
+                            element.innerHTML = breadcrumbMatch[i];
+                            breadcrumb.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
+                        }
+                    }
+                }
+                lines.push(breadcrumb);
             }
             if (lines.length < 1) return;
-            //renderProposals(lines, true);
 
-            var results = document.getElementById("results");
+            // search word(s)
+            var searchWord = lines[0].indexOf('&') < 0
+                             ? lines[0]
+                             : lines[0].substr(0, lines[0].indexOf('&'));
+            searchWord = decodeURIComponent(searchWord.replace(/\+/g, '%20'));
+
 
             // remove "Searching..."
+            var results = document.getElementById("results");
             while (results.firstChild) {
                 results.removeChild(results.firstChild);
             }
 
+
             // show results
-            for (var i = 1; i < lines.length-2; i+=4) {
-                var r = createElement(results, 'h4');
-                createElement(r, 'a', false, lines[i]).setAttribute('href', '../../topic' + lines[i+2]);
-                createElement(results, 'p', false, lines[i+1]);
+            if (lines.length > 1) {
+                createElement(results, 'div', 'stats', ((lines.length - 1) / 5) + ' results:');
+            } else {
+                var noResults = createElement(results, 'div', 'no-results', 'No topics found containing ');
+                createElement(noResults, 'strong', false, searchWord);
             }
-            parent.updateContentFrameSize();
+            var rl = createElement(results, 'ul');
+            for (var i = 1; i < lines.length-4; i+=5) {
+                var r = createElement(rl, 'li');
+                r.onmouseup = r.ontouchend = function(a, b) {return function(e) {preventDefault(e); if (!a.canceled && (e.button == undefined || e.button == 0)) {location = b}}}(r, '../../topic' + lines[i+2]);
+
+                // breadcrumb (if available)
+                if (lines[i+4].length > 0) {
+                    rb = createElement(r, 'div');
+                    for (var j = 0; j < lines[i+4].length-1; j+=2) {
+                        rbi = createElement(rb, 'span');
+                        rbia = createElement(rbi, 'a');
+                        rbia.setAttribute('href', '../../topic/' + lines[i+4][j]);
+                        addHighlightedText(rbia, lines[i+4][j+1], searchWord);
+                        if (j < lines[i+4].length-2) createElement(rbi, 'span', false, ' > ');
+                    }
+                }
+
+                // title (linked)
+                var rt = createElement(r, 'h4');
+                var ra = createElement(rt, 'a', false);
+                ra.setAttribute('href', '../../topic' + lines[i+2]);
+                addHighlightedText(ra, lines[i], searchWord);
+
+                // description
+                var rd = createElement(r, 'p', false, lines[i+1]);
+                addHighlightedText(rd, lines[i+1], searchWord);
+            }
+            if (parent && parent.updateContentFrameSize) parent.updateContentFrameSize();
 
         }
         var url = href.replace('/m_search.html?', '/../../advanced/searchView.jsp?');

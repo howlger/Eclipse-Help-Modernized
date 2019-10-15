@@ -177,12 +177,41 @@ aside {
 div#results {
     margin: 1em;
     padding: 0;
+    border: 0;
 }
-div#results h4 {
-    margin: 1em 0 .2em;
+div#results .stats {
+    font-size: 75%;
+    color: #999;
+    margin-bottom: 1em;
 }
-div#results p {
-    margin: .2em 0 1em;
+div#results ul {
+    display: block;
+    padding: 0;
+    margin: 0;
+    list-style: none outside none;
+    max-width: 800px;
+}
+div#results li {
+    display: block;
+    text-align: left;
+    white-space: normal;
+    list-style: none outside none;
+}
+div#results li:hover {
+    background: #e8f2fe;
+}
+div#results li div {
+    font-size: 75%;
+}
+div#results li div, div#results li div a {
+    color: #009933;
+}
+div#results li h4, div#results li h4 a {
+    color: #1122cc;
+    font-weight: normal;
+}
+div#results li p {
+    margin: 0 0 1em;
 }
 
 
