@@ -211,7 +211,6 @@ SPDX-License-Identifier: EPL-2.0
     }
 
     function loadTocChildren(item, toc, path) {
-        console.log("toc " + toc);
         var callbackFn = function(responseText) {
             showLoadedTocChildren(item, parseXml(responseText), toc, path);
         }
@@ -301,14 +300,51 @@ SPDX-License-Identifier: EPL-2.0
         }
         loadTocChildren(li, toc, path);
     }
+
+
+    function printContent()
+    {
+        var content = document.getElementById('m-content');
+        try {
+            orgTitle = document.title;
+            document.title=content.contentDocument.title;
+            window.print();
+            // Reset the title again to the original value
+            document.title=orgTitle;
+        } catch(e) {}
+    }
+
+    function printSection() {
+/* TODO
+        var content = document.getElementById('m-content');
+        document.title=content.contentDocument.title;
+        var url = contentFrame.contentWindow.document.location.href;
+        var topic = window.location.href;
+        console.log("url " + url);
+
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+            if (request.readyState == 4 && request.status == 200)
+                callbackFn(request.responseText);
+        }
+        request.open('GET', '../../advanced/print.jsp?topic=' + path);
+        request.send();
+*/
+    }
+
   </script>
 </head>
 <body onload="initSearchField();addEvent(window, 'resize', updateContentFrameSize);init();">
   <div id="container">
       <div id="m-ovrl"></div>
       <header>
-        <div id="logo">
-            <a href="m.html" title="Home"><img src="logo.svg" alt="Home"></a>
+        <div id="home">
+            <a href="m.html" title="Home">
+                <!-- Dummy -->
+<!--                 <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCA0MDcuMjAxIDI1MC4zNCIgb3ZlcmZsb3c9InZpc2libGUiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDQ4IDQ4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgIDxtZXRhZGF0YT4KICAgICAgICAKICAgICAgICAKICAgIDxyZGY6UkRGPjxjYzpXb3JrIHJkZjphYm91dD0iIj48ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD48ZGM6dHlwZSByZGY6cmVzb3VyY2U9Imh0dHA6Ly9wdXJsLm9yZy9kYy9kY21pdHlwZS9TdGlsbEltYWdlIi8+PGRjOnRpdGxlLz48L2NjOldvcms+PC9yZGY6UkRGPjwvbWV0YWRhdGE+CgoKPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTIxLjYyIC0yODEuMjkpIj48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLjMzMzMgMCAwIC0xLjMzMzMgLTgzLjkyNSAyODcuNDEpIj48cGF0aCBkPSJtMCAwaC05LjYzOGMtMC41ODMgMC0xLjMyNy0wLjM5Ni0xLjY1MS0wLjg4bC0xNi44MjctMjUuMDYzYy0wLjMyNC0wLjQ4Ny0wLjExMy0wLjg4MSAwLjQ2OS0wLjg4MWgxNC42NjljMC41ODQgMCAxLjMyOCAwLjM5NCAxLjY1NyAwLjg3NyAwIDAgMi43MjEgMy45MiAzLjA1NyA0LjQ0NyAwLjMzNCAwLjUyNyAwLjMyNCAxLjM4LTAuNDc5IDEuMzhoLTYuMTQ2bDcuODg5IDExLjY5N3YtMTcuMzQzYzAtMC41ODIgMC40NzctMS4wNTggMS4wNjItMS4wNThoNS45MzhjMC41ODEgMCAxLjA2MiAwLjQ3NiAxLjA2MiAxLjA1OHYyNC43MDVjMCAwLjU4NC0wLjQ4MSAxLjA2MS0xLjA2MiAxLjA2MSIgZmlsbD0iIzg4MDQzNiIvPjwvZz48L2c+PGc+PHN3aXRjaCB0cmFuc2Zvcm09Im1hdHJpeCguMDg3MjE1IDAgMCAuMDg3MjE1IDEyLjUxMSAxMy4xNzkpIj4KICAgICAgICA8Zm9yZWlnbk9iamVjdCB3aWR0aD0iMSIgaGVpZ2h0PSIxIiByZXF1aXJlZEV4dGVuc2lvbnM9Imh0dHA6Ly9ucy5hZG9iZS5jb20vQWRvYmVJbGx1c3RyYXRvci8xMC4wLyI+CiAgICAgICAgICAgIAogICAgICAgIDwvZm9yZWlnbk9iamVjdD4KICAgICAgICA8Zz4KICAgICAgICAgICAgPGcgc3Ryb2tlPSIjOGM4YzhjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1taXRlcmxpbWl0PSI3IiBzdHJva2Utd2lkdGg9IjQiPgoKICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJtMjM4LjEzIDc3LjctMTU4LjY2LTQ1LjgxNy03Ny40NzEgMTgwLjQxIDE2OS42IDM2LjA1IiBlbmFibGUtYmFja2dyb3VuZD0ibmV3ICAgICIgZmlsbD0iI2UxZTBlMCIvPgoKICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJtMTcxLjYgMjQ4LjM0aDE3My4zOWw2MC4yMS0xNzAuNjRoLTE2Ny4wNyIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAgICAiIGZpbGw9IiNjNmM2YzYiLz4KCiAgICAgICAgICAgICAgICAgICAgPHBhdGggZD0ibTE3MS42IDI0OC4zNCAxNTguNDItMjguNzM1IDYxLjExNS0xNzAuNTktMTUzIDI4LjY4OXoiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgICAgIiBmaWxsPSIjZGJkYWQ5Ii8+CgogICAgICAgICAgICAgICAgICAgIDxwYXRoIGQ9Im0xNzEuNiAyNDguMzQgMTQzLjQ0LTYxLjQ3IDYyLjQxMy0xNzEuNDUtMTM5LjMyIDYyLjI4MXoiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgICAgIiBmaWxsPSIjZjZmNmY1Ii8+CgogICAgICAgICAgICAgICAgICAgIDxwYXRoIGQ9Ik0gMTcxLjYwMSwyNDguMzQgNSwxNzUuMzA4IDc5LjkwNywyIDIzOC4xMzEsNzcuNyBaIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3ICAgICIgZmlsbD0iI2ZmZiIvPgogICAgICAgICAgICA8L2c+CiAgICAgICAgPC9nPgogICAgPC9zd2l0Y2g+PC9nPjwvc3ZnPgo="/> -->
+                <!-- Advantest -->
+                <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCA0MDcuMjAxIDI1MC4zNCIgb3ZlcmZsb3c9InZpc2libGUiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDQ4IDQ4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgIDxtZXRhZGF0YT4KICAgICAgICAKICAgICAgICAKICAgIDxyZGY6UkRGPjxjYzpXb3JrIHJkZjphYm91dD0iIj48ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD48ZGM6dHlwZSByZGY6cmVzb3VyY2U9Imh0dHA6Ly9wdXJsLm9yZy9kYy9kY21pdHlwZS9TdGlsbEltYWdlIi8+PGRjOnRpdGxlLz48L2NjOldvcms+PC9yZGY6UkRGPjwvbWV0YWRhdGE+CgoKPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTIxLjYyIC0yODEuMjkpIj48ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLjMzMzMgMCAwIC0xLjMzMzMgLTgzLjkyNSAyODcuNDEpIj48cGF0aCBkPSJtMCAwaC05LjYzOGMtMC41ODMgMC0xLjMyNy0wLjM5Ni0xLjY1MS0wLjg4bC0xNi44MjctMjUuMDYzYy0wLjMyNC0wLjQ4Ny0wLjExMy0wLjg4MSAwLjQ2OS0wLjg4MWgxNC42NjljMC41ODQgMCAxLjMyOCAwLjM5NCAxLjY1NyAwLjg3NyAwIDAgMi43MjEgMy45MiAzLjA1NyA0LjQ0NyAwLjMzNCAwLjUyNyAwLjMyNCAxLjM4LTAuNDc5IDEuMzhoLTYuMTQ2bDcuODg5IDExLjY5N3YtMTcuMzQzYzAtMC41ODIgMC40NzctMS4wNTggMS4wNjItMS4wNThoNS45MzhjMC41ODEgMCAxLjA2MiAwLjQ3NiAxLjA2MiAxLjA1OHYyNC43MDVjMCAwLjU4NC0wLjQ4MSAxLjA2MS0xLjA2MiAxLjA2MSIgZmlsbD0iIzg4MDQzNiIvPjwvZz48L2c+PGc+PHN3aXRjaCB0cmFuc2Zvcm09Im1hdHJpeCguMDg3MjE1IDAgMCAuMDg3MjE1IDEyLjUxMSAxMy4xNzkpIj4KICAgICAgICA8Zm9yZWlnbk9iamVjdCB3aWR0aD0iMSIgaGVpZ2h0PSIxIiByZXF1aXJlZEV4dGVuc2lvbnM9Imh0dHA6Ly9ucy5hZG9iZS5jb20vQWRvYmVJbGx1c3RyYXRvci8xMC4wLyI+CiAgICAgICAgICAgIAogICAgICAgIDwvZm9yZWlnbk9iamVjdD4KICAgICAgICA8Zz4KICAgICAgICAgICAgPGcgc3Ryb2tlPSIjOGM4YzhjIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1taXRlcmxpbWl0PSI3IiBzdHJva2Utd2lkdGg9IjQiPgoKICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJtMjM4LjEzIDc3LjctMTU4LjY2LTQ1LjgxNy03Ny40NzEgMTgwLjQxIDE2OS42IDM2LjA1IiBlbmFibGUtYmFja2dyb3VuZD0ibmV3ICAgICIgZmlsbD0iI2UxZTBlMCIvPgoKICAgICAgICAgICAgICAgICAgICA8cGF0aCBkPSJtMTcxLjYgMjQ4LjM0aDE3My4zOWw2MC4yMS0xNzAuNjRoLTE2Ny4wNyIgZW5hYmxlLWJhY2tncm91bmQ9Im5ldyAgICAiIGZpbGw9IiNjNmM2YzYiLz4KCiAgICAgICAgICAgICAgICAgICAgPHBhdGggZD0ibTE3MS42IDI0OC4zNCAxNTguNDItMjguNzM1IDYxLjExNS0xNzAuNTktMTUzIDI4LjY4OXoiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgICAgIiBmaWxsPSIjZGJkYWQ5Ii8+CgogICAgICAgICAgICAgICAgICAgIDxwYXRoIGQ9Im0xNzEuNiAyNDguMzQgMTQzLjQ0LTYxLjQ3IDYyLjQxMy0xNzEuNDUtMTM5LjMyIDYyLjI4MXoiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgICAgIiBmaWxsPSIjZjZmNmY1Ii8+CgogICAgICAgICAgICAgICAgICAgIDxwYXRoIGQ9Ik0gMTcxLjYwMSwyNDguMzQgNSwxNzUuMzA4IDc5LjkwNywyIDIzOC4xMzEsNzcuNyBaIiBlbmFibGUtYmFja2dyb3VuZD0ibmV3ICAgICIgZmlsbD0iI2ZmZiIvPgogICAgICAgICAgICA8L2c+CiAgICAgICAgPC9nPgogICAgPC9zd2l0Y2g+PC9nPjwvc3ZnPgo="/>
+            </a>
         </div>
         <div id="search">
             <form id="f" class="f" action="/help/index.jsp" target="_top" method="GET" accept-charset="utf-8">
@@ -323,8 +359,8 @@ SPDX-License-Identifier: EPL-2.0
         <div id="menu">
             <span id="hamburger"></span>
             <div id="menu-content">
-                <a href="#" title="Print selected topic" onclick="window.print();">Print topic</a>
-                <a href="#" title="Print selected topic and its subtopics">Print section</a>
+                <a href="#" title="Print selected topic" onclick="printContent();">Print topic</a>
+                <a href="#" title="Print selected topic and its subtopics" onclick="printSection();">Print section</a>
                 <a href="../com.verigy.itee.help.smartest.ui.8.3.1/244454.htm" title="How to use the help viewer">Help</a>
                 <a href="#" title="Details on the help viewer">About</a>
             </div>
@@ -339,7 +375,7 @@ SPDX-License-Identifier: EPL-2.0
             <iframe id="m-content" name="m-content" onload="updateContentFrameSize()" frameborder="0" scrolling="no" allowfullscreen></iframe>
           </div>
       </main>
-      <footer><p></p></footer>
+      <footer><p>&nbsp;</p></footer>
     </div>
 </body>
 </html>
