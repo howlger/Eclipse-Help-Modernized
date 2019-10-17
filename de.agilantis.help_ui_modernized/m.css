@@ -201,6 +201,7 @@ div#results li {
     text-align: left;
     white-space: normal;
     list-style: none outside none;
+    margin-bottom: 1em;
 }
 div#results li:hover {
     background: #e8f2fe;
@@ -209,14 +210,14 @@ div#results li div {
     font-size: 75%;
 }
 div#results li div, div#results li div a {
-    color: #009933;
+    color: #545454;
 }
 div#results li h4, div#results li h4 a {
     color: #1122cc;
     font-weight: normal;
 }
 div#results li p {
-    font-size: 85%;
+    font: icon;
     margin: 0 0 1em;
 }
 
@@ -985,7 +986,7 @@ a:hover {
     background-position: 3px 2px;
 }
 .-ehw {
-    color: #009933;
+    color: #545454;
     float: right;
     cursor: default;
 }
@@ -994,7 +995,7 @@ a:hover {
 }
 .-ehc {
     display: block;
-/*     font: icon; */
+    font: icon;
     padding-left: 21px;
 }
 .-ehz .-ehf {
