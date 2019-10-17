@@ -302,6 +302,7 @@ SPDX-License-Identifier: EPL-2.0
     }
 
 
+    // Prints current loaded topic
     function printContent()
     {
         var content = document.getElementById('m-content');
@@ -314,22 +315,36 @@ SPDX-License-Identifier: EPL-2.0
         } catch(e) {}
     }
 
+    // TODO
     function printSection() {
-/* TODO
+        return true;
+        /*
         var content = document.getElementById('m-content');
-        document.title=content.contentDocument.title;
-        var url = contentFrame.contentWindow.document.location.href;
-        var topic = window.location.href;
-        console.log("url " + url);
+        var url = content.contentDocument.location.href;
+        var topic = url.substr( url.indexOf('/help/topic/'), url.length );
+        topic = topic.replace('/help/topic/', '');
+        //console.log("topic" + topic);
+        window.location.href = '../../advanced/print.jsp?topic=' + topic;
+        */
+    }
 
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = function() {
-            if (request.readyState == 4 && request.status == 200)
-                callbackFn(request.responseText);
-        }
-        request.open('GET', '../../advanced/print.jsp?topic=' + path);
-        request.send();
-*/
+    // Opens requested topic
+    function openTopic(topic) {
+        window.location.href = topic;
+    }
+
+    // Opens hamburger menu
+    function openMenu() {
+        var menu = document.getElementById("menu-content")
+        menu.style.display = 'block';
+        menu.style.left = 'auto';
+        menu.style.right = 0;
+    }
+    // Closes hamburger menu if the user clicks outside of it
+    window.onclick = function(event) {
+      if ( event.target.id != 'mbtn' && event.target.id != 'hamburger' ) {
+        document.getElementById("menu-content").style.display = 'none';
+      }
     }
 
   </script>
@@ -357,12 +372,12 @@ SPDX-License-Identifier: EPL-2.0
             </form>
         </div>
         <div id="menu">
-            <span id="hamburger"></span>
+            <button id="mbtn" onclick="openMenu()"><span id="hamburger"></span></button>
             <div id="menu-content">
-                <a href="#" title="Print selected topic" onclick="printContent();">Print topic</a>
-                <a href="#" title="Print selected topic and its subtopics" onclick="printSection();">Print section</a>
-                <a href="../com.verigy.itee.help.smartest.ui.8.3.1/244454.htm" title="How to use the help viewer">Help</a>
-                <a href="#" title="Details on the help viewer">About</a>
+                <button onclick="printContent();" >Print topic</button>
+                <button onclick="printSection();">Print section</button>
+                <button onclick="openTopic('../com.verigy.itee.help.smartest.ui.8.3.1/244454.htm');">Help</button>
+                <button onclick="openTopic('../com.verigy.itee.help.smartest.ui.8.3.1/244454.htm');">About</button>
             </div>
         </div>
       </header>
