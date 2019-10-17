@@ -217,7 +217,7 @@ div#results li h4, div#results li h4 a {
     font-weight: normal;
 }
 div#results li p {
-    font: icon;
+    font-size: 85%;
     margin: 0 0 1em;
 }
 
@@ -995,7 +995,7 @@ a:hover {
 }
 .-ehc {
     display: block;
-    font: icon;
+    font-size: 85%;
     padding-left: 21px;
 }
 .-ehz .-ehf {
