@@ -1089,3 +1089,15 @@ a:hover {
         display: none;
     }
 }
+
+/* dark mode */
+@media (prefers-color-scheme: dark) {
+
+    html, body {
+        background-color: black;
+        color: white;
+    }
+    a {
+        color: white;
+    }
+}
