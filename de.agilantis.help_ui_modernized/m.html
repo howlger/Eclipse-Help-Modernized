@@ -62,6 +62,12 @@ SPDX-License-Identifier: EPL-2.0
             contentFrame.width  = (widthMinRequired > widthAvailable ? widthMinRequired : widthAvailable) + 'px';
             contentFrame.height = contentFrameDocumentElement.scrollHeight + 'px';
         }
+        // Show TOC if window is wide enough
+        if( clientWidth > 768 ) {
+            var toc = document.getElementById('m-aside');
+            var tocStyle =  toc.currentStyle ? toc.currentStyle.display : getComputedStyle(toc, null).display;
+            toc.style.display = "table-cell";
+        }
     }
     function initContentFrame() {
         updateContentFrameSize();
