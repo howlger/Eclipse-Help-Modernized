@@ -62,6 +62,8 @@ SPDX-License-Identifier: EPL-2.0
             contentFrame.width  = (widthMinRequired > widthAvailable ? widthMinRequired : widthAvailable) + 'px';
             contentFrame.height = contentFrameDocumentElement.scrollHeight + 'px';
         }
+        //console.log("clientWidth=" + clientWidth);
+        //console.log("newClientWidth=" + newClientWidth);
         // Show TOC if window is wide enough
         if( clientWidth > 768 ) {
             var toc = document.getElementById('m-aside');
@@ -194,6 +196,8 @@ SPDX-License-Identifier: EPL-2.0
         slider.ondblclick = toggle_toc;
         document.getElementById("m-slider_").onclick = toggle_toc;
 
+        // Initialize Go to top button
+        topButton = document.getElementById("toTopBtn");
     }
 
     // TODO remove when integrated into Eclipse
@@ -352,7 +356,7 @@ SPDX-License-Identifier: EPL-2.0
       }
     }
 
-    // Show / hide table of contents
+    // Show or hide the table of contents
     function toggleToc() {
         var toc = document.getElementById('m-aside');
         var content = document.getElementById('m-content');
@@ -373,10 +377,47 @@ SPDX-License-Identifier: EPL-2.0
         document.getElementById('focusByDefault').focus();
     }
 
+    // Check if run locally as standalone help viewer
+    function isLocalHelp() {
+        var url = window.location.href;
+        var urlRoot = url.substr( 0, url.indexOf('/help/') );
+        // TODO check also urlRoot.includes('//localhost:')
+        if ( ! urlRoot.includes("127.0.0.1:") ) { return true; }
+        else { return false; }
+    }
+
+    // Show browsing buutons when run locally as help viewer
+    function showHistoryButtons() {
+        //console.log("content " + content);
+        document.getElementById('history-back').style.display = 'inline-block';
+    }
+
+    // Go one page back in browser history
+    // (required in standalone help viewer only)
+    function goBack() {
+          window.history.back();
+    }
+
+    // When the user scrolls down 20px from the top of the document, show the button
+    window.onscroll = function() {scrollFunction()};
+
+    function scrollFunction() {
+      if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+          toTopBtn.style.display = "block";
+      } else {
+          toTopBtn.style.display = "none";
+      }
+    }
+
+    // When the user clicks on the button, scroll to the top of the document
+    function scrollToTop() {
+      document.body.scrollTop = 0; // For Safari
+      document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+    }
 
   </script>
 </head>
-<body onload="initSearchField();addEvent(window, 'resize', updateContentFrameSize);init();focusSearch();">
+<body onload="initSearchField();initContentFrame();init();">
   <div id="container">
       <div id="m-ovrl"></div>
       <header>
@@ -385,7 +426,7 @@ SPDX-License-Identifier: EPL-2.0
                 <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4NCjxzdmcgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgMTYgMTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj4NCjxkZWZzPg0KPGxpbmVhckdyYWRpZW50IGlkPSJhIiB4MT0iMTIuMTA4IiB4Mj0iMTIuMTA4IiB5MT0iMi43OTIzIiB5Mj0iMTcuODMzIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+DQo8c3RvcCBzdG9wLWNvbG9yPSIjZjdmZGZmIiBvZmZzZXQ9IjAiLz4NCjxzdG9wIHN0b3AtY29sb3I9IiNlOGYwZjUiIG9mZnNldD0iMSIvPg0KPC9saW5lYXJHcmFkaWVudD4NCjwvZGVmcz4NCjxtZXRhZGF0YT4NCjxyZGY6UkRGPg0KPGNjOldvcmsgcmRmOmFib3V0PSIiPg0KPGRjOmZvcm1hdD5pbWFnZS9zdmcreG1sPC9kYzpmb3JtYXQ+DQo8ZGM6dHlwZSByZGY6cmVzb3VyY2U9Imh0dHA6Ly9wdXJsLm9yZy9kYy9kY21pdHlwZS9TdGlsbEltYWdlIi8+DQo8ZGM6dGl0bGUvPg0KPC9jYzpXb3JrPg0KPC9yZGY6UkRGPg0KPC9tZXRhZGF0YT4NCjxnIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAgLTEwMzYuNCkiPg0KPGcgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoLTguMjIwMSAtMTIuOTA1KSI+DQo8cGF0aCB0cmFuc2Zvcm09Im1hdHJpeCguNjU5ODUgMCAwIC42NTk4NSA4LjM3NDQgMTA0OS42KSIgZD0ibTIxLjgxMiAxMS42ODhhOS44NzUgOS44NzUgMCAxIDEtMTkuNzUgMCA5Ljg3NSA5Ljg3NSAwIDEgMSAxOS43NSAweiIgZmlsbD0idXJsKCNhKSIgc3Ryb2tlPSIjNTQ2NzgyIiBzdHJva2Utd2lkdGg9IjEuNTE1NSIvPg0KPHBhdGggZD0ibTE2LjE5OSAxMDUyLjJjLTAuOTg5MzYgMC0xLjc3OTIgMC4yNzUxLTIuMzgxOSAwLjgyODUtMC42MDI3IDAuNTUzNC0wLjkxNjgyIDEuMzItMC45NTI3OCAyLjI3ODRsMS42MzYzIDAuMjA3MWMwLjA1MzgtMS4xODUgMC41OTYxNy0xLjc2MDYgMS41OTQ5LTEuNzYwNiAwLjQyMjc1IDAgMC43NjU3NyAwLjEwODIgMS4wMzU2IDAuMzUyMiAwLjI2OTg1IDAuMjQ0IDAuMzkzNTMgMC41NTczIDAuMzkzNTQgMC45MzItNmUtNiAwLjM0ODYtMC4xMjA4MiAwLjY0OTktMC4zNzI4MyAwLjkxMTMtMC4xMzQ3OSAwLjEzOTQtMC40MDI4OCAwLjM0ODEtMC44MDc3OSAwLjYwMDgtMC4zNjg2OCAwLjIyNjUtMC42MDggMC40ODUyLTAuNzI0OTQgMC44MDc3LTAuMTA4MTYgMC4yNzAyLTAuMTY1NyAwLjY4NTItMC4xNjU3IDEuMjQyOHYwLjc0NTZoMS41MTJ2LTAuNDc2NGMtNWUtNiAtMC41NDg5IDAuMjM2NDQtMC45NzAzIDAuNzA0MjMtMS4yODQxIDAuNjExODktMC40MTgzIDEuMDI5Ni0wLjc4OTYgMS4yNjM1LTEuMDc3MSAwLjMyMzY1LTAuNDE4MyAwLjQ5NzA5LTAuOTIyNiAwLjQ5NzEtMS41MzI3LTdlLTYgLTAuODM2Ni0wLjMzNDk3LTEuNTI3Ny0wLjk3MzQ5LTIuMDUwNS0wLjYxMTktMC40ODgtMS4zNjcxLTAuNzI1LTIuMjU3Ny0wLjcyNXoiIGZpbGw9IiM0NzViNzgiLz4NCjxwYXRoIHRyYW5zZm9ybT0ibWF0cml4KDEuNzc3NiAwIDAgMi40NTIgLTUuMSAxMDIwLjYpIiBkPSJtMTIuNTc2IDE2LjUzMWEwLjY0MzU3IDAuMzk3NzUgMCAxIDEtMS4yODcxIDAgMC42NDM1NyAwLjM5Nzc1IDAgMSAxIDEuMjg3MSAweiIgZmlsbD0iIzQ3NWI3OCIvPg0KPC9nPg0KPC9nPg0KPC9zdmc+DQo="/>
             </a>
         </div>
-        <button id="toc-btn" onclick="toggleToc()"><span id="toc-toggle"></span></button>
+        <button id="toc-btn" onclick="toggleToc()" title="Table of contents"><span id="toc-toggle"></span></button>
         <div id="search">
             <form id="f" class="f" action="/help/index.jsp" target="_top" method="GET" accept-charset="utf-8">
               <input type="hidden" name="tab" value="search">
@@ -396,13 +437,14 @@ SPDX-License-Identifier: EPL-2.0
               <input id="b" type="hidden" name="b" value="">
             </form>
         </div>
+        <button id="history-back-btn" onclick="goBack()" title="Go back"><span id="history-back"></span></button>
         <div id="menu">
-            <button id="mbtn" onclick="openMenu()"><span id="hamburger"></span></button>
+            <button id="mbtn" onclick="openMenu()" title="Help menu"><span id="hamburger"></span></button>
             <div id="menu-content">
-                <button onclick="printContent();" >Print topic</button>
-                <button onclick="printSection();">Print section</button>
-                <button onclick="openTopic('../com.verigy.itee.help.smartest.ui.8.3.1/244454.htm');">Help</button>
-                <button onclick="openTopic('about.html');">About</button>
+                <button onclick="printContent();" title="Print selected topic">Print topic</button>
+                <button onclick="printSection();" title="Print selected topic and all subtopics">Print section</button>
+                <button onclick="openTopic('../com.verigy.itee.help.smartest.ui.8.3.1/244454.htm');" title="How to use help">Help</button>
+                <button onclick="openTopic('about.html');" title="About help">About</button>
             </div>
         </div>
       </header>
@@ -412,10 +454,13 @@ SPDX-License-Identifier: EPL-2.0
             <div id="m-slider"><div id="m-slider_"><span></span></div></div>
           </aside>
           <div class="m-content">
-            <iframe id="m-content" name="m-content" onload="updateContentFrameSize()" frameborder="0" scrolling="no" allowfullscreen></iframe>
+            <iframe id="m-content" name="m-content" onload="initContentFrame()" frameborder="0" scrolling="no" allowfullscreen></iframe>
           </div>
       </main>
-      <footer><p>&nbsp;</p></footer>
+      <footer>
+       <p>&nbsp;<!-- add copyright here -->&nbsp;</p>
+       <button onclick="scrollToTop()" id="toTopBtn" title="Go to top">Top</button>
+      </footer>
     </div>
 </body>
 </html>
