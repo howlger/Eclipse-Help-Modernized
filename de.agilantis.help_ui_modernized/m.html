@@ -64,11 +64,14 @@ SPDX-License-Identifier: EPL-2.0
         }
         //console.log("clientWidth=" + clientWidth);
         //console.log("newClientWidth=" + newClientWidth);
+
         // Show TOC if window is wide enough
-        if( clientWidth > 768 ) {
-            var toc = document.getElementById('m-aside');
-            var tocStyle =  toc.currentStyle ? toc.currentStyle.display : getComputedStyle(toc, null).display;
+        var toc = document.getElementById('m-aside');
+        var tocStyle =  toc.currentStyle ? toc.currentStyle.display : getComputedStyle(toc, null).display;
+        if( typeof toc !== 'undefined' && clientWidth > 768 ) {
             toc.style.display = "table-cell";
+        } else {
+            toc.style.display = "none";
         }
     }
     function initContentFrame() {

@@ -1112,14 +1112,9 @@ a:hover {
     main .m-content {
       display: block;
       width: *;
-      margin-top: 10px;
     }
     aside  {
-      display: block;
-      width: 100%;
-      position: relative;
-      overflow: hidden;
-      vertical-align: top;
+      display: none;
     }
     #h-toc-btn {
       display: inline-block;
