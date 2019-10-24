@@ -1165,7 +1165,10 @@ a:hover {
       background-color: black;
       color: white;
     }
-    a {
+    a, div#results li h4, div#results li h4 a {
       color: white;
     }
-}
+    header, footer, #h-home, div#results li:hover {
+      background-color: #343a40;
+    }
+ }
