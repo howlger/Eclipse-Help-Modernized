@@ -128,23 +128,21 @@
                 var r = createElement(rl, 'li');
                 r.onmouseup = r.ontouchend = function(a, b) {return function(e) {preventDefault(e); if (!a.canceled && (e.button == undefined || e.button == 0)) {location = b}}}(r, '../../topic' + lines[i+2]);
 
-                // breadcrumb (if available)
-                if (lines[i+4].length > 0) {
-                    rb = createElement(r, 'div');
-                    for (var j = 0; j < lines[i+4].length-1; j+=2) {
-                        rbi = createElement(rb, 'span');
-                        rbia = createElement(rbi, 'a');
-                        rbia.setAttribute('href', '../../topic/' + lines[i+4][j]);
-                        addHighlightedText(rbia, lines[i+4][j+1], searchWord);
-                        if (j < lines[i+4].length-2) createElement(rbi, 'span', false, ' > ');
-                    }
-                }
-
                 // title (linked)
                 var rt = createElement(r, 'h4');
                 var ra = createElement(rt, 'a', false);
                 ra.setAttribute('href', '../../topic' + lines[i+2]);
                 addHighlightedText(ra, lines[i], searchWord);
+
+                // breadcrumb (if available)
+                if (lines[i+4].length > 0) {
+                    rb = createElement(r, 'div');
+                    for (var j = 0; j < lines[i+4].length-1; j+=2) {
+                        rbi = createElement(rb, 'span');
+                        addHighlightedText(rbi, lines[i+4][j+1], searchWord);
+                        if (j < lines[i+4].length-2) createElement(rbi, 'span', false, ' > ');
+                    }
+                }
 
                 // description
                 var rd = createElement(r, 'p', false, lines[i+1]);
