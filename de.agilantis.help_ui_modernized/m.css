@@ -210,7 +210,7 @@ div#results li:hover {
 div#results li div {
     font-size: 75%;
 }
-div#results li div {
+div#results li div, .scope {
     color: #062;
 }
 div#results li h4, div#results li h4 a {

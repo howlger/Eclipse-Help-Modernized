@@ -81,6 +81,8 @@
             var searchWord = (element.textContent ? element.textContent : element.innerText).replace(/\*(?=\&)|(^searchWord=)|(\&maxHits=.+$)/g,'');
             searchWord = searchWord.indexOf('&') < 0 ? searchWord : searchWord.substr(0, searchWord.indexOf('&'));
             searchWord = decodeURIComponent(searchWord.replace(/\+/g, '%20'));
+            var isSkoped = window.location.href.indexOf('&toc=') > 0;
+            var scopeName = false;
 
             // parse HTML for results
             var pattern = new RegExp('<tr[^<]*<td[^<]*<img[^<]*</td[^<]*<td[^<]*<a\\s+(?:(?:class|id|title|onmouseover|onmouseout)\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*href="([^"]*)"(?:\\s+o\\w+="[^"]*")*\\s+title="([^"]*)"[^>]*>([^<]*)</a>(?:(?:(?!<[/]?tr)[\\s\\S])*</tr\\s*>\\s*<tr(?:(?!</tr)(?!class="location">)[\\s\\S])*class="location">((?:(?!</div)[\\s\\S])*))?(?:(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*</tr){1,2}(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*\\sclass=["\']description["\'][^>]*>([^<]*)', 'g');
@@ -100,12 +102,14 @@
                             breadcrumb.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
                         }
                     }
+                    if (isSkoped && !scopeName && breadcrumb.length > 1) scopeName = breadcrumb[1];
                 }
                 results.push({
                     title: items[2],
                     desc: (items[4] ? items[4] : items[3]),
                     href: items[0].substring(8),
-                    breadcrumb: breadcrumb
+                    path: breadcrumb,
+                    top: (results.length <= 10)
                 });
             }
 
@@ -117,7 +121,12 @@
 
             // show results
             if (results.length > 0) {
-                createElement(out, 'div', 'stats', results.length + ' results:');
+                var s = createElement(out, 'div', 'stats', results.length + ' results');
+                if (scopeName) {
+                    s.appendChild(document.createTextNode(' in '));
+                    createElement(s, 'span', 'scope', scopeName);
+                }
+                s.appendChild(document.createTextNode(':'));
             } else {
                 var noResults = createElement(out, 'div', 'no-results', 'No topics found containing ');
                 createElement(noResults, 'strong', false, searchWord);
@@ -134,12 +143,12 @@
                 addHighlightedText(ra, results[i].title, searchWord);
 
                 // breadcrumb (if available)
-                if (results[i].breadcrumb.length > 0) {
+                if (results[i].path.length > 0) {
                     rb = createElement(r, 'div');
-                    for (var j = 0; j < results[i].breadcrumb.length-1; j+=2) {
+                    for (var j = scopeName ? 2 : 0; j < results[i].path.length-1; j+=2) {
                         rbi = createElement(rb, 'span');
-                        addHighlightedText(rbi, results[i].breadcrumb[j+1], searchWord);
-                        if (j < results[i].breadcrumb.length-2) createElement(rbi, 'span', false, ' > ');
+                        addHighlightedText(rbi, results[i].path[j+1], searchWord);
+                        if (j < results[i].path.length-2) createElement(rbi, 'span', false, ' > ');
                     }
                 }
 
