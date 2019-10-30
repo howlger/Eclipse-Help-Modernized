@@ -210,8 +210,8 @@ div#results li:hover {
 div#results li div {
     font-size: 75%;
 }
-div#results li div, div#results li div a {
-    color: #545454;
+div#results li div {
+    color: #062;
 }
 div#results li h4, div#results li h4 a {
     color: #1122cc;
@@ -1046,7 +1046,7 @@ a:hover {
     background-position: 3px 2px;
 }
 .-ehw {
-    color: #545454;
+    color: #062;
     float: right;
     cursor: default;
 }
