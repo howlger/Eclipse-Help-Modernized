@@ -152,22 +152,8 @@
         var url = href.replace('/m_search.html?', '/../../advanced/searchView.jsp?');
         remoteRequest(url, callback);
 
-        // For local help viewer show history buttons
-        showHistoryButtons();
-    }
-
-    // Show browsing buutons when run locally as help viewer
-    function showHistoryButtons() {
-        var results = document.getElementById('results');
-        if ( !!results ) {
-            if (parent && parent.showHistoryButtons) parent.showHistoryButtons();
-        }
-    }
-
-    // Go one page back in browser history
-    // (required in standalone help viewer only)
-    function goBack() {
-          window.history.back();
+        // for local help viewer show history buttons
+        if (parent && parent.showHistoryButtons) parent.showHistoryButtons();
     }
 
   </script>
