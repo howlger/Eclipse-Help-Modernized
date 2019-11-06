@@ -239,7 +239,7 @@
                      , searchWord);
 
              // breadcrumb (if available)
-             if (node.path.length > 0) {
+             if (node.path && node.path.length > 0) {
                  rb = createElement(r, 'div');
                  var crumb = showAsTree
                              ? (n.isNode ? n.name : [])
