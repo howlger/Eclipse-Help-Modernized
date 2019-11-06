@@ -197,6 +197,15 @@ div#results ul {
     list-style: none outside none;
     max-width: 800px;
 }
+div#results ul ul {
+    margin-left: 2em;
+}
+div#results div.scope {
+    margin: .5em 0 1em;
+}
+.count {
+    color: #999;
+}
 div#results li {
     display: block;
     text-align: left;
@@ -204,7 +213,7 @@ div#results li {
     list-style: none outside none;
     margin-bottom: 1em;
 }
-div#results li:hover {
+div#results li.r:hover {
     background: #e8f2fe;
 }
 div#results li div {
