@@ -212,7 +212,7 @@
              }
 
              // subtree
-             if (showAsTree && n.isNode && n.children.length > 1) {
+             if (showAsTree && n.isNode && !(n.children.length == 1 && !n.children[0].isNode)) {
                  var name = '';
                  for (var j = 0; j < n.name.length; j+=2) {
                      name += (j == 0 ? '' : ' > ') + n.name[j+1];
@@ -239,7 +239,7 @@
                      , searchWord);
 
              // breadcrumb (if available)
-             if (node.path && node.path.length > 0) {
+             if (node.path.length > 0) {
                  rb = createElement(r, 'div');
                  var crumb = showAsTree
                              ? (n.isNode ? n.name : [])
