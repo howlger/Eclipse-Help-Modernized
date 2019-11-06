@@ -230,6 +230,14 @@ div#results li p {
     font-size: 85%;
     margin: 0 0 1em;
 }
+div#results .more {
+    background: #eee;
+    cursor: pointer;
+    text-align: center;
+}
+div#results .more:hover {
+    background: #e8f2fe;
+}
 
 
 /*******************************************************************************
