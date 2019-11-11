@@ -102,7 +102,6 @@
                 var subnode = node.children[0];
                 for (var j = 0; j < subnode.name.length; j++) node.name.push(subnode.name[j]);
                 node.children = subnode.children;
-                node = subnode;
             }
             compactTree(node.children);
         }
