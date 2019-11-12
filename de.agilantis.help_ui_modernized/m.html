@@ -68,7 +68,9 @@ SPDX-License-Identifier: EPL-2.0
 
         // Show TOC if window is wide enough
         var toc = document.getElementById('m-aside');
+        var content = document.getElementById('m-content');
         var tocStyle =  toc.currentStyle ? toc.currentStyle.display : getComputedStyle(toc, null).display;
+        //console.log(toc);
         if( typeof toc !== 'undefined' && clientWidth > 768 ) {
             toc.style.display = "table-cell";
         }
@@ -76,6 +78,8 @@ SPDX-License-Identifier: EPL-2.0
     function initContentFrame() {
         updateContentFrameSize();
         addEvent(window, 'resize', updateContentFrameSize);
+        fixAnchorLinks();
+        //scrollToTop();
     }
     function initSearchField() {
         var callbackFn = function(responseText) {
@@ -328,20 +332,24 @@ SPDX-License-Identifier: EPL-2.0
 
     // TODO
     function printSection() {
-        return true;
-        /*
         var content = document.getElementById('m-content');
         var url = content.contentDocument.location.href;
         var topic = url.substr( url.indexOf('/help/topic/'), url.length );
         topic = topic.replace('/help/topic/', '');
-        //console.log("topic" + topic);
+        return true;
+        /*
+        console.log("topic=" + topic);
         window.location.href = '../../advanced/print.jsp?topic=' + topic;
         */
     }
 
-    // Opens requested topic
+    // Opens requested topic in content frame
     function openTopic(topic) {
-        window.location.href = topic;
+        var a = document.createElement('a');
+        a.href=topic;
+        a.target = 'm-content';
+        document.body.appendChild(a);
+        a.click();
     }
 
     // Opens hamburger menu
@@ -352,7 +360,10 @@ SPDX-License-Identifier: EPL-2.0
         menu.style.right = 0;
     }
     // Closes hamburger menu if the user clicks outside of it
+    // TODO: close the menu also when clicked in content iframe
+    //document.getElementById('m-content').contentDocument.addEventListener('click', function(event) {closeTOC(this.id);}, false);
     window.onclick = function(event) {
+        //console.log("event.target.id=" + event.target.id);
       if ( event.target.id != 'h-mbtn' && event.target.id != 'h-hamburger' ) {
         document.getElementById("h-menu-content").style.display = 'none';
       }
@@ -363,12 +374,9 @@ SPDX-License-Identifier: EPL-2.0
         var toc = document.getElementById('m-aside');
         var content = document.getElementById('m-content');
         var tocStyle =  toc.currentStyle ? toc.currentStyle.display : getComputedStyle(toc, null).display;
-        toc.style.transition = "transform .25s, color .25s, -webkit-transform .25s, -moz-transform .25s, -o-transform .25s";
         if (tocStyle == "none") {
-            toc.style.animation = "fly-right 3s ease-in forwards";
             content.style.margin = "20px 0";
         } else {
-            toc.style.animation = "fly-left 3s ease-in forwards";
             content.style.margin = "0 0";
         }
         toc.style.display = tocStyle == "none" ? "table-cell" : "none";
@@ -383,21 +391,32 @@ SPDX-License-Identifier: EPL-2.0
     function isLocalHelp() {
         var url = window.location.href;
         var urlRoot = url.substr( 0, url.indexOf('/help/') );
-        // TODO check also urlRoot.includes('//localhost:')
-        if ( ! urlRoot.includes("127.0.0.1:") ) { return true; }
+        if ( urlRoot.includes("127.0.0.1:")
+          || urlRoot.includes('//localhost:') ) { return true; }
         else { return false; }
     }
 
-    // Show browsing buutons when run locally as help viewer
+    // Show browsing buttons when run locally as help viewer
     function showHistoryButtons() {
-        document.getElementById('h-history-back').style.display = 'inline-block';
-        document.getElementById('h-history-back-btn').style.display = 'inline-block';
+        // TODO: Enable isLocalHelp(), disabled for debugging
+        //if ( isLocalHelp() ) {
+            document.getElementById('h-history-back').style.display = 'inline-block';
+            document.getElementById('h-history-back-btn').style.display = 'inline-block';
+            document.getElementById('h-history-forward').style.display = 'inline-block';
+            document.getElementById('h-history-forward-btn').style.display = 'inline-block';
+        //}
     }
 
     // Go one page back in browser history
     // (required in standalone help viewer only)
     function goBack() {
           window.history.back();
+    }
+
+    // Go one page forward in browser history
+    // (required in standalone help viewer only)
+    function goForward() {
+        window.history.forward();
     }
 
     // When the user scrolls down 20px from the top of the document, show the button
@@ -417,6 +436,24 @@ SPDX-License-Identifier: EPL-2.0
       document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
     }
 
+    // From the TOC scroll to the heading of the topic
+    function scrollToHeading() {
+        var content = document.getElementById('m-content');
+        location.href = "#ariaid-title1";
+    }
+
+
+    // Adds target for anchor links (https://stackoverflow.com/a/19325592)
+    function fixAnchorLinks() {
+        var iframe = document.getElementById('m-content');
+        var doc = (iframe.contentDocument)? iframe.contentDocument: iframe.contentWindow.document;
+
+        var anchors = doc.getElementsByTagName('a');
+        for (var i = 0; i < anchors.length; i++)
+            anchors[i].target = '_parent';
+    }
+
+
   </script>
 </head>
 <body onload="initSearchField();initContentFrame();init();">
@@ -424,6 +461,7 @@ SPDX-License-Identifier: EPL-2.0
       <div id="m-ovrl"></div>
       <header>
         <a id="h-home" href="m.html" title="Home"></a>
+        <div id="h-home-text">V93000 - ADVANTEST Technical Documentation Center</div>
         <button id="h-toc-btn" onclick="toggleToc()" title="Table of contents"><span id="h-toc-toggle"></span></button>
         <div id="h-search">
             <form id="f" class="f" action="/help/index.jsp" target="_top" method="GET" accept-charset="utf-8">
@@ -431,11 +469,12 @@ SPDX-License-Identifier: EPL-2.0
               <input id="focusByDefault" name="searchWord" type="text" required
               alt="&#42; &#61; any string&#44; &#63; &#61; any character&#44; &#34;&#34; &#61; phrase&#44; AND&#44; OR&#44; NOT &#61; boolean operators "
               title="&#42; &#61; any string&#44; &#63; &#61; any character&#44; &#34;&#34; &#61; phrase&#44; AND&#44; OR&#44; NOT &#61; boolean operators ">
-              <input class="s" type="submit" value="">
+              <input class="s" type="submit" value="" alt="Search" title="Search">
               <input id="b" type="hidden" name="b" value="">
             </form>
         </div>
         <button id="h-history-back-btn" onclick="goBack()" title="Go back"><span id="h-history-back"></span></button>
+        <button id="h-history-forward-btn" onclick="goForward()" title="Go forward"><span id="h-history-forward"></span></button>
         <div id="h-menu">
             <button id="h-mbtn" onclick="openMenu()" title="Help menu"><span id="h-hamburger"></span></button>
             <div id="h-menu-content">
