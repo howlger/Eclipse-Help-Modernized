@@ -69,7 +69,9 @@
     ///////////////////////////////////////////////////////////////////////////
 
     var topCount = 10;
-    function asTree(results, path) {
+    var maxPerGroup = 3;
+    function asTree(results, path, depth) {
+        if (depth < 1) return results;
         var tree = [];
         var grouped = {};
         for (var i = 0; i < results.length; i++) {
@@ -90,24 +92,11 @@
         for (var i = 0; i < tree.length; i++) {
             if (!tree[i].isNode) continue;
             tree[i].count = tree[i].children.length;
-            tree[i].children = asTree(tree[i].children, tree[i].children[0].path.slice(0, path.length+2));
+            tree[i].children = asTree(tree[i].children, tree[i].children[0].path.slice(0, path.length+2), depth - 1);
         }
         return tree;
     }
-    function compactTree(tree) {
-        for (var i = 0; i < tree.length; i++) {
-            var node = tree[i];
-            if (!node.isNode) continue;
-            while(node.children.length == 1 && node.children[0].isNode) {
-                var subnode = node.children[0];
-                for (var j = 0; j < subnode.name.length; j++) node.name.push(subnode.name[j]);
-                node.children = subnode.children;
-            }
-            compactTree(node.children);
-        }
-    }
     var results = [];
-    var tree = undefined;
     var searchWord = '';
     var scopeName = false;
     function init() {
@@ -143,7 +132,6 @@
                             element.innerHTML = breadcrumbMatch[i];
                             breadcrumb.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
                         }
-                        tree = [];
                     }
                     if (isSkoped && !scopeName && breadcrumb.length > 1) scopeName = breadcrumb[1];
                     withBreadcrumbs = true;
@@ -156,10 +144,6 @@
                     top: (results.length < topCount)
 , pos: (results.length+1)
                 });
-            }
-            if (tree) {
-                tree = asTree(results, isSkoped ? results[0].path.slice(0, 2) : []);
-                compactTree(tree);
             }
 
             // remove "Searching..."
@@ -180,7 +164,7 @@
                 var noResults = createElement(out, 'div', 'no-results', 'No topics found containing ');
                 createElement(noResults, 'strong', false, searchWord);
             }
-            showResults(withBreadcrumbs ? tree : results, withBreadcrumbs, out, 0);
+            showResults(results, withBreadcrumbs, createElement(out, 'ul'), scopeName ? 1 : 0);
         }
         var url = href.replace('/m_search.html?', '/../../advanced/searchView.jsp?');
         remoteRequest(url, callback);
@@ -189,78 +173,78 @@
         if (parent && parent.showHistoryButtons) parent.showHistoryButtons();
     }
 
-    function showResults(results, showAsTree, out, depth) {
-         var rl = createElement(out, 'ul');
-         var previousTop = false;
-         var more;
-         var hidden = [];
-         for (var i = 0; i < results.length; i++) {
-             var n = results[i];
+    function showResults(resultList, showAsTree, ul, depth) {
 
-             // top end?
-             if (depth > 0 && previousTop && !n.top) {
-                 more = createElement(rl, 'li', 'more', 'More...');
-             }
-             previousTop = n.top;
+        var results = !showAsTree || resultList.length <= topCount
+                      ? resultList
+                      : asTree(resultList, resultList[0].path.slice(0, depth * 2), 1);
 
-             // list element
-             var r = createElement(rl, 'li');
-             if (more) {
-                 hidden.push(r);
-                 r.style.display = 'none';
-             }
+        var previousTop = false;
+        var more;
+        var hidden = [];
+        for (var i = 0; i < results.length; i++) {
+            var n = results[i];
+            var r = createElement(ul, 'li');
 
-             // subtree
-             if (showAsTree && n.isNode && !(n.children.length == 1 && !n.children[0].isNode)) {
-                 var name = '';
-                 for (var j = 0; j < n.name.length; j+=2) {
-                     name += (j == 0 ? '' : ' > ') + n.name[j+1];
-                 }
-                 var sub = createElement(r, 'div', 'scope');
-                 addHighlightedText(sub, name, searchWord);
-                 createElement(sub, 'span', 'count', ' (' + n.count + ')');
-                 showResults(n.children, showAsTree, r, depth+1);
-                 continue;
-             }
+            // subtree
+            if (showAsTree && n.isNode && n.children.length > 1) {
+                var name = '';
+                for (var j = 0; j < n.name.length; j+=2) {
+                    name += (j == 0 ? '' : ' > ') + n.name[j+1];
+                }
+                var sub = createElement(r, 'div', 'scope');
+                addHighlightedText(sub, name, searchWord);
+                createElement(sub, 'span', 'count', ' (' + n.count + ')');
+                var subUl = createElement(r, 'ul');
+                var shown = 0;
+                for (var j = 0; j < n.children.length; j++) {
+                    if (shown == maxPerGroup || !n.children[j].top) {
+                        var more = createElement(subUl, 'li', 'more', 'More...');
+                        more.onclick = function(out, results, depth) {
+                            return function(e) {
+                                while (out.firstChild) {
+                                    out.removeChild(out.firstChild);
+                                }
+                                showResults(results, true, out, depth);
+                            };
+                        }(subUl, n.children, depth + 1);
+                        break;
+                    }
+                    shown++;
+                    showItem(n.children[j], createElement(subUl, 'li'), showAsTree, depth + 1);
+                }
 
-             var node = n.isNode ? n.children[0] : n;
-             r.setAttribute('class', 'r');
+            } else {
+                showItem(n, r, showAsTree, depth);
+            }
+        }
+        if (parent && parent.updateContentFrameSize) parent.updateContentFrameSize();
+    }
 
-             // open result on click/touch
-             r.onclick = function(a, b) {return function(e) {preventDefault(e); if (!a.canceled && (e.button == undefined || e.button == 0)) {location = b}}}(r, '../../topic' + node.href);
+    function showItem(node, r, showAsTree, breadcrumbFrom) {
+        r.setAttribute('class', 'r');
 
-             // title (linked)
-             var rt = createElement(r, 'h4');
-             var ra = createElement(rt, 'a', false);
-             ra.setAttribute('href', '../../topic' + node.href);
-             addHighlightedText(ra, node.title
+        // title (linked)
+        var rt = createElement(r, 'h4');
+        var ra = createElement(rt, 'a', false);
+        ra.setAttribute('href', '../../topic' + node.href);
+        addHighlightedText(ra, node.title
 + (showAsTree ? ' [' + node.pos + ']' : '')
-                     , searchWord);
+             , searchWord);
 
-             // breadcrumb (if available)
-             if (node.path.length > 0) {
-                 rb = createElement(r, 'div');
-                 var crumb = showAsTree
-                             ? (n.isNode ? n.name : [])
-                             : (scopeName ? node.path.slice(2) : node.path);
-                 for (var j = 0; j < crumb.length; j+=2) {
-                     rbi = createElement(rb, 'span');
-                     addHighlightedText(rbi, crumb[j+1], searchWord);
-                     if (j < crumb.length-2) createElement(rbi, 'span', false, ' > ');
-                 }
-             }
+        // breadcrumb (if available)
+        if (node.path.length > 0) {
+            rb = createElement(r, 'div');
+            var crumb = node.path.slice(breadcrumbFrom * 2);
+            for (var j = 0; j < crumb.length; j+=2) {
+                rbi = createElement(rb, 'span');
+                addHighlightedText(rbi, crumb[j+1], searchWord);
+                if (j < crumb.length-2) createElement(rbi, 'span', false, ' > ');
+            }
+        }
 
-             // description
-             addHighlightedText(createElement(r, 'p'), node.desc, searchWord);
-         }
-         if (more) more.onclick = function(more, rest) {
-             return function(e) {
-                 var state = more.innerHTML.indexOf('More') < 0;
-                 more.innerHTML = (state ? 'More...' : 'Less...');
-                 for (var i = 0; i < rest.length; i++) rest[i].style.display = state ? 'none' : 'block';
-             };
-         }(more, hidden);
-         if (parent && parent.updateContentFrameSize) parent.updateContentFrameSize();
+        // description
+        addHighlightedText(createElement(r, 'p'), node.desc, searchWord);
 
     }
 
