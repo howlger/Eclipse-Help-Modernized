@@ -67,18 +67,21 @@ SPDX-License-Identifier: EPL-2.0
         //console.log("newClientWidth=" + newClientWidth);
 
         // Show TOC if window is wide enough
+        /*
         var toc = document.getElementById('m-aside');
-        var content = document.getElementById('m-content');
         var tocStyle =  toc.currentStyle ? toc.currentStyle.display : getComputedStyle(toc, null).display;
-        //console.log(toc);
+        console.log(toc.currentStyle);
         if( typeof toc !== 'undefined' && clientWidth > 768 ) {
             toc.style.display = "table-cell";
         }
+        */
+
+
     }
     function initContentFrame() {
         updateContentFrameSize();
         addEvent(window, 'resize', updateContentFrameSize);
-        fixAnchorLinks();
+        //fixAnchorLinks();
         //scrollToTop();
     }
     function initSearchField() {
@@ -371,15 +374,10 @@ SPDX-License-Identifier: EPL-2.0
 
     // Show or hide the table of contents
     function toggleToc() {
-        var toc = document.getElementById('m-aside');
-        var content = document.getElementById('m-content');
-        var tocStyle =  toc.currentStyle ? toc.currentStyle.display : getComputedStyle(toc, null).display;
-        if (tocStyle == "none") {
-            content.style.margin = "20px 0";
-        } else {
-            content.style.margin = "0 0";
-        }
-        toc.style.display = tocStyle == "none" ? "table-cell" : "none";
+        var asideStyle = document.getElementsByTagName('aside')[0].style;
+        asideStyle.transition = 'width .25s ease-in';
+        asideStyle.display = asideStyle.display == "none" ? "table-cell" : "none";
+        updateContentFrameSize();
     }
 
     // Sets cursor in search field
@@ -491,11 +489,8 @@ SPDX-License-Identifier: EPL-2.0
           <div class="m-content">
             <iframe id="m-content" name="m-content" onload="initContentFrame()" frameborder="0" scrolling="no" allowfullscreen></iframe>
           </div>
-      </main>
-      <footer>
-       <p id="f-copyright">&nbsp;<!-- add copyright here -->&nbsp;</p>
        <button onclick="scrollToTop()" id="f-toTopBtn" title="Go to top"></button>
-      </footer>
+      </main>
     </div>
 </body>
 </html>
