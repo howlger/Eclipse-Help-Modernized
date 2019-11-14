@@ -357,19 +357,27 @@ SPDX-License-Identifier: EPL-2.0
 
     // Opens hamburger menu
     function openMenu() {
-        var menu = document.getElementById("h-menu-content")
-        menu.style.display = 'block';
-        menu.style.left = 'auto';
-        menu.style.right = 0;
+        //var menu = document.getElementById("h-menu-ovrl-content")
+        //menu.style.display = 'block';
+        //menu.style.left = 'auto';
+        //menu.style.right = 0;
+         document.getElementById("h-menu-ovrl").style.width = '280px';
     }
+    // Closes hamburger menu
+    function closeMenu() {
+      document.getElementById("h-menu-ovrl").style.width = '0px';
+    }
+
     // Closes hamburger menu if the user clicks outside of it
-    // TODO: close the menu also when clicked in content iframe
+    // TODO: close the menu also when the content iframe is clicked
     //document.getElementById('m-content').contentDocument.addEventListener('click', function(event) {closeTOC(this.id);}, false);
     window.onclick = function(event) {
-        //console.log("event.target.id=" + event.target.id);
-      if ( event.target.id != 'h-mbtn' && event.target.id != 'h-hamburger' ) {
-        document.getElementById("h-menu-content").style.display = 'none';
-      }
+      //console.log("event.target.id=" + event.target.id);
+      if ( event.target.id != 'h-mbtn'
+              && event.target.id != 'h-hamburger'
+              && event.target.id != 'h-menu-closebtn' ) {
+          document.getElementById("h-menu-ovrl").style.width = '0px';
+        }
     }
 
     // Show or hide the table of contents
@@ -473,11 +481,14 @@ SPDX-License-Identifier: EPL-2.0
         <button id="h-history-forward-btn" onclick="goForward()" title="Go forward"><span id="h-history-forward"></span></button>
         <div id="h-menu">
             <button id="h-mbtn" onclick="openMenu()" title="Help menu"><span id="h-hamburger"></span></button>
-            <div id="h-menu-content">
-                <button onclick="printContent();" title="Print selected topic">Print topic</button>
-                <button onclick="printSection();" title="Print selected topic and all subtopics">Print section</button>
-                <button onclick="openTopic('../com.verigy.itee.help.smartest.ui.8.3.1/244454.htm');" title="How to use help">Help</button>
-                <button onclick="openTopic('about.html');" title="About help">About</button>
+        </div>
+        <div id="h-menu-ovrl">
+            <a href="javascript:void(0)" id="h-menu-closebtn" onclick="closeMenu()"></a>
+            <div id="h-menu-ovrl-content">
+                <a href="javascript:void(0)" onclick="printContent();" title="Print selected topic">Print topic</a>
+                <a href="javascript:void(0)" onclick="printSection();" title="Print selected topic and all subtopics"><span>Print section</span></a>
+                <a href="javascript:void(0)" onclick="openTopic('../com.verigy.itee.help.smartest.ui.8.3.2/244454.htm');" title="How to use help"><span>Help</span></a>
+                <a href="javascript:void(0)" onclick="openTopic('about.html');" title="About help"><span>About</span></a>
             </div>
         </div>
       </header>
@@ -489,8 +500,11 @@ SPDX-License-Identifier: EPL-2.0
           <div class="m-content">
             <iframe id="m-content" name="m-content" onload="initContentFrame()" frameborder="0" scrolling="no" allowfullscreen></iframe>
           </div>
-       <button onclick="scrollToTop()" id="f-toTopBtn" title="Go to top"></button>
       </main>
+      <footer>
+       <p id="f-copyright">&nbsp;<!-- add copyright here -->&nbsp;</p>
+       <button onclick="scrollToTop()" id="f-toTopBtn" title="Go to top"></button>
+      </footer>
     </div>
 </body>
 </html>
