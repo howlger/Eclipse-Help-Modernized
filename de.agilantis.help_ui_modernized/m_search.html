@@ -76,12 +76,13 @@
         var grouped = {};
         for (var i = 0; i < results.length; i++) {
             var r = results[i];
+            r.p = i;
             if (!r.path || r.path.length < path.length + 2) {
                 tree.push(r);
             } else {
                 var key = r.path[path.length] + '\n' + r.path[path.length+1];
                 if (!grouped[key]) {
-                    var node = { isNode: true, top: r.top, name: [r.path[path.length], r.path[path.length+1]], children: [r] };
+                    var node = { isNode: true, name: [r.path[path.length], r.path[path.length+1]], children: [r] };
                     grouped[key] = node;
                     tree.push(node);
                 } else {
@@ -140,8 +141,7 @@
                     title: items[2],
                     desc: (items[4] ? items[4] : items[3]),
                     href: items[0].substring(8),
-                    path: breadcrumb,
-                    top: (results.length < topCount)
+                    path: breadcrumb
 , pos: (results.length+1)
                 });
             }
@@ -198,7 +198,7 @@
                 var subUl = createElement(r, 'ul');
                 var shown = 0;
                 for (var j = 0; j < n.children.length; j++) {
-                    if (shown == maxPerGroup || !n.children[j].top) {
+                    if (shown == maxPerGroup || n.children[j].p >= topCount) {
                         var more = createElement(subUl, 'li', 'more', 'More...');
                         more.onclick = function(out, results, depth) {
                             return function(e) {
@@ -215,7 +215,7 @@
                 }
 
             } else {
-                showItem(n, r, showAsTree, depth);
+                showItem(n.isNode ? n.children[0] : n, r, showAsTree, depth);
             }
         }
         if (parent && parent.updateContentFrameSize) parent.updateContentFrameSize();
