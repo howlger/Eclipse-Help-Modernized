@@ -77,25 +77,48 @@
         for (var i = 0; i < results.length; i++) {
             var r = results[i];
             r.p = i;
+
+            // child?
             if (!r.path || r.path.length < path.length + 2) {
                 tree.push(r);
-            } else {
-                var key = r.path[path.length] + '\n' + r.path[path.length+1];
-                if (!grouped[key]) {
-                    var node = { isNode: true, name: [r.path[path.length], r.path[path.length+1]], children: [r] };
-                    grouped[key] = node;
-                    tree.push(node);
-                } else {
-                    grouped[key].children.push(r);
-                }
+                continue;
             }
+
+            // not child -> contained in a subtree
+            var key = r.path[path.length] + '\n' + r.path[path.length+1];
+            if (!grouped[key]) {
+                var node = { isNode: true, name: [r.path[path.length], r.path[path.length+1]], children: [r] };
+                grouped[key] = node;
+                tree.push(node);
+            } else {
+                grouped[key].children.push(r);
+            }
+
         }
         for (var i = 0; i < tree.length; i++) {
-            if (!tree[i].isNode) continue;
-            tree[i].count = tree[i].children.length;
-            tree[i].children = asTree(tree[i].children, tree[i].children[0].path.slice(0, path.length+2), depth - 1);
+            var r = tree[i];
+
+            // root?
+            if (!r.isNode) {
+                var resultofStart = r.href.indexOf('?resultof=');
+                var rootOfGroup = grouped['../topic' + (resultofStart < 0 ? r.href : r.href.substring(0, resultofStart))  + '\n' + r.title];
+                if (rootOfGroup) {
+                    rootOfGroup.root = r;
+                    tree.splice(i,1);
+                    i--;
+                }
+                continue;
+            }
+
+            // (subtree) node
+            r.count = r.children.length + (r.root ? 1 : 0);
+            r.children = asTree(r.children, r.children[0].path.slice(0, path.length+2), depth - 1);
+
         }
         return tree;
+    }
+    function compactTreeNode(node) {
+
     }
     var results = [];
     var searchWord = '';
@@ -154,9 +177,10 @@
 
             // show results
             if (results.length > 0) {
-                var s = createElement(out, 'div', 'stats', results.length + ' results');
+                var s = createElement(out, 'div', 'stats');
+                createElement(s, 'span', 'count', results.length);
+                s.appendChild(document.createTextNode(' results' + (scopeName ? ' in ' : '')));
                 if (scopeName) {
-                    s.appendChild(document.createTextNode(' in '));
                     createElement(s, 'span', 'scope', scopeName);
                 }
                 s.appendChild(document.createTextNode(':'));
@@ -192,9 +216,13 @@
                 for (var j = 0; j < n.name.length; j+=2) {
                     name += (j == 0 ? '' : ' > ') + n.name[j+1];
                 }
-                var sub = createElement(r, 'div', 'scope');
-                addHighlightedText(sub, name, searchWord);
-                createElement(sub, 'span', 'count', ' (' + n.count + ')');
+                if (n.root) {
+                    showItem(n.root, createElement(r, 'div', 'r'), true, depth+1, n.count);
+                } else {
+                    var sub = createElement(r, 'div', 'scope');
+                    addHighlightedText(sub, name + ' ', searchWord);
+                    createElement(sub, 'span', 'count', n.count);
+                }
                 var subUl = createElement(r, 'ul');
                 var shown = 0;
                 for (var j = 0; j < n.children.length; j++) {
@@ -211,7 +239,7 @@
                         break;
                     }
                     shown++;
-                    showItem(n.children[j], createElement(subUl, 'li'), showAsTree, depth + 1);
+                    showItem(n.children[j], createElement(subUl, 'li'), showAsTree, depth+1);
                 }
 
             } else {
@@ -221,20 +249,20 @@
         if (parent && parent.updateContentFrameSize) parent.updateContentFrameSize();
     }
 
-    function showItem(node, r, showAsTree, breadcrumbFrom) {
+    function showItem(node, r, showAsTree, breadcrumbFrom, count) {
         r.setAttribute('class', 'r');
 
         // title (linked)
         var rt = createElement(r, 'h4');
-        var ra = createElement(rt, 'a', false);
+        var ra = createElement(rt, 'a');
         ra.setAttribute('href', '../../topic' + node.href);
-        addHighlightedText(ra, node.title
-+ (showAsTree ? ' [' + node.pos + ']' : '')
-             , searchWord);
+        addHighlightedText(ra, node.title + (count ? ' ' : ''), searchWord);
+        if (count) createElement(ra, 'span', 'count', count);
+if (showAsTree) ra.appendChild(document.createTextNode(' [' + node.pos + ']'));
 
         // breadcrumb (if available)
         if (node.path.length > 0) {
-            rb = createElement(r, 'div');
+            rb = createElement(r, 'div', 'location');
             var crumb = node.path.slice(breadcrumbFrom * 2);
             for (var j = 0; j < crumb.length; j+=2) {
                 rbi = createElement(rb, 'span');

@@ -222,30 +222,47 @@ div#results li {
     list-style: none outside none;
     margin-bottom: 1em;
 }
-div#results li.r:hover {
+div#results .r:hover {
     background: #e8f2fe;
 }
-div#results li div {
-    font-size: 75%;
-}
-div#results li div, .scope {
+div#results .location, .scope {
     color: #062;
 }
 div#results li h4, div#results li h4 a {
     color: #1122cc;
     font-weight: normal;
 }
-div#results li p {
+div#results li p, div#results .location {
     font-size: 85%;
+}
+div#results li p {
     margin: 0 0 1em;
 }
 div#results .more {
     background: #eee;
     cursor: pointer;
     text-align: center;
+    color: #666;
+    font-size: 0.8em;
+    font-weight: bold;
+    padding: 4px 0;
 }
 div#results .more:hover {
     background: #e8f2fe;
+}
+.count {
+    display: inline-block;
+    background: #eee;
+    border-radius: 2em;
+    color: #666;
+    font-size: 0.8em;
+    font-weight: bold;
+    line-height: 1;
+    margin: 0;
+    min-width: 1em;
+    padding: 3px 7px 4px 7px;
+    position: relative;
+    text-align: center;
 }
 
 
