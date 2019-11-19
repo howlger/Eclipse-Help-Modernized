@@ -66,24 +66,19 @@ SPDX-License-Identifier: EPL-2.0
         //console.log("clientWidth=" + clientWidth);
         //console.log("newClientWidth=" + newClientWidth);
 
-        // Show TOC if window is wide enough
-        /*
-        var toc = document.getElementById('m-aside');
-        var tocStyle =  toc.currentStyle ? toc.currentStyle.display : getComputedStyle(toc, null).display;
-        console.log(toc.currentStyle);
-        if( typeof toc !== 'undefined' && clientWidth > 768 ) {
-            toc.style.display = "table-cell";
-        }
-        */
-
-
     }
     function initContentFrame() {
         updateContentFrameSize();
         addEvent(window, 'resize', updateContentFrameSize);
         //fixAnchorLinks();
         //scrollToTop();
+        // Read font size from cookie if already set
+        var fontSize = getFontSize();
+        if (fontSize != "") {
+            setFontSize(fontSize);
+        }
     }
+
     function initSearchField() {
         var callbackFn = function(responseText) {
             var nodes = getNodes(parseXml(responseText));
@@ -205,8 +200,8 @@ SPDX-License-Identifier: EPL-2.0
         slider.ondblclick = toggle_toc;
         document.getElementById("m-slider_").onclick = toggle_toc;
 
-        // Initialize go to top button
-        topButton = document.getElementById("f-toTopBtn");
+        // Debugging get browser details
+        //alert("User-agent header: " + navigator.userAgent);
     }
 
     // TODO remove when integrated into Eclipse
@@ -357,11 +352,7 @@ SPDX-License-Identifier: EPL-2.0
 
     // Opens hamburger menu
     function openMenu() {
-        //var menu = document.getElementById("h-menu-ovrl-content")
-        //menu.style.display = 'block';
-        //menu.style.left = 'auto';
-        //menu.style.right = 0;
-         document.getElementById("h-menu-ovrl").style.width = '280px';
+         document.getElementById("h-menu-ovrl").style.width = tocWidth + 'px';
     }
     // Closes hamburger menu
     function closeMenu() {
@@ -369,23 +360,59 @@ SPDX-License-Identifier: EPL-2.0
     }
 
     // Closes hamburger menu if the user clicks outside of it
-    // TODO: close the menu also when the content iframe is clicked
-    //document.getElementById('m-content').contentDocument.addEventListener('click', function(event) {closeTOC(this.id);}, false);
+
+    // TODO Close menu also when content iframe is clicked
+    //var contentFrame = document.getElementById('m-content');
+    //var contentFrameDocument = contentFrame.contentWindow.document;
+    //contentFrameDocument.addEventListener('click', function(event) {closeMenu(this.id);}, false);
+
     window.onclick = function(event) {
       //console.log("event.target.id=" + event.target.id);
       if ( event.target.id != 'h-mbtn'
               && event.target.id != 'h-hamburger'
-              && event.target.id != 'h-menu-closebtn' ) {
+              && event.target.id != 'h-menu-closebtn'
+              && event.target.id != 'h-menu-settings-fontbtn'
+              //&& event.target.id != 'h-toc-toggle'
+              //&& event.target.id != 'm-toc-closebtn'
+              ) {
           document.getElementById("h-menu-ovrl").style.width = '0px';
+          //document.getElementById("m-aside").style.width = '0px';
         }
+    }
+
+    // Closes table of contents
+    function closeTOC() {
+        var masideStyle = document.getElementById("m-aside").style;
+        masideStyle.transition = 'width .25s ease-in';
+        masideStyle.width = '0px';
     }
 
     // Show or hide the table of contents
     function toggleToc() {
-        var asideStyle = document.getElementsByTagName('aside')[0].style;
-        asideStyle.transition = 'width .25s ease-in';
-        asideStyle.display = asideStyle.display == "none" ? "table-cell" : "none";
+        var clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
+        var masideStyle = document.getElementById("m-aside").style;
+        masideStyle.transition = 'width .25s ease-in';
+
+        // toggle for normal/large screens
+        //console.log( masideStyle.width + ' at ' + clientWidth );
+        if ( masideStyle.width == "" || masideStyle.width != "0px" ) {
+            masideStyle.width = '0px';
+            // For Microsoft Edge
+            if ( /Edge\/\d./i.test(navigator.userAgent) ) {
+                //console.log(' Microsoft Edge: ' + navigator.userAgent );
+                masideStyle.display = "none";
+            }
+        } else {
+            masideStyle.width = tocWidth + 'px';
+            masideStyle.display = "table-cell";
+        }
         updateContentFrameSize();
+        /*
+        if( clientWidth > 768  ) {
+        } else {
+            console.log( masideStyle.display + ' at ' + clientWidth );
+        }
+        */
     }
 
     // Sets cursor in search field
@@ -429,6 +456,10 @@ SPDX-License-Identifier: EPL-2.0
     window.onscroll = function() {scrollFunction()};
 
     function scrollFunction() {
+
+      // Initialize go to top button
+      var topButton = document.getElementById("f-toTopBtn");
+
       if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
           topButton.style.display = "block";
       } else {
@@ -448,7 +479,6 @@ SPDX-License-Identifier: EPL-2.0
         location.href = "#ariaid-title1";
     }
 
-
     // Adds target for anchor links (https://stackoverflow.com/a/19325592)
     function fixAnchorLinks() {
         var iframe = document.getElementById('m-content');
@@ -459,14 +489,70 @@ SPDX-License-Identifier: EPL-2.0
             anchors[i].target = '_parent';
     }
 
+    // In-Decrease the font size for the toc and content iframe
+    function setFontSize(change) {
+        var fontChange = 5;
+        var newFontSize = 0;
+        var contentFrame = document.getElementById('m-content');
+        var contentFrameDocument = contentFrame.contentWindow.document;
+        var contentFrameDocumentElement = contentFrameDocument.documentElement || contentFrameDocument.body;
+        var contentStyle = window.getComputedStyle( contentFrameDocumentElement, null).getPropertyValue( 'font-size');
+        var contentFontSize = parseFloat(contentStyle);
+        var toc = document.getElementById('m-toc');
+        var tocStyle = getComputedStyle(toc, null).getPropertyValue( 'font-size');
+        var tocFontSize = parseFloat(tocStyle);
 
-  </script>
+        if ( change == 'plus' ) {
+            newFontSize = (tocFontSize + fontChange);
+        } else if ( change == 'minus' && tocFontSize > 12 ) {
+            newFontSize = (tocFontSize - fontChange);
+        } else if ( change != '' ) { // value from cookie
+            newFontSize = change;
+        } else {
+            return null;
+        }
+
+        contentFrameDocumentElement.style.fontSize = newFontSize + 'px';
+        toc.style.fontSize = newFontSize + 'px';
+
+        // Store the font size in a cookie
+        setCookie("tdc-viewer:font-size", newFontSize, 365);
+    }
+
+    function getFontSize() {
+        return getCookie("tdc-viewer:font-size");
+    }
+
+    function setCookie(cname, cvalue, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        var expires = "expires=" + d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires
+                + ";path=/";
+    }
+    function getCookie(cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+
+</script>
 </head>
 <body onload="initSearchField();initContentFrame();init();">
   <div id="container">
       <div id="m-ovrl"></div>
       <header>
-        <button id="h-toc-btn" onclick="toggleToc()" title="Table of contents"><span id="h-toc-toggle"></span></button>
+        <a href="javascript:void(0)" id="h-toc-btn" onclick="toggleToc();return false" title="Table of contents"><span id="h-toc-toggle"></span></a>
         <div id="h-search">
             <form id="f" class="f" action="/help/index.jsp" target="_top" method="GET" accept-charset="utf-8">
               <input type="hidden" name="tab" value="search">
@@ -477,25 +563,34 @@ SPDX-License-Identifier: EPL-2.0
               <input id="b" type="hidden" name="b" value="">
             </form>
         </div>
-        <button id="h-history-back-btn" onclick="goBack()" title="Go back"><span id="h-history-back"></span></button>
-        <button id="h-history-forward-btn" onclick="goForward()" title="Go forward"><span id="h-history-forward"></span></button>
+        <a href="javascript:void(0)" id="h-history-back-btn" onclick="goBack();return false" title="Go back"><span id="h-history-back"></span></a>
+        <a href="javascript:void(0)" id="h-history-forward-btn" onclick="goForward();return false" title="Go forward"><span id="h-history-forward"></span></a>
         <div id="h-menu">
-            <button id="h-mbtn" onclick="openMenu()" title="Help menu"><span id="h-hamburger"></span></button>
+            <a href="javascript:void(0)" id="h-mbtn" onclick="openMenu();return false" title="Help menu"><span id="h-hamburger"></span></a>
         </div>
         <div id="h-menu-ovrl">
-            <a href="javascript:void(0)" id="h-menu-closebtn" onclick="closeMenu()"></a>
+            <a href="javascript:void(0)" id="h-menu-closebtn" onclick="closeMenu();return false"></a>
             <div id="h-menu-ovrl-content">
-                <a href="javascript:void(0)" onclick="printContent();" title="Print selected topic">Print topic</a>
-                <a href="javascript:void(0)" onclick="printSection();" title="Print selected topic and all subtopics"><span>Print section</span></a>
-                <a href="javascript:void(0)" onclick="openTopic('../com.verigy.itee.help.smartest.ui.8.3.2/244454.htm');" title="How to use help"><span>Help</span></a>
-                <a href="javascript:void(0)" onclick="openTopic('about.html');" title="About help"><span>About</span></a>
+                <h2><span id="h-menu-settings"></span>Settings</h2>
+                <div id="h-menu-settings-font">
+                    <button id="h-menu-settings-fontbtn" onclick="setFontSize('plus');return false" title="Increase font size">+</button>
+                    <button id="h-menu-settings-fontbtn" onclick="setFontSize('minus');return false" title="Decrease font size">-</button>
+                    <span>Change font size</span>
+                </div>
+                <h2><span id="h-menu-print"></span>Printing</h2>
+                <a href="javascript:void(0)" onclick="printContent();return false" title="Print selected topic">Print topic</a>
+                <a href="javascript:void(0)" onclick="printSection();return false" title="Print selected topic and all subtopics">Print section</a>
+                <h2><span id="h-menu-help"></span>Help viewer</h2>
+                <a href="javascript:void(0)" onclick="openTopic('../com.verigy.itee.help.smartest.ui.8.3.1/244454.htm');return false" title="How to use help">Help</a>
+                <a href="javascript:void(0)" onclick="openTopic('about.html');return false" title="About help">About</a>
             </div>
         </div>
       </header>
       <main>
           <aside id="m-aside">
-            <nav id="m-toc"></nav>
-            <div id="m-slider"><div id="m-slider_"><span></span></div></div>
+          <a href="javascript:void(0)" id="m-toc-closebtn" onclick="closeTOC();return false"></a>
+                <nav id="m-toc"></nav>
+                <div id="m-slider"><div id="m-slider_"><span></span></div></div>
           </aside>
           <div class="m-content">
             <iframe id="m-content" name="m-content" onload="initContentFrame()" frameborder="0" scrolling="no" allowfullscreen></iframe>
@@ -503,7 +598,7 @@ SPDX-License-Identifier: EPL-2.0
       </main>
       <footer>
        <p id="f-copyright">&nbsp;<!-- add copyright here -->&nbsp;</p>
-       <button onclick="scrollToTop()" id="f-toTopBtn" title="Go to top"></button>
+       <a href="javascript:void(0)" onclick="scrollToTop();return false" id="f-toTopBtn" title="Go to top"></a>
       </footer>
     </div>
 </body>
