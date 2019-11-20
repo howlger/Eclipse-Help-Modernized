@@ -383,7 +383,6 @@ SPDX-License-Identifier: EPL-2.0
     // Closes table of contents
     function closeTOC() {
         var masideStyle = document.getElementById("m-aside").style;
-        masideStyle.transition = 'width .25s ease-in';
         masideStyle.width = '0px';
     }
 
@@ -391,28 +390,37 @@ SPDX-License-Identifier: EPL-2.0
     function toggleToc() {
         var clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
         var masideStyle = document.getElementById("m-aside").style;
-        masideStyle.transition = 'width .25s ease-in';
 
-        // toggle for normal/large screens
-        //console.log( masideStyle.width + ' at ' + clientWidth );
-        if ( masideStyle.width == "" || masideStyle.width != "0px" ) {
-            masideStyle.width = '0px';
-            // For Microsoft Edge
-            if ( /Edge\/\d./i.test(navigator.userAgent) ) {
-                //console.log(' Microsoft Edge: ' + navigator.userAgent );
-                masideStyle.display = "none";
+        // toggle for small screens
+        if( clientWidth < 768  ) {
+            if ( masideStyle.width == "" || masideStyle.width == "0px" ) {
+                masideStyle.width = tocWidth + 'px';
+                masideStyle.display = "table-cell";
+            } else {
+                masideStyle.width = '0px';
+                // For Microsoft Edge
+                if ( /Edge\/\d./i.test(navigator.userAgent) ) {
+                    //console.log(' Microsoft Edge: ' + navigator.userAgent );
+                    masideStyle.display = "none";
+                }
             }
+
         } else {
-            masideStyle.width = tocWidth + 'px';
-            masideStyle.display = "table-cell";
+            // toggle for normal/large screens
+            //console.log( masideStyle.display + ' at ' + clientWidth );
+            if ( masideStyle.width == "" || masideStyle.width != "0px" ) {
+            //console.log( masideStyle.width + ' at ' + clientWidth );
+                masideStyle.width = '0px';
+                // For Microsoft Edge
+                if ( /Edge\/\d./i.test(navigator.userAgent) ) {
+                    masideStyle.display = "none";
+                }
+            } else {
+                masideStyle.width = tocWidth + 'px';
+                masideStyle.display = "table-cell";
+            }
         }
         updateContentFrameSize();
-        /*
-        if( clientWidth > 768  ) {
-        } else {
-            console.log( masideStyle.display + ' at ' + clientWidth );
-        }
-        */
     }
 
     // Sets cursor in search field
@@ -491,7 +499,7 @@ SPDX-License-Identifier: EPL-2.0
 
     // In-Decrease the font size for the toc and content iframe
     function setFontSize(change) {
-        var fontChange = 5;
+        var fontChange = 3;
         var newFontSize = 0;
         var contentFrame = document.getElementById('m-content');
         var contentFrameDocument = contentFrame.contentWindow.document;
