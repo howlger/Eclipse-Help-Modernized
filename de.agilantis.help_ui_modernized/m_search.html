@@ -66,6 +66,14 @@
         }
         element.appendChild(document.createTextNode(text.substring(lastEnd)));
     }
+    function addEvent(o, type, fn){
+        if (o.addEventListener) o.addEventListener(type, fn, false);
+        else if (o.attachEvent) {
+           o['e'+type+fn] = fn;
+           o[type+fn] = function() { o['e'+type+fn](window.event); }
+           o.attachEvent('on'+type, o[type+fn]);
+        }
+     }
     ///////////////////////////////////////////////////////////////////////////
 
     var topCount = 10;
@@ -216,6 +224,18 @@
                 for (var j = 0; j < n.name.length; j+=2) {
                     name += (j == 0 ? '' : ' > ') + n.name[j+1];
                 }
+
+                // expandable tree node
+                var handle = createElement(r, 'span', 'h');
+                handle.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor" fill-rule="evenodd"></path></svg>';
+                addEvent(handle, 'click', (function(li) {
+                    return function() {
+                        var isOpen = li.getAttribute('class') == 'open' || li.getAttribute('class') == 'open loaded';
+                        li.setAttribute('class', isOpen ? 'closed' : 'open');
+                    };
+                })(r));
+
+                // node: chapter name or root topic
                 if (n.root) {
                     showItem(n.root, createElement(r, 'div', 'r'), true, depth+1, n.count);
                 } else {
@@ -223,6 +243,8 @@
                     addHighlightedText(sub, name + ' ', searchWord);
                     createElement(sub, 'span', 'count', n.count);
                 }
+
+                // subtree
                 var subUl = createElement(r, 'ul');
                 var shown = 0;
                 for (var j = 0; j < n.children.length; j++) {
@@ -241,6 +263,9 @@
                     shown++;
                     showItem(n.children[j], createElement(subUl, 'li'), showAsTree, depth+1);
                 }
+
+                // open/close subtree
+                r.setAttribute('class', shown > 0 ? 'open' : 'closed');
 
             } else {
                 showItem(n.isNode ? n.children[0] : n, r, showAsTree, depth);

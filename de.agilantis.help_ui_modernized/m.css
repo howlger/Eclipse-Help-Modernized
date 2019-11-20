@@ -142,7 +142,7 @@ main .m-content {
     margin: 0;
     padding: 0 0 0 8px;
 }
-#m-toc .closed ul {
+#m-toc .closed ul, div#results .closed ul {
     display: none;
 }
 /*/
@@ -156,7 +156,7 @@ main .m-content {
     max-height: 500em;
 }
 /*/
-#m-toc li {
+#m-toc li, #results li {
     padding: 4px 0 0 10px; /* indent TOC subitems: 10px => #m-toc a padding-left: 42px - 10px = 32px */
     list-style: none;
     position: relative;
@@ -169,7 +169,7 @@ main .m-content {
     -moz-user-select: none;
     -ms-user-select: none; /* otherwise in MS Edge a blinking text cursor will be shown */
 }
-#m-toc span {
+#m-toc span, div#results .h {
     display: inline-block;
     position: absolute;
     left: -2px;
@@ -178,7 +178,7 @@ main .m-content {
     color: #999;
     transition: transform .25s, color .25s, -webkit-transform .25s, -moz-transform .25s, -o-transform .25s;
 }
-#m-toc li.open > span {
+#m-toc li.open > span, #results li.open > .h {
     color: #091e42;
     transform: rotate(90deg);
 }
@@ -210,7 +210,11 @@ div#results ul ul {
     margin-left: 2em;
 }
 div#results div.scope {
-    margin: .5em 0 1em;
+    margin: 0 0 1em;
+    padding-left: 12px;
+}
+div#results .r {
+    padding-left: 10px;
 }
 .count {
     color: #999;
@@ -220,7 +224,10 @@ div#results li {
     text-align: left;
     white-space: normal;
     list-style: none outside none;
-    margin-bottom: 1em;
+    margin: 0;
+}
+div#results div.r, div#results div.scope {
+    display: inline-block;
 }
 div#results .r:hover {
     background: #e8f2fe;
@@ -246,6 +253,7 @@ div#results .more {
     font-size: 0.8em;
     font-weight: bold;
     padding: 4px 0;
+    margin-bottom: 1em;
 }
 div#results .more:hover {
     background: #e8f2fe;
