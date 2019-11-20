@@ -234,6 +234,8 @@
                         li.setAttribute('class', isOpen ? 'closed' : 'open');
                     };
                 })(r));
+                r.close = (function(li) { return function() { li.setAttribute('class', 'closed'); }; })(r);
+                r.open = (function(li) { return function() { li.setAttribute('class', 'open'); }; })(r);
 
                 // node: chapter name or root topic
                 if (n.root) {
@@ -250,14 +252,19 @@
                 for (var j = 0; j < n.children.length; j++) {
                     if (shown == maxPerGroup || n.children[j].p >= topCount) {
                         var more = createElement(subUl, 'li', 'more', 'More...');
-                        more.onclick = function(out, results, depth) {
+                        more.onclick = function(out, results, depth, ul, r) {
                             return function(e) {
                                 while (out.firstChild) {
                                     out.removeChild(out.firstChild);
                                 }
                                 showResults(results, true, out, depth);
+                                for (var i = 0; ul.children && i < ul.children.length; i++) {
+                                    if (ul.children[i].close) ul.children[i].close();
+                                }
+                                r.open();
+                                if (r.scrollIntoView) r.scrollIntoView();
                             };
-                        }(subUl, n.children, depth + 1);
+                        }(subUl, n.children, depth + 1, ul, r);
                         break;
                     }
                     shown++;
