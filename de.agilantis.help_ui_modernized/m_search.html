@@ -103,11 +103,13 @@
             }
 
         }
+
+        // calculate count and set the root (if it exists)
         for (var i = 0; i < tree.length; i++) {
             var r = tree[i];
-
-            // root?
-            if (!r.isNode) {
+            if (r.isNode) {
+                r.count = r.children.length + (r.root ? 1 : 0);
+            } else {
                 var resultofStart = r.href.indexOf('?resultof=');
                 var rootOfGroup = grouped['../topic' + (resultofStart < 0 ? r.href : r.href.substring(0, resultofStart))  + '\n' + r.title];
                 if (rootOfGroup) {
@@ -115,18 +117,30 @@
                     tree.splice(i,1);
                     i--;
                 }
-                continue;
             }
-
-            // (subtree) node
-            r.count = r.children.length + (r.root ? 1 : 0);
-            r.children = asTree(r.children, r.children[0].path.slice(0, path.length+2), depth - 1);
-
         }
+
+        // compact and recursion
+        for (var i = 0; i < tree.length; i++) {
+            var r = tree[i];
+            if (!r.isNode) continue;
+            compact(path, r);
+            r.children = asTree(r.children, r.children[0].path.slice(0, path.length+r.name.lenth), depth - 1);
+        }
+
         return tree;
     }
-    function compactTreeNode(node) {
-
+    function compact(path, r) {
+        for (var i = path.length+2; r.children.length > 0 && !r.root; i+=2) {
+            for (var j = 0; j < r.children.length; j++) {
+                console.log('j: ' + j);
+                if (   r.children[j].path.length < i + 2
+                    || r.children[j].path[i] != r.children[0].path[i]
+                    || r.children[j].path[i+1] != r.children[0].path[i+1]) return;
+            }
+            r.name.push(r.children[0].path[i]);
+            r.name.push(r.children[0].path[i+1]);
+        }
     }
     var results = [];
     var searchWord = '';
@@ -268,7 +282,7 @@
                         break;
                     }
                     shown++;
-                    showItem(n.children[j], createElement(subUl, 'li'), showAsTree, depth+1);
+                    showItem(n.children[j], createElement(subUl, 'li'), showAsTree, depth+(n.name.length/2));
                 }
 
                 // open/close subtree
