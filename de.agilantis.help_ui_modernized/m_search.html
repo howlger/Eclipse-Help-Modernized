@@ -278,7 +278,7 @@
                                 r.open();
                                 if (r.scrollIntoView) r.scrollIntoView();
                             };
-                        }(subUl, n.children, depth + 1, ul, r);
+                        }(subUl, n.children, depth+(n.name.length/2), ul, r);
                         break;
                     }
                     shown++;
