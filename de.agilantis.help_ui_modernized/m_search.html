@@ -133,7 +133,6 @@
     function compact(path, r) {
         for (var i = path.length+2; r.children.length > 0 && !r.root; i+=2) {
             for (var j = 0; j < r.children.length; j++) {
-                console.log('j: ' + j);
                 if (   r.children[j].path.length < i + 2
                     || r.children[j].path[i] != r.children[0].path[i]
                     || r.children[j].path[i+1] != r.children[0].path[i+1]) return;
@@ -226,8 +225,6 @@
                       : asTree(resultList, resultList[0].path.slice(0, depth * 2), 1);
 
         var previousTop = false;
-        var more;
-        var hidden = [];
         for (var i = 0; i < results.length; i++) {
             var n = results[i];
             var r = createElement(ul, 'li');
