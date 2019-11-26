@@ -260,9 +260,10 @@
 
                 // subtree
                 var subUl = createElement(r, 'ul');
-                var shown = 0;
-                for (var j = 0; j < n.children.length; j++) {
-                    if (shown == maxPerGroup || n.children[j].p >= topCount) {
+                var j;
+                for (j = 0; j < n.children.length; j++) {
+                    if (   (j == maxPerGroup || n.children[j].p >= topCount)
+                        && j + 1 != n.children.length) { // do not show "More..." to hide a single item
                         more = function(out, results, depth, ul, r) {
                             return function(closeSiblings) {
                                 return function(e) {
@@ -285,12 +286,11 @@
                         createElement(subUl, 'li', 'more', 'More...').onclick = more(true);
                         break;
                     }
-                    shown++;
                     showItem(n.children[j], createElement(subUl, 'li'), showAsTree, depth+(n.name.length/2));
                 }
 
                 // open/close subtree
-                r.setAttribute('class', shown > 0 ? 'open' : 'closed');
+                r.setAttribute('class', j > 0 ? 'open' : 'closed');
 
             } else {
                 showItem(n.isNode ? n.children[0] : n, r, showAsTree, depth);
