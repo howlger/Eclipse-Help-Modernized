@@ -158,7 +158,9 @@ SPDX-License-Identifier: EPL-2.0
 
             if( start > 0) {
                 var end = responseText.indexOf("'", start + 24);
-                document.getElementById('m-content').src = '../' + responseText.substring(start + 24, end).replace(/&#47;/g, '/').replace(/&#46;/g, '.');
+                var element = createElement(null, 'p');
+                element.innerHTML = responseText.substring(start + 24, end);
+                document.getElementById('m-content').src = '../' + (element.textContent ? element.textContent : element.innerText);
                 loadTocChildrenInit(document.getElementById('m-toc'));
             }
         }
