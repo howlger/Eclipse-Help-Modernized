@@ -53,7 +53,7 @@
         }
 
         var lastEnd = 0;
-        while (hIndex >=0) {
+        while (hIndex >=0 && searchWord.length > 0) {
             element.appendChild(document.createTextNode(text.substring(lastEnd, hIndex)));
             lastEnd = hIndex + searchWord.length;
             if (   hIndex == 0
@@ -152,7 +152,7 @@
             if (match == null) return;
 
             // search word
-            var element = createElement(null, 'div');
+            var element = createElement(null, 'p');
             element.innerHTML = match[1].replace(/\\u([0-9A-F]{4})/g,'&#x$1;');
             searchWord = (element.textContent ? element.textContent : element.innerText).replace(/\*(?=\&)|(^searchWord=)|(\&maxHits=.+$)/g,'');
             searchWord = searchWord.indexOf('&') < 0 ? searchWord : searchWord.substr(0, searchWord.indexOf('&'));
