@@ -189,27 +189,7 @@
 , pos: (results.length+1)
                 });
             }
-
-            // remove "Searching..."
-            var out = document.getElementById("results");
-            while (out.firstChild) {
-                out.removeChild(out.firstChild);
-            }
-
-            // show results
-            if (results.length > 0) {
-                var s = createElement(out, 'div', 'stats');
-                createElement(s, 'span', 'count', results.length);
-                s.appendChild(document.createTextNode(' results' + (scopeName ? ' in ' : '')));
-                if (scopeName) {
-                    createElement(s, 'span', 'scope', scopeName);
-                }
-                s.appendChild(document.createTextNode(':'));
-            } else {
-                var noResults = createElement(out, 'div', 'no-results', 'No topics found containing ');
-                createElement(noResults, 'strong', false, searchWord);
-            }
-            showResults(results, withBreadcrumbs, createElement(out, 'ul'), scopeName ? 1 : 0);
+            showResults(results, withBreadcrumbs, false, scopeName ? 1 : 0);
         }
         var url = href.replace('/m_search.html?', '/../../advanced/searchView.jsp?');
         remoteRequest(url, callback);
@@ -220,10 +200,53 @@
 
     function showResults(resultList, showAsTree, ul, depth) {
 
+        // header
+        if (!ul) {
+
+            // remove "Searching..."
+            var out = document.getElementById("results");
+            while (out.firstChild) {
+                out.removeChild(out.firstChild);
+            }
+
+            // show results
+            if (resultList.length > 0) {
+                var s = createElement(out, 'div', 'stats');
+                createElement(s, 'span', 'count', resultList.length);
+                s.appendChild(document.createTextNode(' results' + (scopeName ? ' in ' : '')));
+                if (scopeName) {
+                    createElement(s, 'span', 'scope', scopeName);
+                }
+                s.appendChild(document.createTextNode(':'));
+
+                if (showAsTree && resultList.length > topCount) {
+                    var treeButton = createElement(s, 'button', false, 'Tree');
+                    treeButton.setAttribute('type', 'button');
+                    treeButton.onclick = function(resultList, depth) {
+                        return function(e) {
+                            showResults(resultList, true, false, depth);
+                        }
+                    }(resultList, depth);
+                    var listButton = createElement(s, 'button', false, 'List');
+                    listButton.setAttribute('type', 'button');
+                    listButton.onclick = function(resultList, depth) {
+                        return function(e) {
+                            showResults(resultList, false, false, depth);
+                        }
+                    }(resultList, depth);
+                }
+            } else {
+                var noResults = createElement(out, 'div', 'no-results', 'No topics found containing ');
+                createElement(noResults, 'strong', false, searchWord);
+                return;
+            }
+
+            ul = createElement(out, 'ul');
+        }
+
         var results = !showAsTree || resultList.length <= topCount
                       ? resultList
                       : asTree(resultList, resultList[0].path.slice(0, depth * 2), 1);
-
         var previousTop = false;
         for (var i = 0; i < results.length; i++) {
             var n = results[i];
