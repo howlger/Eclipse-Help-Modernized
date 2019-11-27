@@ -272,10 +272,11 @@
                                         out.removeChild(out.firstChild);
                                     }
                                     showResults(results, true, out, depth);
-                                    for (var i = 0; closeSiblings && ul.children && i < ul.children.length; i++) {
+                                    r.hasMore = false;
+                                    if (!closeSiblings) return;
+                                    for (var i = 0; ul.children && i < ul.children.length; i++) {
                                         if (ul.children[i].close) ul.children[i].close();
                                     }
-                                    r.hasMore = false;
                                     r.open();
                                     if (r.scrollIntoView) r.scrollIntoView();
                                 };
