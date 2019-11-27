@@ -572,6 +572,20 @@ SPDX-License-Identifier: EPL-2.0
         return "";
     }
 
+    /* TODO */
+    function toggleHighlight(button, param)
+    {
+        try {
+            parent.ContentViewFrame.toggleHighlight();
+            var highlight = parent.ContentViewFrame.currentHighlight;
+            window.setButtonState("toggle_highlight", highlight);
+            var date = new Date();
+            date.setTime(date.getTime()+(365*24*60*60*1000));
+            document.cookie = document.cookie = "highlight="+highlight+"; expires="+date.toGMTString() + ";path=/";;
+
+        } catch(e) {}
+    }
+
 </script>
 </head>
 <body onload="initSearchField();initContentFrame();init();">
@@ -597,12 +611,13 @@ SPDX-License-Identifier: EPL-2.0
         <div id="h-menu-ovrl">
             <a href="javascript:void(0)" id="h-menu-closebtn" onclick="closeMenu();return false"></a>
             <div id="h-menu-ovrl-content">
-                <h2><span id="h-menu-settings"></span>Settings</h2>
+                <h2><span id="h-menu-settings-title"></span>Settings</h2>
                 <div id="h-menu-settings-font">
                     <button id="h-menu-settings-fontbtn" onclick="setFontSize('plus');return false" title="Increase font size">+</button>
                     <button id="h-menu-settings-fontbtn" onclick="setFontSize('minus');return false" title="Decrease font size">-</button>
                     <span>Change font size</span>
                 </div>
+                <a href="javascript:void(0)" onclick="toggleHighlight();return false" title="Highlight search terms"><span id="h-toggle-highlight-btn"></span>Highlight search terms</a>
                 <h2><span id="h-menu-print"></span>Printing</h2>
                 <a href="javascript:void(0)" onclick="printContent();return false" title="Print selected topic">Print topic</a>
                 <a href="javascript:void(0)" onclick="printSection();return false" title="Print selected topic and all subtopics">Print section</a>
