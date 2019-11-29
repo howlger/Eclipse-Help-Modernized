@@ -73,6 +73,9 @@ main .m-content {
     width: *;
     height: 100%;
 }
+a {
+    outline: 0; /* Remove the dotted outline  */
+}
 #m-aside {
     display: table-cell;
     width: 360px;
