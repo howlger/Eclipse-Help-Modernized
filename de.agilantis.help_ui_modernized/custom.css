@@ -1,1 +1,26 @@
 /* add your custom css here */
+
+/* Advantest copyright */
+#f-copyright::before {
+  content: "Copyright 2019 ADVANTEST CORPORATION";
+}
+
+header, footer {
+    background-color: #262626;
+}
+
+/* no toc icons */
+#m-toc a {
+    padding-left: 16px;
+}
+#m-toc img {
+    display: none;
+}
+
+/*
+#m-toc li > a:hover {
+    background-color: #e8f2fe;
+    width: 100%;
+    height: 100%;
+}
+*/
