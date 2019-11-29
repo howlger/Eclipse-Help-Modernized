@@ -20,15 +20,20 @@ SPDX-License-Identifier: EPL-2.0
   <script type="text/javascript" src="m.js"></script>
   <script type="text/javascript">
 
-    var menuWidth = 280;
+    var clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
+    var menuWidth  = 280; // Right side menu width
+    var smallScreenWidth = 768; // Tablet breakpoint;
+    var sliderWidth = 12;
+
     // Read toc width from cookie
-    var tocWidth = getCookie("help-viewer:toc-width");
-    if ( tocWidth == "" ){
+    var tocWidth = getCookie('help-viewer:toc-width');
+    if ( tocWidth == '' ){
         tocWidth = 360;
     }
-    //console.log(tocWidth);
+    if ( clientWidth < smallScreenWidth && tocWidth > sliderWidth ) {
+        tocWidth = -tocWidth;
+    }
 
-    var sliderWidth = 12;
     function h(a, c, d, e) {
         if (typeof _eh != 'undefined')
             _eh.h(a, '', true, d, c, e)
@@ -86,9 +91,6 @@ SPDX-License-Identifier: EPL-2.0
         if (fontSize != "") {
             setFontSize(fontSize);
         }
-        //console.log(tocWidth);
-        document.getElementById("m-aside").style.width = tocWidth;
-
     }
 
     function initSearchField() {
@@ -211,12 +213,16 @@ SPDX-License-Identifier: EPL-2.0
             asideStyle.width = (tocWidth < sliderWidth ? sliderWidth : tocWidth) + 'px';
             document.getElementById("m-slider").setAttribute('class', tocWidth < sliderWidth ? 'o' : '');
             updateContentFrameSize();
-            setTocWidth(tocWidth);
         }
+        var toc_width= function (e) {
+            var asideStyle = document.getElementById("m-aside").style;
+            //console.log(tocWidth);
+            asideStyle.width = tocWidth ;
+            //console.log( asideStyle.width );
+        }
+        document.getElementById("m-aside").onclick = toc_width;
         slider.ondblclick = toggle_toc;
         document.getElementById("m-slider_").onclick = toggle_toc;
-        // Debugging get browser details
-        //alert("User-agent header: " + navigator.userAgent);
     }
 
     // Stores the toc width in a cookie
@@ -315,6 +321,11 @@ SPDX-License-Identifier: EPL-2.0
             var a = createElement(li, 'a');
             a.setAttribute('href', '../../' + n.getAttribute('href').substring(3));
             a.setAttribute('target', 'm-content');
+            // For small screen close the TOC again when link is clicked
+            var clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
+            if ( clientWidth < smallScreenWidth ) {
+                a.setAttribute('onclick', 'closeToc();');
+            }
             var icon = n.getAttribute('image');
             if (icon) {
                 var iconImg = createElement(a, 'img');
@@ -340,7 +351,7 @@ SPDX-License-Identifier: EPL-2.0
     {
         var content = document.getElementById('m-content');
         try {
-            orgTitle = document.title;
+            var orgTitle = document.title;
             document.title=content.contentDocument.title;
             window.print();
             // Reset the title again to the original value
@@ -379,7 +390,7 @@ SPDX-License-Identifier: EPL-2.0
       document.getElementById("h-menu-ovrl").style.width = '0px';
     }
 
-    // Closes hamburger menu if the user clicks outside of it
+    // Closes menu if the user clicks outside of it
 
     // TODO Close menu also when content iframe is clicked
     //var contentFrame = document.getElementById('m-content');
@@ -393,7 +404,6 @@ SPDX-License-Identifier: EPL-2.0
               && event.target.id != 'h-menu-closebtn'
               && event.target.id != 'h-menu-settings-fontbtn'
               //&& event.target.id != 'h-toc-toggle'
-              //&& event.target.id != 'm-toc-closebtn'
               ) {
           document.getElementById("h-menu-ovrl").style.width = '0px';
           //document.getElementById("m-aside").style.width = '0px';
@@ -401,43 +411,35 @@ SPDX-License-Identifier: EPL-2.0
     }
 
     // Closes table of contents
-    function closeTOC() {
+    function closeToc() {
         var masideStyle = document.getElementById("m-aside").style;
         masideStyle.width = '0px';
     }
 
     // Show or hide the table of contents
     function toggleToc() {
-        var clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
+
         var masideStyle = document.getElementById("m-aside").style;
-        //console.log( masideStyle.width + ' at ' + clientWidth );
+        var mSlider = document.getElementById("m-slider");
 
-        // toggle for small screens
-        if( clientWidth < 768  ) {
-            if ( masideStyle.width == "" || masideStyle.width == "0px" ) {
-                masideStyle.width = tocWidth + 'px';
-                masideStyle.display = "table-cell";
-            } else {
-                masideStyle.width = '0px';
-                // For Microsoft Edge
-                if ( /Edge\/\d./i.test(navigator.userAgent) ) {
-                    masideStyle.display = "none";
-                }
+        tocWidth = -tocWidth;
+        mSlider.setAttribute('class', tocWidth < sliderWidth ? 'o' : '');
+        /*
+        console.log( 'display=' + masideStyle.display
+                + ', width=' + masideStyle.width
+                + ', tocWidth=' + tocWidth
+                + ', sliderWidth=' + sliderWidth
+                + ', clientWidth=' + clientWidth );
+        */
+        if ( tocWidth < sliderWidth ) {
+            masideStyle.width = '0px';
+            // For Microsoft Edge
+            if ( /Edge\/\d./i.test(navigator.userAgent) ) {
+                masideStyle.display = "none";
             }
-
         } else {
-            // toggle for normal/large screens
-            //console.log( masideStyle.display + ' at ' + clientWidth );
-            if ( masideStyle.width == "" || masideStyle.width != "0px" ) {
-                masideStyle.width = '0px';
-                // For Microsoft Edge
-                if ( /Edge\/\d./i.test(navigator.userAgent) ) {
-                    masideStyle.display = "none";
-                }
-            } else {
-                masideStyle.width = tocWidth + 'px';
-                masideStyle.display = "table-cell";
-            }
+            masideStyle.width = tocWidth + 'px';
+            masideStyle.display = "table-cell";
         }
         updateContentFrameSize();
     }
@@ -629,7 +631,6 @@ SPDX-License-Identifier: EPL-2.0
       </header>
       <main>
           <aside id="m-aside">
-          <a href="javascript:void(0)" id="m-toc-closebtn" onclick="closeTOC();return false"></a>
                 <nav id="m-toc"></nav>
                 <div id="m-slider"><div id="m-slider_"><span></span></div></div>
           </aside>
