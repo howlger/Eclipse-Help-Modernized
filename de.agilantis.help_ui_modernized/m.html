@@ -25,14 +25,16 @@ SPDX-License-Identifier: EPL-2.0
     var smallScreenWidth = 768; // Tablet breakpoint;
     var sliderWidth = 12;
 
+    //console.log('tocWidth0=' + tocWidth);
     // Read toc width from cookie
     var tocWidth = getCookie('help-viewer:toc-width');
-    if ( tocWidth == '' ){
+    if ( tocWidth == '' || tocWidth == undefined ){
         tocWidth = 360;
     }
     if ( clientWidth < smallScreenWidth && tocWidth > sliderWidth ) {
         tocWidth = -tocWidth;
     }
+    //console.log('tocWidth1=' + tocWidth);
 
     function h(a, c, d, e) {
         if (typeof _eh != 'undefined')
@@ -414,7 +416,12 @@ SPDX-License-Identifier: EPL-2.0
     function closeToc() {
         var masideStyle = document.getElementById("m-aside").style;
         masideStyle.width = '0px';
+        if ( clientWidth < smallScreenWidth && tocWidth > sliderWidth ) {
+            tocWidth = -tocWidth;
+        }
     }
+
+    //console.log( 'tocWidth=' + tocWidth + ', sliderWidth=' + sliderWidth );
 
     // Show or hide the table of contents
     function toggleToc() {
@@ -486,7 +493,7 @@ SPDX-License-Identifier: EPL-2.0
     function scrollFunction() {
 
       // Initialize go to top button
-      var topButton = document.getElementById("f-toTopBtn");
+      var topButton = document.getElementById("f-toTop");
 
       if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
           topButton.style.display = "block";
@@ -640,7 +647,7 @@ SPDX-License-Identifier: EPL-2.0
       </main>
       <footer>
        <p id="f-copyright">&nbsp;<!-- add copyright here -->&nbsp;</p>
-       <a href="javascript:void(0)" onclick="scrollToTop();return false" id="f-toTopBtn" title="Go to top"></a>
+       <a href="javascript:void(0)" onclick="scrollToTop();return false" id="f-toTopBtn" title="Go to top"><span id="f-toTop"></span></a>
       </footer>
     </div>
 </body>
