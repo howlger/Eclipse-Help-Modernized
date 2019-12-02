@@ -377,6 +377,8 @@ html, body {
 
 .s {
     background: center no-repeat url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB2ZXJzaW9uPSIxLjEiIHZpZXdCb3g9IjAgMCAyMy45OTggMjQiIHhtbDpzcGFjZT0icHJlc2VydmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPjxtZXRhZGF0YT48cmRmOlJERj48Y2M6V29yayByZGY6YWJvdXQ9IiI+PGRjOmZvcm1hdD5pbWFnZS9zdmcreG1sPC9kYzpmb3JtYXQ+PGRjOnR5cGUgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIvPjxkYzp0aXRsZS8+PC9jYzpXb3JrPjwvcmRmOlJERj48L21ldGFkYXRhPgo8cGF0aCBkPSJtMTYuMDI2IDIuNzQ1OWMtMy42NjEyLTMuNjYxMi05LjYyLTMuNjYxMi0xMy4yODEgMC0zLjY2MDQgMy42NjItMy42NjA0IDkuNjIgMCAxMy4yODIgMy4yNjA0IDMuMjU5NiA4LjMzODIgMy42MDg4IDExLjk5NyAxLjA2MzUgMC4wNzY5OSAwLjM2NDI5IDAuMjUzMTggMC43MTE5MiAwLjUzNjUyIDAuOTk1MjZsNS4zMzE4IDUuMzMxOGMwLjc3NyAwLjc3NTQxIDIuMDMyNiAwLjc3NTQxIDIuODA1NiAwIDAuNzc2Mi0wLjc3NjIgMC43NzYyLTIuMDMxOCAwLTIuODA1NmwtNS4zMzE4LTUuMzMzNGMtMC4yODE3NS0wLjI4MDk2LTAuNjMwMTctMC40NTc5NC0wLjk5NDQ2LTAuNTM0OTMgMi41NDY5LTMuNjU5NiAyLjE5NzctOC43MzY3LTEuMDYzNS0xMS45OTl6bS0xLjY4MzQgMTEuNTk5Yy0yLjczMzQgMi43MzM0LTcuMTgxOSAyLjczMzQtOS45MTQ0IDAtMi43MzE4LTIuNzMzNC0yLjczMTgtNy4xODExIDAtOS45MTQ0IDIuNzMyNi0yLjczMjYgNy4xODExLTIuNzMyNiA5LjkxNDQgMCAyLjczMzQgMi43MzM0IDIuNzMzNCA3LjE4MTEgMCA5LjkxNDR6IiBmaWxsPSIjOTk5IiBzdHJva2Utd2lkdGg9Ii43OTM2NiIvPgo8L3N2Zz4=');
+    width:  32px;
+    height: 32px;
     outline: none;
     cursor: pointer;
     border: 0;
@@ -401,10 +403,10 @@ html, body {
     margin-left: auto;
 }
 
-.s, #h-more-icon, #h-menu-ovrl, #h-menu-close-icon, #h-history-back-icon,
+#h-more-icon, #h-menu-ovrl, #h-menu-close-icon, #h-history-back-icon,
 #h-history-forward-icon, #h-toc-icon, #f-totop, #h-menu-print {
-    width:  32px;
-    height: 32px;
+    width:  26px;
+    height: 26px;
 }
 
 #h-history-back-btn, #h-history-forward-btn {
@@ -463,7 +465,7 @@ html, body {
 #h-more-icon {
   position: relative;
   display: inline-block;
-  background: center no-repeat url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAzNDIuMzgyIDM0Mi4zODIiIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDM0Mi4zOCAzNDIuMzgiIHhtbDpzcGFjZT0icHJlc2VydmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPjxtZXRhZGF0YT48cmRmOlJERj48Y2M6V29yayByZGY6YWJvdXQ9IiI+PGRjOmZvcm1hdD5pbWFnZS9zdmcreG1sPC9kYzpmb3JtYXQ+PGRjOnR5cGUgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIvPjxkYzp0aXRsZS8+PC9jYzpXb3JrPjwvcmRmOlJERj48L21ldGFkYXRhPgoJPGcgdHJhbnNmb3JtPSJyb3RhdGUoOTAgMTcxLjE5IDE3MS4xOSkiIGZpbGw9IiM2NjYiPgoJCQk8cGF0aCBkPSJtNDUuMjI1IDEyNS45N2MtMjQuOTQxIDAtNDUuMjI1IDIwLjI4NC00NS4yMjUgNDUuMjE5IDAgMjQuOTQgMjAuMjg0IDQ1LjIxOSA0NS4yMjUgNDUuMjE5IDI0LjkyNiAwIDQ1LjIxOS0yMC4yNzggNDUuMjE5LTQ1LjIxOSAwLTI0LjkzNS0yMC4yOTMtNDUuMjE5LTQ1LjIxOS00NS4yMTl6Ii8+CgkJCTxwYXRoIGQ9Im0xNzMuNDEgMTI1Ljk3Yy0yNC45MzggMC00NS4yMjUgMjAuMjg0LTQ1LjIyNSA0NS4yMTkgMCAyNC45NCAyMC4yODcgNDUuMjE5IDQ1LjIyNSA0NS4yMTkgMjQuOTM2IDAgNDUuMjI2LTIwLjI3OCA0NS4yMjYtNDUuMjE5IDAtMjQuOTM1LTIwLjI5LTQ1LjIxOS00NS4yMjYtNDUuMjE5eiIvPgoJCQk8cGF0aCBkPSJtMjk3LjE2IDEyNS45N2MtMjQuOTMyIDAtNDUuMjIyIDIwLjI4NC00NS4yMjIgNDUuMjE5IDAgMjQuOTQgMjAuMjkgNDUuMjE5IDQ1LjIyMiA0NS4yMTkgMjQuOTI2IDAgNDUuMjE3LTIwLjI3OCA0NS4yMTctNDUuMjE5IDAtMjQuOTM1LTIwLjI5MS00NS4yMTktNDUuMjE3LTQ1LjIxOXoiLz4KCTwvZz4KPC9zdmc+Cg==');
+  background: center no-repeat url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg version='1.1' viewBox='0 0 90.438 342.38' xml:space='preserve' xmlns='http://www.w3.org/2000/svg' xmlns:cc='http://creativecommons.org/ns%23' xmlns:dc='http://purl.org/dc/elements/1.1/' xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns%23'%3E%3Cmetadata%3E%3Crdf:RDF%3E%3Ccc:Work rdf:about=''%3E%3Cdc:format%3Eimage/svg+xml%3C/dc:format%3E%3Cdc:type rdf:resource='http://purl.org/dc/dcmitype/StillImage'/%3E%3Cdc:title/%3E%3C/cc:Work%3E%3C/rdf:RDF%3E%3C/metadata%3E%3Cg transform='rotate(90 108.2 108.2)' fill='%23666'%3E%3Cpath d='m45.225 125.97c-24.941 0-45.225 20.284-45.225 45.219 0 24.94 20.284 45.219 45.225 45.219 24.926 0 45.219-20.278 45.219-45.219 0-24.935-20.293-45.219-45.219-45.219z'/%3E%3Cpath d='m173.41 125.97c-24.938 0-45.225 20.284-45.225 45.219 0 24.94 20.287 45.219 45.225 45.219 24.936 0 45.226-20.278 45.226-45.219 0-24.935-20.29-45.219-45.226-45.219z'/%3E%3Cpath d='m297.16 125.97c-24.932 0-45.222 20.284-45.222 45.219 0 24.94 20.29 45.219 45.222 45.219 24.926 0 45.217-20.278 45.217-45.219 0-24.935-20.291-45.219-45.217-45.219z'/%3E%3C/g%3E%3C/svg%3E%0A");
 }
 
 #h-more-icon:hover, #h-more-icon:focus {
@@ -958,7 +960,7 @@ a:hover {
 }
 
 .-ehs, .-ehr {
-    width: 480px;
+    width: 320px;
     background: #ffffff;
     border: 1px solid #dddddd;
     -webkit-appearance: none;
@@ -1163,17 +1165,10 @@ a:hover {
 
 /* laptop styles */
 @media screen and (max-width: 1024px) {
-  #h-search {
-    margin-left: auto;
-  }
-  .-ehs, .-ehr {
-    width: 320px;
-  }
 }
 
 /* tablet styles */
 @media screen and (max-width: 768px) {
-    /* header */
     .s  {
       display: none;
     }
@@ -1194,16 +1189,11 @@ a:hover {
     div#results ul {
         width: 100%;
     }
-    #h-toc-btn {
+    #h-toc-btn, #h-search {
       margin-left: 1em;
     }
     #h-menu {
       margin-right: 1em;
-    }
-    .s, #h-more-icon, #h-menu-ovrl, #h-menu-close-icon, #h-history-back-icon,
-    #h-history-forward-icon, #h-toc-icon, #f-totop {
-      width: 26px;
-      height: 26px;
     }
     .-ehp, .-ehs, .-ehr, .-ehl {
       height: 26px;
@@ -1216,8 +1206,12 @@ a:hover {
     html, body {
       font-size: 95%;
     }
-    /* header */
-    .s {
+    .s,
+    #h-history-back-btn,
+    #h-history-back-icon,
+    #h-history-forward-btn,
+    #h-history-forward-icon,
+    .-ehc, .-ehw {
       display: none;
     }
     .-ehp, .-ehq, .-ehs, .-ehr{
