@@ -88,6 +88,7 @@ SPDX-License-Identifier: EPL-2.0
         addEvent(window, 'resize', updateContentFrameSize);
         //fixAnchorLinks();
         //scrollToTop();
+        showHistoryButtons();
         // Read font size from cookie if already set
         var fontSize = getFontSize();
         if (fontSize != "") {
@@ -401,11 +402,11 @@ SPDX-License-Identifier: EPL-2.0
 
     window.onclick = function(event) {
       //console.log("event.target.id=" + event.target.id);
-      if ( event.target.id != 'h-mbtn'
-              && event.target.id != 'h-more'
-              && event.target.id != 'h-menu-closebtn'
-              && event.target.id != 'h-menu-settings-fontbtn'
-              //&& event.target.id != 'h-toc-toggle'
+      if ( event.target.id != 'h-more-btn'
+              && event.target.id != 'h-more-icon'
+              && event.target.id != 'h-menu-close-btn'
+              && event.target.id != 'h-menu-settings-font-btn'
+              //&& event.target.id != 'h-toc-btn'
               ) {
           document.getElementById("h-menu-ovrl").style.width = '0px';
           //document.getElementById("m-aside").style.width = '0px';
@@ -419,9 +420,9 @@ SPDX-License-Identifier: EPL-2.0
         if ( clientWidth < smallScreenWidth && tocWidth > sliderWidth ) {
             tocWidth = -tocWidth;
         }
+        updateContentFrameSize();
     }
 
-    //console.log( 'tocWidth=' + tocWidth + ', sliderWidth=' + sliderWidth );
 
     // Show or hide the table of contents
     function toggleToc() {
@@ -449,6 +450,8 @@ SPDX-License-Identifier: EPL-2.0
             masideStyle.display = "table-cell";
         }
         updateContentFrameSize();
+        //console.log( 'tocWidth=' + tocWidth + ', sliderWidth=' + sliderWidth );
+
     }
 
     // Sets cursor in search field
@@ -468,9 +471,9 @@ SPDX-License-Identifier: EPL-2.0
     // Show browsing buttons when run locally as help viewer
     function showHistoryButtons() {
         if ( isLocalHelp() ) {
-            document.getElementById('h-history-back').style.display = 'inline-block';
+            document.getElementById('h-history-back-icon').style.display = 'inline-block';
             document.getElementById('h-history-back-btn').style.display = 'inline-block';
-            document.getElementById('h-history-forward').style.display = 'inline-block';
+            document.getElementById('h-history-forward-icon').style.display = 'inline-block';
             document.getElementById('h-history-forward-btn').style.display = 'inline-block';
         }
     }
@@ -493,7 +496,7 @@ SPDX-License-Identifier: EPL-2.0
     function scrollFunction() {
 
       // Initialize go to top button
-      var topButton = document.getElementById("f-toTop");
+      var topButton = document.getElementById("f-totop");
 
       if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
           topButton.style.display = "block";
@@ -601,7 +604,7 @@ SPDX-License-Identifier: EPL-2.0
   <div id="container">
       <div id="m-ovrl"></div>
       <header>
-        <a href="javascript:void(0)" id="h-toc-btn" onclick="toggleToc();return false" title="Table of contents"><span id="h-toc-toggle"></span></a>
+        <a href="javascript:void(0)" id="h-toc-btn" onclick="toggleToc();return false" title="Table of contents"><span id="h-toc-icon"></span></a>
         <div id="h-search">
             <form id="f" class="f" action="/help/index.jsp" target="_top" method="GET" accept-charset="utf-8">
               <input type="hidden" name="tab" value="search">
@@ -612,21 +615,21 @@ SPDX-License-Identifier: EPL-2.0
               <input id="b" type="hidden" name="b" value="">
             </form>
         </div>
-        <a href="javascript:void(0)" id="h-history-back-btn" onclick="goBack();return false" title="Go back"><span id="h-history-back"></span></a>
-        <a href="javascript:void(0)" id="h-history-forward-btn" onclick="goForward();return false" title="Go forward"><span id="h-history-forward"></span></a>
+        <a href="javascript:void(0)" id="h-history-back-btn" onclick="goBack();return false" title="Go back"><span id="h-history-back-icon"></span></a>
+        <a href="javascript:void(0)" id="h-history-forward-btn" onclick="goForward();return false" title="Go forward"><span id="h-history-forward-icon"></span></a>
         <div id="h-menu">
-            <a href="javascript:void(0)" id="h-mbtn" onclick="openMenu();return false" title="Help menu"><span id="h-more"></span></a>
+            <a href="javascript:void(0)" id="h-more-btn" onclick="openMenu();return false" title="Help menu"><span id="h-more-icon"></span></a>
         </div>
         <div id="h-menu-ovrl">
-            <a href="javascript:void(0)" id="h-menu-closebtn" onclick="closeMenu();return false"></a>
+            <a href="javascript:void(0)" id="h-menu-close-btn" onclick="closeMenu();return false"><span id="h-menu-close-icon"></span></a>
             <div id="h-menu-ovrl-content">
                 <h2><span id="h-menu-settings-title"></span>Settings</h2>
                 <div id="h-menu-settings-font">
-                    <button id="h-menu-settings-fontbtn" onclick="setFontSize('plus');return false" title="Increase font size">+</button>
-                    <button id="h-menu-settings-fontbtn" onclick="setFontSize('minus');return false" title="Decrease font size">-</button>
+                    <button id="h-menu-settings-font-btn" onclick="setFontSize('plus');return false" title="Increase font size">+</button>
+                    <button id="h-menu-settings-font-btn" onclick="setFontSize('minus');return false" title="Decrease font size">-</button>
                     <span>Change font size</span>
                 </div>
-                <a href="javascript:void(0)" onclick="toggleHighlight();return false" title="Highlight search terms"><span id="h-toggle-highlight-btn"></span>Highlight search terms</a>
+                <a href="javascript:void(0)" onclick="toggleHighlight();return false" title="Highlight search terms"><span id="h-toggle-highlight-icon"></span>Highlight search terms</a>
                 <h2><span id="h-menu-print"></span>Printing</h2>
                 <a href="javascript:void(0)" onclick="printContent();return false" title="Print selected topic">Print topic</a>
                 <a href="javascript:void(0)" onclick="printSection();return false" title="Print selected topic and all subtopics">Print section</a>
@@ -647,7 +650,7 @@ SPDX-License-Identifier: EPL-2.0
       </main>
       <footer>
        <p id="f-copyright">&nbsp;<!-- add copyright here -->&nbsp;</p>
-       <a href="javascript:void(0)" onclick="scrollToTop();return false" id="f-toTopBtn" title="Go to top"><span id="f-toTop"></span></a>
+       <a href="javascript:void(0)" onclick="scrollToTop();return false" id="f-totop-btn" title="Go to top"><span id="f-totop"></span></a>
       </footer>
     </div>
 </body>
