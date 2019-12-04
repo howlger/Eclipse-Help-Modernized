@@ -217,6 +217,9 @@ div#results div.scope {
     margin: 0 0 1em;
     padding-left: 12px;
 }
+div#results ul.filter div.scope {
+    margin: 0;
+}
 div#results .r {
     padding-left: 10px;
 }

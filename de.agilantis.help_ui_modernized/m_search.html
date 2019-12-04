@@ -78,7 +78,7 @@
 
     var topCount = 10;
     var maxPerGroup = 3;
-    function asTree(results, path, depth) {
+    function asTree(results, path, depth, raw) {
         if (depth < 1) return results;
         var tree = [];
         var grouped = {};
@@ -109,7 +109,7 @@
             var r = tree[i];
             if (r.isNode) {
                 r.count = r.children.length + (r.root ? 1 : 0);
-            } else {
+            } else if (!raw){
                 var resultofStart = r.href.indexOf('?resultof=');
                 var rootOfGroup = grouped['../topic' + (resultofStart < 0 ? r.href : r.href.substring(0, resultofStart))  + '\n' + r.title];
                 if (rootOfGroup) {
@@ -124,8 +124,8 @@
         for (var i = 0; i < tree.length; i++) {
             var r = tree[i];
             if (!r.isNode) continue;
-            compact(path, r);
-            r.children = asTree(r.children, r.children[0].path.slice(0, path.length+r.name.lenth), depth - 1);
+            if (!raw) compact(path, r);
+            r.children = asTree(r.children, r.children[0].path.slice(0, path.length + r.name.length), depth - 1);
         }
 
         return tree;
@@ -198,6 +198,32 @@
         if (parent && parent.showHistoryButtons) parent.showHistoryButtons();
     }
 
+    var filters = [];
+    var filterValues = [];
+    var resultsToFilter = [];
+    var resultsValues = [];
+    function applyFilters(e) {
+        var excludeFilters = [];
+        for (var i = 0; i < filters.length; i++) if (!filters[i].checked) excludeFilters.push(filterValues[i]);
+        for (var i = 0; i < resultsToFilter.length; i++) {
+            resultsToFilter[i].style.display =
+                arrayContains(excludeFilters, resultsValues[i]) ? 'none' : 'block';
+        }
+        stopPropagation(e);
+    }
+    function arrayContains(array, value) {
+        for (var i = 0; i < array.length; i++) {
+            if (   array[i].length > 0
+                && array[i].length <= value.length
+                && value.substring(0, array[i].length) == array[i]) return true;
+        }
+        return false;
+    }
+    function toValue(path) {
+        var result = '';
+        for (var i = 0; i < path.length; i++) result += (i > 0 ? '\n' : '') + path[i];
+        return result;
+    }
     function showResults(resultList, withBreadcrumbs, ul, depth, mode) {
 
         // header
@@ -234,6 +260,91 @@
                             showResults(resultList, withBreadcrumbs, false, depth, 'list');
                         }
                     }(resultList, withBreadcrumbs, depth);
+                    var filterListButton = createElement(s, 'button', false, 'List with filters');
+                    filterListButton.setAttribute('type', 'button');
+                    filterListButton.onclick = function(resultList, withBreadcrumbs, depth) {
+                        return function(e) {
+                            showResults(resultList, withBreadcrumbs, false, depth, 'filter_list');
+                        }
+                    }(resultList, withBreadcrumbs, depth);
+
+                    // filters
+                    if (mode == 'filter_list') {
+                        filters = [];
+                        filterValues = [];
+                        resultsToFilter = [];
+                        resultsValues = [];
+                        var filterTree = asTree(resultList, resultList[0].path.slice(0, depth * 2), 2, true);
+                        var filterSelect = createElement(createElement(out, 'ul', 'filter'), 'li', 'open');
+                        var handle = createElement(filterSelect, 'span', 'h');
+                        handle.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor" fill-rule="evenodd"></path></svg>';
+                        addEvent(handle, 'click', (function(li) {
+                            return function() {
+                                var isOpen = li.getAttribute('class') == 'open' || li.getAttribute('class') == 'open loaded';
+                                li.setAttribute('class', isOpen ? 'closed' : 'open');
+                            };
+                        })(filterSelect));
+                        createElement(filterSelect, 'div', 'scope', 'Filter by ' + (depth < 1 ? 'books/' : '') + 'chapters:');
+                        var ft = createElement(filterSelect, 'ul');
+                        var selectOnly = function(liCheck, value, parentCheck) {
+                            return function() {
+                                for (var i = 0; i < filters.length; i++)
+                                    filters[i].checked =   value.length > 0
+                                                        && value.length <= filterValues[i].length
+                                                        && filterValues[i].substring(0, value.length) == value;
+                                if (parentCheck) parentCheck.checked = true;
+                                applyFilters();
+                            };
+                        };
+                        for (var i = 0; i < filterTree.length; i++) {
+                            var n = filterTree[i];
+                            if (!n.isNode) continue;
+                            var li = createElement(ft, 'li', 'closed');
+                            var handle = createElement(li, 'span', 'h');
+                            handle.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor" fill-rule="evenodd"></path></svg>';
+                            addEvent(handle, 'click', (function(li) {
+                                return function() {
+                                    var isOpen = li.getAttribute('class') == 'open' || li.getAttribute('class') == 'open loaded';
+                                    li.setAttribute('class', isOpen ? 'closed' : 'open');
+                                };
+                            })(li));
+                            var liInner = createElement(li, 'div', 'scope');
+                            var liCheck = createElement(liInner, 'input');
+                            liCheck.setAttribute('type', 'checkbox');
+                            liCheck.setAttribute('checked', true);
+                            filters.push(liCheck);
+                            filterValues.push(toValue(resultList[0].path.slice(0, depth * 2).concat(n.name)));
+                            liInner.appendChild(document.createTextNode(n.name[1] + ' '));
+                            createElement(liInner, 'span', 'count', n.count);
+                            addEvent(liInner, 'click', selectOnly(liCheck, filterValues[filterValues.length-1]));
+                            var subUl = false;
+                            var subChecks = [];
+                            for (var j = 0; j < n.children.length; j++) {
+                                var m = n.children[j];
+                                if (!m.isNode) continue;
+                                if (!subUl) subUl = createElement(li, 'ul');
+                                var subLi = createElement(subUl, 'li');
+                                var liInner = createElement(subLi, 'div', 'scope');
+                                var liCheck2 = createElement(liInner, 'input');
+                                liCheck2.setAttribute('type', 'checkbox');
+                                liCheck2.setAttribute('checked', true);
+                                subChecks.push(liCheck2);
+                                filters.push(liCheck2);
+                                filterValues.push(toValue(resultList[0].path.slice(0, depth * 2).concat(n.name).concat(m.name)));
+                                addEvent(liCheck2, 'click', applyFilters);
+                                liInner.appendChild(document.createTextNode(m.name[1] + ' '));
+                                createElement(liInner, 'span', 'count', m.count);
+                                addEvent(liInner, 'click', selectOnly(liCheck2, filterValues[filterValues.length-1], liCheck));
+                            }
+                            addEvent(liCheck, 'click', (function(liCheck, subChecks) {
+                                return function() {
+                                    var checkStatus = liCheck.checked;
+                                    for (var i = 0; i < subChecks.length; i++) subChecks[i].checked = checkStatus;
+                                    applyFilters();
+                                };
+                            })(liCheck, subChecks));
+                        }
+                    }
                 }
             } else {
                 var noResults = createElement(out, 'div', 'no-results', 'No topics found containing ');
@@ -251,6 +362,10 @@
         for (var i = 0; i < results.length; i++) {
             var n = results[i];
             var r = createElement(ul, 'li');
+            if (mode == 'filter_list' && !n.isNode) {
+                resultsToFilter.push(r);
+                resultsValues.push(toValue(n.path));
+            }
 
             // subtree
             if (withBreadcrumbs && n.isNode && n.children.length > 1) {
