@@ -25,6 +25,8 @@ SPDX-License-Identifier: EPL-2.0
       <div id="m-ovrl"></div>
       <header>
         <a href="javascript:void(0)" id="h-toc-btn" onclick="toggleToc();return false" title="Table of contents"><span id="h-toc-icon"></span></a>
+        <a href="javascript:void(0)" id="h-history-back-btn" onclick="goBack();return false" title="Go back"><span id="h-history-back-icon"></span></a>
+        <a href="javascript:void(0)" id="h-history-forward-btn" onclick="goForward();return false" title="Go forward"><span id="h-history-forward-icon"></span></a>
         <div id="h-search">
             <form id="f" class="f" action="/help/index.jsp" target="_top" method="GET" accept-charset="utf-8">
               <input type="hidden" name="tab" value="search">
@@ -35,8 +37,6 @@ SPDX-License-Identifier: EPL-2.0
               <input id="b" type="hidden" name="b" value="">
             </form>
         </div>
-        <a href="javascript:void(0)" id="h-history-back-btn" onclick="goBack();return false" title="Go back"><span id="h-history-back-icon"></span></a>
-        <a href="javascript:void(0)" id="h-history-forward-btn" onclick="goForward();return false" title="Go forward"><span id="h-history-forward-icon"></span></a>
         <div id="h-menu">
             <a href="javascript:void(0)" id="h-more-btn" onclick="openMenu();return false" title="Help menu"><span id="h-more-icon"></span></a>
         </div>

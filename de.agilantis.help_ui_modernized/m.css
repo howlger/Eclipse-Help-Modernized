@@ -1,3 +1,4 @@
+
 /*******************************************************************************
  * Copyright (c) 2019 Holger Voormann and others.
  *
@@ -1188,7 +1189,6 @@ a:hover {
       display: none;
       height: 100%;
       width: 0px;
-      background-color: #F5F5F5;
       overflow-x: hidden;
     }
     div#results ul {
@@ -1230,14 +1230,18 @@ a:hover {
 /* dark mode */
 @media (prefers-color-scheme: dark) {
 
-    html, body {
+    html, body,
+    #h-menu-ovrl-content,
+    #h-menu-ovrl-content a,
+    #h-menu-settings-font,
+    .-ehy, .-ehe {
       background-color: #000;
       color: #fff;
     }
     a, div#results li h4, div#results li h4 a {
       color: #fff;
     }
-    header, footer, div#results li:hover {
+    header, footer, div#m-slider, div#results li:hover {
       background-color: #343a40;
     }
  }

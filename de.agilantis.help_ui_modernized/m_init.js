@@ -10,14 +10,15 @@
  ******************************************************************************/
 
 var clientWidth = document.documentElement.clientWidth
-        || document.body.clientWidth;
+               || document.body.clientWidth;
 var menuWidth = 280; // Right side menu width
 var smallScreenWidth = 768; // Tablet breakpoint;
 var sliderWidth = 12;
+var isEmbeddedHelp = false;
 
 //console.log('tocWidth0=' + tocWidth);
 // Read toc width from cookie
-var tocWidth = getCookie('help-viewer:toc-width');
+var tocWidth = getCookie('toc-width');
 if (tocWidth == '' || tocWidth == undefined) {
     tocWidth = 360;
 }
@@ -87,13 +88,6 @@ function initContentFrame() {
     updateContentFrameSize();
     addEvent(window, 'resize', updateContentFrameSize);
     //fixAnchorLinks();
-    scrollToTop();
-    //showHistoryButtons(); /* TODO Enable buttons for standalone */
-    // Read font size from cookie if already set
-    var fontSize = getFontSize();
-    if (fontSize != "") {
-        setFontSize(fontSize);
-    }
 }
 
 function initSearchField() {
@@ -239,11 +233,19 @@ function init() {
     document.getElementById("m-aside").onclick = toc_width;
     slider.ondblclick = toggle_toc;
     document.getElementById("m-slider_").onclick = toggle_toc;
+
+    scrollToTop();
+    // Read font size from cookie if already set
+    var fontSize = getFontSize();
+    if (fontSize != "") {
+        setFontSize(fontSize);
+    }
+
 }
 
 // Stores the toc width in a cookie
 function setTocWidth(w) {
-    setCookie("help-viewer:toc-width", w, 365);
+    setCookie("toc-width", w, 365);
 }
 
 // TODO remove when integrated into Eclipse
@@ -253,8 +255,10 @@ function loadTocChildrenInit(item, toc, path) {
     var callbackFn = function(responseText) {
         if (responseText.indexOf('"images/e_restore.gif"') > 0) {
             iconExtension = '.gif';
+            isEmbeddedHelp = true;
         }
         loadTocChildren(item, toc, path);
+        showHistoryButtons(); /* Enable browser history buttons if run as embedded help viewer */
     }
     var request = new XMLHttpRequest();
     request.onreadystatechange = function() {
@@ -482,20 +486,9 @@ function focusSearch() {
     document.getElementById('focusByDefault').focus();
 }
 
-// Check if run locally as standalone help viewer
-function isLocalHelp() {
-    var url = window.location.href;
-    var urlRoot = url.substr(0, url.indexOf('/help/'));
-    if (urlRoot.includes("127.0.0.1:") || urlRoot.includes('//localhost:')) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-// Show browsing buttons when run locally as help viewer
+// Show browsing buttons when run as embedded help viewer
 function showHistoryButtons() {
-    if (isLocalHelp()) {
+    if ( isEmbeddedHelp ) {
         document.getElementById('h-history-back-icon').style.display = 'inline-block';
         document.getElementById('h-history-back-btn').style.display = 'inline-block';
         document.getElementById('h-history-forward-icon').style.display = 'inline-block';
@@ -584,11 +577,11 @@ function setFontSize(change) {
     toc.style.fontSize = newFontSize + 'px';
 
     // Store the font size in a cookie
-    setCookie("help-viewer:font-size", newFontSize, 365);
+    setCookie("font-size", newFontSize, 365);
 }
 
 function getFontSize() {
-    return getCookie("help-viewer:font-size");
+    return getCookie("font-size");
 }
 
 function setCookie(cname, cvalue, exdays) {
