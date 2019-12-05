@@ -258,7 +258,7 @@ function loadTocChildrenInit(item, toc, path) {
             isEmbeddedHelp = true;
         }
         loadTocChildren(item, toc, path);
-        showHistoryButtons(); /* Enable browser history buttons if run as embedded help viewer */
+        //showHistoryButtons(); /* Enable browser history buttons if run as embedded help viewer */
     }
     var request = new XMLHttpRequest();
     request.onreadystatechange = function() {
