@@ -82,8 +82,8 @@ function updateContentFrameSize() {
     }
 
     // TODO make sure that the following hack is not required in Firefox to recalculate total page height:
-//    setTimeout(function() { document.getElementById('m-aside').style.display = 'none';
-//    setTimeout(function() { document.getElementById('m-aside').style.display = 'table-cell'; }, 1); }, 1);
+    //setTimeout(function() { document.getElementById('m-aside').style.display = 'none';
+    //setTimeout(function() { document.getElementById('m-aside').style.display = 'table-cell'; }, 1); }, 1);
 
 }
 function initContentFrame() {
@@ -215,6 +215,7 @@ function init() {
                 slider.doDrag, false);
         document.documentElement.removeEventListener('mouseup',
                 slider.stopDrag, false);
+        updateContentFrameSize();
     }
     var toggle_toc = function(e) {
         tocWidth = -tocWidth;
@@ -231,6 +232,7 @@ function init() {
         //console.log(tocWidth);
         asideStyle.width = tocWidth;
         //console.log( asideStyle.width );
+        updateContentFrameSize();
     }
     document.getElementById("m-aside").onclick = toc_width;
     slider.ondblclick = toggle_toc;
