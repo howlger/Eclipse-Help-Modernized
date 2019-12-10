@@ -80,8 +80,10 @@ function updateContentFrameSize() {
                 + 'px';
         contentFrame.height = contentFrameDocumentElement.scrollHeight + 'px';
     }
-    //console.log("clientWidth=" + clientWidth);
-    //console.log("newClientWidth=" + newClientWidth);
+
+    // TODO make sure that the following hack is not required in Firefox to recalculate total page height:
+//    setTimeout(function() { document.getElementById('m-aside').style.display = 'none';
+//    setTimeout(function() { document.getElementById('m-aside').style.display = 'table-cell'; }, 1); }, 1);
 
 }
 function initContentFrame() {

@@ -78,6 +78,9 @@
 
     var topCount = 10;
     var maxPerGroup = 3;
+    function recalculatePageSize() {
+        if (parent && parent.updateContentFrameSize) parent.updateContentFrameSize();
+    }
     function asTree(results, path, depth, raw) {
         if (depth < 1) return results;
         var tree = [];
@@ -210,6 +213,7 @@
                 arrayContains(excludeFilters, resultsValues[i]) ? 'none' : 'block';
         }
         stopPropagation(e);
+        recalculatePageSize();
     }
     function arrayContains(array, value) {
         for (var i = 0; i < array.length; i++) {
@@ -282,6 +286,7 @@
                             return function() {
                                 var isOpen = li.getAttribute('class') == 'open' || li.getAttribute('class') == 'open loaded';
                                 li.setAttribute('class', isOpen ? 'closed' : 'open');
+                                recalculatePageSize();
                             };
                         })(filterSelect));
                         createElement(filterSelect, 'div', 'scope', 'Filter by ' + (depth < 1 ? 'books/' : '') + 'chapters:');
@@ -306,6 +311,7 @@
                                 return function() {
                                     var isOpen = li.getAttribute('class') == 'open' || li.getAttribute('class') == 'open loaded';
                                     li.setAttribute('class', isOpen ? 'closed' : 'open');
+                                    recalculatePageSize();
                                 };
                             })(li));
                             var liInner = createElement(li, 'div', 'scope');
@@ -382,10 +388,11 @@
                         var isOpen = li.getAttribute('class') == 'open' || li.getAttribute('class') == 'open loaded';
                         li.setAttribute('class', isOpen ? 'closed' : 'open');
                         if (li.hasMore) li.more();
+                        recalculatePageSize();
                     };
                 })(r));
-                r.close = (function(li) { return function() { li.setAttribute('class', 'closed'); }; })(r);
-                r.open = (function(li) { return function() { li.setAttribute('class', 'open'); }; })(r);
+                r.close = (function(li) { return function() { li.setAttribute('class', 'closed'); recalculatePageSize(); }; })(r);
+                r.open = (function(li) { return function() { li.setAttribute('class', 'open'); recalculatePageSize(); }; })(r);
 
                 // node: chapter name or root topic
                 if (n.root) {
@@ -435,7 +442,7 @@
                 showItem(n.isNode ? n.children[0] : n, r, mode == 'tree', depth);
             }
         }
-        if (parent && parent.updateContentFrameSize) parent.updateContentFrameSize();
+        recalculatePageSize();
     }
 
     function showItem(node, r, showAsTree, breadcrumbFrom, count) {
