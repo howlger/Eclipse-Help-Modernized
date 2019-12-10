@@ -49,6 +49,7 @@ html, body, #m-b
 #container  {
   display: flex;
   flex-direction: column;
+  -ms-overflow-style: none; /* No scrolling also for IE */
 }
 
 #m-b {
@@ -71,6 +72,7 @@ main {
 main .m-content {
     display: table-cell;
     width: *;
+    height: 100%;
 }
 a {
     outline: 0; /* Remove the dotted outline  */
@@ -93,6 +95,8 @@ a {
     z-index: 1;
     position: absolute;
     overflow: hidden;
+    height: 100%;
+    width: 100%;
 }
 #m-slider {
     top: 0;
