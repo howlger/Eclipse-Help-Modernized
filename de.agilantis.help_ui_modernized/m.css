@@ -32,6 +32,9 @@ header {
 }
 
 footer {
+    flex-shrink: 0;
+    height: 50px;
+    min-height: 50px;
     background-color: #eee;
     text-align: center;
     font-size: 0.8em;
@@ -44,10 +47,9 @@ html, body, #m-b
 }
 
 #container  {
-    min-height: 100%;
-    display: grid;
-    grid-template-rows: auto 1fr auto;
-    grid-template-columns: 100%;
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
 }
 
 #m-b {
@@ -64,10 +66,8 @@ main {
     display: table;
     table-layout: fixed;
     width: 100%;
-    /* center content
-    max-width: 1800px;
-    margin: 0 auto;
-    */
+    flex: 1 0 auto;
+    min-height: calc(100vh - 135px);
 }
 main .m-content {
     display: table-cell;
