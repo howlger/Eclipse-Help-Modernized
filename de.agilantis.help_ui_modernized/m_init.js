@@ -377,7 +377,7 @@ function loadTocChildrenInit(item, toc, path) {
     var callbackFn = function(responseText) {
         if (responseText.indexOf('"images/e_restore.gif"') > 0) {
             iconExtension = '.gif';
-            isEmbeddedHelp = true;
+            //isEmbeddedHelp = true;
         }
         loadTocChildren(item, toc, path);
         //showHistoryButtons(); /* Enable browser history buttons if run as embedded help viewer */
@@ -570,6 +570,7 @@ function closeToc() {
 // Show or hide the table of contents
 function toggleToc() {
 
+    updateContentFrameSize();
     var masideStyle = document.getElementById("m-aside").style;
     var mSlider = document.getElementById("m-slider");
 
@@ -592,9 +593,7 @@ function toggleToc() {
         masideStyle.width = tocWidth + 'px';
         masideStyle.display = "table-cell";
     }
-    updateContentFrameSize();
     //console.log( 'tocWidth=' + tocWidth + ', sliderWidth=' + sliderWidth );
-
 }
 
 // Sets cursor in search field
