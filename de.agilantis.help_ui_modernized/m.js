@@ -398,7 +398,7 @@
             var query = getQuery();
             document.getElementById('m-content').src = window.location.href.replace('/m.html', '/m_search.html')
               + '?searchWord='
-              + query.replace(/(\&|$)/, '*$1')
+              + query.replace(/(\&|$)/, '$1')
               + '&maxHits=500'
               + (query.indexOf('&toc=') < 0 ? '' : '&quickSearch=true&quickSearchType=QuickSearchToc&showSearchCategories=false');
             hideProposals();
