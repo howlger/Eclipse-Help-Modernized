@@ -165,7 +165,9 @@ a {
     list-style: none;
     position: relative;
 }
-
+#m-toc li.selected > a {
+    font-weight: bold;
+}
 #m-toc span, #m-slider {
     /* prevent text selection */
     user-select: none;

@@ -245,6 +245,124 @@ function init() {
         setFontSize(fontSize);
     }
 
+    addEvent(document.getElementById('m-content'), 'load', syncToc);
+
+}
+
+var syncedTocItem;
+var syncedTocItemLocation;
+function syncToc() {
+    var currentLocation = document.getElementById('m-content').contentWindow.location.href;
+    if (syncedTocItemLocation && syncedTocItemLocation == currentLocation) return;
+    if (syncedTocItem) {
+        syncedTocItem.setAttribute('class', syncedTocItem.getAttribute('class').replace('selected', ''));
+    }
+    syncedTocItem = false;
+    var todo = [[], document.getElementById('m-toc').childNodes];
+    findTocItem: while (todo.length > 1) {
+        var parents = todo[todo.length - 2];
+        var children = todo[todo.length - 1];
+        todo = todo.slice(0, todo.length - 2);
+        for (var i = 0; i < children.length; i++) {
+            var n = children[i];
+            if (n.tagName != 'UL' && n.tagName != 'LI') continue;
+            var newParents = parents.slice(0, parents.length);
+            newParents.push(n);
+            todo.push(newParents);
+            todo.push(n.childNodes);
+            if (n.tagName != 'LI') continue;
+            for (var j = 0; j < n.childNodes.length; j++) {
+                var m = n.childNodes[j];
+                if (m.tagName != 'A' || currentLocation != m.href) continue;
+                syncedTocItem = n;
+                for (var k = 0; k < newParents.length - 1; k++) {
+                    if (newParents[k].tagName != 'LI') continue;
+                    newParents[k].setAttribute('class', newParents[k].getAttribute('class').replace('closed', 'open'));
+                }
+                break findTocItem;
+            }
+        }
+    }
+    if (syncedTocItem) syncedTocItem.setAttribute('class', syncedTocItem.getAttribute('class') + ' selected');
+    else {
+        var callbackFn = function(responseText) {
+            syncTocByLocation(currentLocation, parseXml(responseText));
+        }
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+            if (request.readyState == 4 && request.status == 200) callbackFn(request.responseText);
+        }
+        request.open('GET', '../../advanced/tocfragment?errorSuppress=true&topic=' + currentLocation);
+        request.send();
+    }
+    syncedTocItemLocation = currentLocation;
+}
+function syncTocByLocation(location, xml) {
+    var children = xml.documentElement.childNodes;
+    var numericPath;
+    for (var i = 0; i < children.length; i++) {
+        var n = children[i];
+        if (n.tagName == 'numeric_path' && n.getAttribute('path')) {
+            numericPath = n.getAttribute('path');
+            break;
+        }
+    }
+    if (!numericPath) return;
+    var callbackFn = function(responseText) {
+        syncTocByPath(location, numericPath, parseXml(responseText));
+    }
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function() {
+        if (request.readyState == 4 && request.status == 200) callbackFn(request.responseText);
+    }
+    request.open('GET', '../../advanced/tocfragment?errorSuppress=true&expandPath=' + numericPath);
+    request.send();
+}
+function syncTocByPath(location, numericPath, xml) {
+    var path = numericPath.split('_');
+    var nodes = xml.documentElement.childNodes;
+    var item = document.getElementById('m-toc');
+    var toc;
+    for (var i = 0; i < path.length; i++) {
+        var nr = parseInt(path[i]);
+        if (nr >= nodes.length) return;
+        var node = getNodeNr(nodes, i < 1 ? 0 : nr);
+        if (!node) return;
+        if (i < 1) toc = node.getAttribute('id');
+        var ul = getUl(item);
+        if (!ul && toc) {
+            showLoadedTocChildren(item, nodes, toc);
+            item.setAttribute('class', item.getAttribute('class').replace('closed', 'open'));
+            ul = getUl(item);
+        }
+        if (!ul) return;
+        nodes = node.childNodes;
+        var item = getLiNr(ul, nr);
+        if (i < path.length-1) continue;
+        syncedTocItem = item;
+        syncedTocItem.setAttribute('class', syncedTocItem.getAttribute('class') + ' selected');
+    }
+}
+function getNodeNr(nodes, nr) {
+    var count = -1;
+    for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].tagName != 'node') continue;
+        count++;
+        if (nr == count) return nodes[i];
+    }
+}
+function getUl(item) {
+    for (var i = 0; i < item.childNodes.length; i++) {
+        if (item.childNodes[i].tagName == 'UL') return item.childNodes[i];
+    }
+}
+function getLiNr(ul, nr) {
+    var count = -1;
+    for (var i = 0; i < ul.childNodes.length; i++) {
+        if (ul.childNodes[i].tagName != 'LI') continue;
+        count++;
+        if (nr == count) return ul.childNodes[i];
+    }
 }
 
 // Stores the toc width in a cookie
@@ -275,15 +393,14 @@ function loadTocChildrenInit(item, toc, path) {
 
 function loadTocChildren(item, toc, path) {
     var callbackFn = function(responseText) {
-        showLoadedTocChildren(item, parseXml(responseText), toc, path);
+        showLoadedTocChildren(item, getNodes(parseXml(responseText), toc, path), toc);
     }
     var request = new XMLHttpRequest();
     request.onreadystatechange = function() {
         if (request.readyState == 4 && request.status == 200)
             callbackFn(request.responseText);
     }
-    request.open('GET', '../../advanced/tocfragment'
-            + (toc ? '?toc=' + toc : '') + (path ? '&path=' + path : ''));
+    request.open('GET', '../../advanced/tocfragment' + (toc ? '?toc=' + toc : '') + (path ? '&path=' + path : ''));
     request.send();
 }
 
@@ -334,9 +451,8 @@ function getNodes(xml, toc, path) {
     return [];
 }
 
-function showLoadedTocChildren(item, xml, toc, path) {
+function showLoadedTocChildren(item, nodes, toc) {
     var ul = createElement(item, 'ul');
-    var nodes = getNodes(xml, toc, path);
     for (var i = 0; i < nodes.length; i++) {
         var n = nodes[i];
         if (n.tagName != 'node')
@@ -349,7 +465,7 @@ function showLoadedTocChildren(item, xml, toc, path) {
                 return function() {
                     toggleTocItem(li, toc, path)
                 };
-            })(li, toc ? toc : n.getAttribute('id'), toc ? n.id : undefined));
+            })(li, toc ? toc : n.getAttribute('id'), toc ? n.getAttribute('id') : undefined));
         }
         var a = createElement(li, 'a');
         a.setAttribute('href', '../../' + n.getAttribute('href').substring(3));
@@ -371,14 +487,10 @@ function showLoadedTocChildren(item, xml, toc, path) {
     updateContentFrameSize();
 }
 function toggleTocItem(li, toc, path) {
-    var isOpen = li.getAttribute('class') == 'open'
-            || li.getAttribute('class') == 'open loaded';
-    li.setAttribute('class', isOpen ? 'closed' : 'open');
+    var isOpen = li.getAttribute('class').indexOf('open') > -1;
+    li.setAttribute('class', li.getAttribute('class').replace(isOpen ? 'open' : 'closed', isOpen ? 'closed' : 'open'));
     var nodes = li.childNodes;
-    for (var i = 0; i < nodes.length; i++) {
-        if (nodes[i].tagName == 'UL')
-            return;
-    }
+    for (var i = 0; i < nodes.length; i++) if (nodes[i].tagName == 'UL') return;
     loadTocChildren(li, toc, path);
 }
 
