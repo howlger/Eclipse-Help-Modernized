@@ -16,10 +16,10 @@ var smallScreenWidth = 768; // Tablet breakpoint;
 var sliderWidth = 12;
 var isEmbeddedHelp = false;
 
-//console.log('tocWidth0=' + tocWidth);
 // Read toc width from cookie
 var tocWidth = getCookie('toc-width');
-if (tocWidth == '' || tocWidth == undefined) {
+//console.log('tocWidth0=' + tocWidth);
+if ( tocWidth == undefined ) {
     tocWidth = 360;
 }
 if (clientWidth < smallScreenWidth && tocWidth > sliderWidth) {
@@ -181,11 +181,16 @@ function init() {
 
     // activate slider (to resize TOC width)
     var slider = document.getElementById("m-slider");
+    var asideStyle = document.getElementById("m-aside").style;
+
+    // initial load
+    asideStyle.transition = '';
+    asideStyle.width = tocWidth + 'px';
+
     slider.mousemove = function(e) {
         tocWidth = e.pageX + 8;
         if (tocWidth < sliderWidth)
             tocWidth = sliderWidth;
-        var asideStyle = document.getElementById("m-aside").style;
         asideStyle.transition = '';
         asideStyle.width = tocWidth + 'px';
         document.getElementById("m-slider").setAttribute('class', '');
@@ -227,14 +232,7 @@ function init() {
                 tocWidth < sliderWidth ? 'o' : '');
         updateContentFrameSize();
     }
-    var toc_width = function(e) {
-        var asideStyle = document.getElementById("m-aside").style;
-        //console.log(tocWidth);
-        asideStyle.width = tocWidth;
-        //console.log( asideStyle.width );
-        updateContentFrameSize();
-    }
-    document.getElementById("m-aside").onclick = toc_width;
+
     slider.ondblclick = toggle_toc;
     document.getElementById("m-slider_").onclick = toggle_toc;
 
@@ -246,6 +244,8 @@ function init() {
     }
 
     addEvent(document.getElementById('m-content'), 'load', syncToc);
+
+    addEvent(document.getElementById('m-content'), 'load', scrollToTop);
 
 }
 
@@ -718,7 +718,7 @@ function getCookie(cname) {
             return c.substring(name.length, c.length);
         }
     }
-    return "";
+    return undefined;
 }
 
 /* TODO */

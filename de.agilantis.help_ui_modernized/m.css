@@ -79,11 +79,9 @@ a {
 }
 #m-aside {
     display: table-cell;
-    width: 360px;
     position: relative;
     overflow: hidden;
     vertical-align: top;
-    transition: width .25s ease-in;
 }
 #m-toc {
     margin: 4px 0 0 -8px;
