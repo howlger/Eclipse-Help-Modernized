@@ -855,24 +855,29 @@
                     items.push(li);
                     data.push([lines[0], lines[i+2]]);
                     var btDiv = createElement(li, 'div', 'v');
-                    var bookDiv = createElement(btDiv, 'div', 'w', lines[i+3]);
-                    bookDiv.onmouseup = (function(tocName) {
-                        return function(e) {
-                            stopPropagation(e);
-                            if (!books) return;
-                            for (var i = 0; i < books.length; i+=3) {
-                                if (tocName == books[i]) {
-                                    var bookName = books[i];
-                                    if (bookNameShortener) {
-                                        bookName = bookNameShortener(bookName);
+
+                    // Show book title only if '(All Books)' is selected
+                    var allBooks = document.getElementById('selected-book').firstChild.innerHTML;
+                    if ( allBooks && allBooks == '(All Books)' ) {
+                        var bookDiv = createElement(btDiv, 'div', 'w', lines[i+3]);
+                        bookDiv.onmouseup = (function(tocName) {
+                            return function(e) {
+                                stopPropagation(e);
+                                if (!books) return;
+                                for (var i = 0; i < books.length; i+=3) {
+                                    if (tocName == books[i]) {
+                                        var bookName = books[i];
+                                        if (bookNameShortener) {
+                                            bookName = bookNameShortener(bookName);
+                                        }
+                                        setBook(bookName, books[i+1], books[i+2]);
+                                        return;
                                     }
-                                    setBook(bookName, books[i+1], books[i+2]);
-                                    return;
                                 }
                             }
-                        }
-                    })(lines[i+3]);
-                    bookDiv.ontouchend = function(e) {stopPropagation(e)};
+                        })(lines[i+3]);
+                        bookDiv.ontouchend = function(e) {stopPropagation(e)};
+                    }
 
                     var titleDiv = createElement(btDiv, 'div', 't');
                     addHighlightedText(titleDiv, lines[i], searchWord);
