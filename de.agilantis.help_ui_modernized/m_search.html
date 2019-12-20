@@ -216,6 +216,7 @@
             }
 
             var mode = getCookie("search-result-mode");
+            // Default to tree view
             if ( mode == undefined ) {
                 mode = 'tree';
             }
@@ -291,6 +292,11 @@
                         }
                     }(resultList, withBreadcrumbs, depth);
 
+                    if (mode == 'tree') {
+                        treeButton.style.background = '#666';
+                        treeButton.style.color = '#fff';
+                    }
+
                     var filterListButton = createElement(s, 'button', false, 'List with filters');
                     filterListButton.setAttribute('type', 'button');
                     filterListButton.setAttribute('id', 'filter_list');
@@ -298,13 +304,13 @@
                         return function(e) {
                             showResults(resultList, withBreadcrumbs, false, depth, 'filter_list');
                             setCookie("search-result-mode", 'filter_list', 365);
-                            filterListButton.style.background = '#666';
-                            filterListButton.style.color = '#fff';
                         }
                     }(resultList, withBreadcrumbs, depth);
 
                     // filters
                     if (mode == 'filter_list') {
+                        filterListButton.style.background = '#666';
+                        filterListButton.style.color = '#fff';
                         filters = [];
                         filterValues = [];
                         resultsToFilter = [];
