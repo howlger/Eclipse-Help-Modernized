@@ -74,6 +74,28 @@
            o.attachEvent('on'+type, o[type+fn]);
         }
      }
+    // copied functions from m_init.js
+    function setCookie(cname, cvalue, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        var expires = "expires=" + d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    }
+    function getCookie(cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return undefined;
+    }
     ///////////////////////////////////////////////////////////////////////////
 
     var topCount = 10;
@@ -192,7 +214,12 @@
 , pos: (results.length+1)
                 });
             }
-            showResults(results, withBreadcrumbs, false, scopeName ? 1 : 0, withBreadcrumbs ? 'tree' : 'list');
+
+            var mode = getCookie("search-result-mode");
+            if ( mode == undefined ) {
+                mode = 'tree';
+            }
+            showResults(results, withBreadcrumbs, false, scopeName ? 1 : 0, mode);
         }
         var url = href.replace('/m_search.html?', '/../../advanced/searchView.jsp?');
         remoteRequest(url, callback);
@@ -237,6 +264,7 @@
 
             // remove "Searching..."
             var out = document.getElementById("results");
+
             while (out.firstChild) {
                 out.removeChild(out.firstChild);
             }
@@ -252,27 +280,26 @@
                 s.appendChild(document.createTextNode(':'));
 
                 if (withBreadcrumbs && resultList.length > topCount) {
+
                     var treeButton = createElement(s, 'button', false, 'Tree');
                     treeButton.setAttribute('type', 'button');
+                    treeButton.setAttribute('id', 'tree');
                     treeButton.onclick = function(resultList, withBreadcrumbs, depth) {
                         return function(e) {
                             showResults(resultList, withBreadcrumbs, false, depth, 'tree');
+                            setCookie("search-result-mode", 'tree', 365);
                         }
                     }(resultList, withBreadcrumbs, depth);
-                    /*
-                    var listButton = createElement(s, 'button', false, 'List');
-                    listButton.setAttribute('type', 'button');
-                    listButton.onclick = function(resultList, withBreadcrumbs, depth) {
-                        return function(e) {
-                            showResults(resultList, withBreadcrumbs, false, depth, 'list');
-                        }
-                    }(resultList, withBreadcrumbs, depth);
-                    */
+
                     var filterListButton = createElement(s, 'button', false, 'List with filters');
                     filterListButton.setAttribute('type', 'button');
+                    filterListButton.setAttribute('id', 'filter_list');
                     filterListButton.onclick = function(resultList, withBreadcrumbs, depth) {
                         return function(e) {
                             showResults(resultList, withBreadcrumbs, false, depth, 'filter_list');
+                            setCookie("search-result-mode", 'filter_list', 365);
+                            filterListButton.style.background = '#666';
+                            filterListButton.style.color = '#fff';
                         }
                     }(resultList, withBreadcrumbs, depth);
 
