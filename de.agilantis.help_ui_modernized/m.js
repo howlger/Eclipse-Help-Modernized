@@ -435,6 +435,7 @@
             // button
             var booksButton = createElement(null, 'button', 'p');
             booksButton.setAttribute('type', 'button');
+            booksButton.setAttribute('id', 'selected-book');
             booksButtonText = createElement(booksButton, 'span', null, '(All Books)');
             createElement(booksButton, 'span', 'd');
             group.insertBefore(booksButton, groupFirstChild);
