@@ -233,6 +233,7 @@ div#results div.scope {
 }
 div#results ul.filter div.scope {
     margin: 0;
+    cursor: pointer;
 }
 div#results .r {
     padding-left: 10px;
