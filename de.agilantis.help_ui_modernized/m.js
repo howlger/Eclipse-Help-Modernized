@@ -857,8 +857,8 @@
                     var btDiv = createElement(li, 'div', 'v');
 
                     // Show book title only if '(All Books)' is selected
-                    var allBooks = document.getElementById('selected-book').firstChild.innerHTML;
-                    if ( allBooks && allBooks == '(All Books)' ) {
+                    var selectedBook = document.getElementById('selected-book').firstChild.innerHTML;
+                    if ( selectedBook && selectedBook == '(All Books)' ) {
                         var bookDiv = createElement(btDiv, 'div', 'w', lines[i+3]);
                         bookDiv.onmouseup = (function(tocName) {
                             return function(e) {
