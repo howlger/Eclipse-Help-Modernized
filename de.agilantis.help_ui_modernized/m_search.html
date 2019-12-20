@@ -460,7 +460,7 @@
                                         if (ul.children[i].close) ul.children[i].close();
                                     }
                                     r.open();
-                                    if (r.scrollIntoView) r.scrollIntoView();
+                                    if (r.scrollIntoView) parent.scrollToTop();
                                 };
                             };
                         }(subUl, n.children, depth+(n.name.length/2), ul, r);
