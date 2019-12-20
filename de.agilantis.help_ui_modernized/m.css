@@ -213,6 +213,10 @@ div#results .stats button {
     cursor: pointer;
     color: #666;
 }
+div#results .stats button:hover {
+    background-color: #e8f2fe;
+    color: #000;
+}
 div#results ul {
     display: block;
     padding: 0;
