@@ -453,7 +453,7 @@
                                     while (out.firstChild) {
                                         out.removeChild(out.firstChild);
                                     }
-                                    showResults(results, true, out, depth);
+                                    showResults(results, true, out, depth, 'tree');
                                     r.hasMore = false;
                                     if (!closeSiblings) return;
                                     for (var i = 0; ul.children && i < ul.children.length; i++) {
