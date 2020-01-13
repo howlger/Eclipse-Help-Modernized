@@ -74,6 +74,8 @@
            o.attachEvent('on'+type, o[type+fn]);
         }
      }
+
+    ///////////////////////////////////////////////////////////////////////////
     // copied functions from m_init.js
     function setCookie(cname, cvalue, exdays) {
         var d = new Date();
@@ -216,11 +218,7 @@
             }
 
             var mode = getCookie("search-result-mode");
-            // Default to tree view
-            if ( mode == undefined ) {
-                mode = 'tree';
-            }
-            showResults(results, withBreadcrumbs, false, scopeName ? 1 : 0, mode);
+            showResults(results, withBreadcrumbs, false, scopeName ? 1 : 0, mode == undefined ? 'tree' : mode);
         }
         var url = href.replace('/m_search.html?', '/../../advanced/searchView.jsp?');
         remoteRequest(url, callback);
@@ -228,7 +226,7 @@
         // for local help viewer show history buttons
         if (parent && parent.showHistoryButtons) parent.showHistoryButtons();
 
-        parent.scrollToTop();
+        if (parent && parent.scrollToTop) parent.scrollToTop();
     }
 
     var filters = [];
@@ -265,7 +263,6 @@
 
             // remove "Searching..."
             var out = document.getElementById("results");
-
             while (out.firstChild) {
                 out.removeChild(out.firstChild);
             }
@@ -281,7 +278,6 @@
                 s.appendChild(document.createTextNode(':'));
 
                 if (withBreadcrumbs && resultList.length > topCount) {
-
                     var treeButton = createElement(s, 'button', false, 'Tree');
                     treeButton.setAttribute('type', 'button');
                     treeButton.setAttribute('id', 'tree');
@@ -291,12 +287,10 @@
                             setCookie("search-result-mode", 'tree', 365);
                         }
                     }(resultList, withBreadcrumbs, depth);
-
                     if (mode == 'tree') {
                         treeButton.style.background = '#666';
                         treeButton.style.color = '#fff';
                     }
-
                     var filterListButton = createElement(s, 'button', false, 'List with filters');
                     filterListButton.setAttribute('type', 'button');
                     filterListButton.setAttribute('id', 'filter_list');
@@ -460,7 +454,8 @@
                                         if (ul.children[i].close) ul.children[i].close();
                                     }
                                     r.open();
-                                    if (r.scrollIntoView) parent.scrollToTop();
+                                    if (parent && parent.scrollToTop) parent.scrollToTop();
+                                    else if (r.scrollIntoView) r.scrollIntoView();
                                 };
                             };
                         }(subUl, n.children, depth+(n.name.length/2), ul, r);
