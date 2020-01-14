@@ -322,65 +322,65 @@
                         })(filterSelect));
                         createElement(filterSelect, 'div', 'scope', 'Filter by ' + (depth < 1 ? 'books/' : '') + 'chapters:');
                         var ft = createElement(filterSelect, 'ul');
-                        var selectOnly = function(liCheck, value, parentCheck) {
-                            return function() {
-                                for (var i = 0; i < filters.length; i++)
-                                    filters[i].checked =   value.length > 0
-                                                        && value.length <= filterValues[i].length
-                                                        && filterValues[i].substring(0, value.length) == value;
-                                if (parentCheck) parentCheck.checked = true;
-                                applyFilters();
-                            };
-                        };
-                        for (var i = 0; i < filterTree.length; i++) {
-                            var n = filterTree[i];
-                            if (!n.isNode) continue;
-                            var li = createElement(ft, 'li', 'closed');
-                            var handle = createElement(li, 'span', 'h');
-                            handle.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor" fill-rule="evenodd"></path></svg>';
-                            addEvent(handle, 'click', (function(li) {
-                                return function() {
-                                    var isOpen = li.getAttribute('class') == 'open' || li.getAttribute('class') == 'open loaded';
-                                    li.setAttribute('class', isOpen ? 'closed' : 'open');
-                                    recalculatePageSize();
-                                };
-                            })(li));
-                            var liInner = createElement(li, 'div', 'scope');
-                            var liCheck = createElement(liInner, 'input');
-                            liCheck.setAttribute('type', 'checkbox');
-                            liCheck.setAttribute('checked', true);
-                            filters.push(liCheck);
-                            filterValues.push(toValue(resultList[0].path.slice(0, depth * 2).concat(n.name)));
-                            liInner.appendChild(document.createTextNode(n.name[1] + ' '));
-                            createElement(liInner, 'span', 'count', n.count);
-                            addEvent(liInner, 'click', selectOnly(liCheck, filterValues[filterValues.length-1]));
-                            var subUl = false;
-                            var subChecks = [];
-                            for (var j = 0; j < n.children.length; j++) {
-                                var m = n.children[j];
-                                if (!m.isNode) continue;
-                                if (!subUl) subUl = createElement(li, 'ul');
-                                var subLi = createElement(subUl, 'li');
-                                var liInner = createElement(subLi, 'div', 'scope');
-                                var liCheck2 = createElement(liInner, 'input');
-                                liCheck2.setAttribute('type', 'checkbox');
-                                liCheck2.setAttribute('checked', true);
-                                subChecks.push(liCheck2);
-                                filters.push(liCheck2);
-                                filterValues.push(toValue(resultList[0].path.slice(0, depth * 2).concat(n.name).concat(m.name)));
-                                addEvent(liCheck2, 'click', applyFilters);
-                                liInner.appendChild(document.createTextNode(m.name[1] + ' '));
-                                createElement(liInner, 'span', 'count', m.count);
-                                addEvent(liInner, 'click', selectOnly(liCheck2, filterValues[filterValues.length-1], liCheck));
+                        function createFilterTree(root, ul, tree, path, parentCheckbox) {
+                            for (var i = 0; i < tree.length; i++) {
+                                var n = tree[i];
+                                if (!n.isNode) continue;
+                                var li = createElement(ul, 'li', 'closed');
+                                var hasSubnodes = false;
+                                for (var j = 0; j < n.children.length; j++) {
+                                    if (n.children[j].isNode) {
+                                        hasSubnodes = true;
+                                        break;
+                                    }
+                                }
+                                if (hasSubnodes) {
+                                    var handle = createElement(li, 'span', 'h');
+                                    handle.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor" fill-rule="evenodd"></path></svg>';
+                                    addEvent(handle, 'click', (function(li) {
+                                        return function() {
+                                            var isOpen = li.getAttribute('class') == 'open' || li.getAttribute('class') == 'open loaded';
+                                            li.setAttribute('class', isOpen ? 'closed' : 'open');
+                                            recalculatePageSize();
+                                        };
+                                    })(li));
+                                }
+                                var liInner = createElement(li, 'div', 'scope');
+                                var liCheck = createElement(liInner, 'input');
+                                liCheck.setAttribute('type', 'checkbox');
+                                liCheck.setAttribute('checked', true);
+                                liCheck.parentCheckbox = parentCheckbox;
+                                filters.push(liCheck);
+                                var subPath = path.slice(0, path.length).concat(n.name);
+                                filterValues.push(toValue(subPath));
+                                liInner.appendChild(document.createTextNode(n.name[1] + ' '));
+                                createElement(liInner, 'span', 'count', n.count);
+                                function selectSubtree(element, checkStatus) {
+                                    for (var i = 0; i < element.children.length; i++) {
+                                        var n = element.children[i];
+                                        if ('UL' == n.tagName || 'LI' == n.tagName || 'DIV' == n.tagName) {
+                                            selectSubtree(n, checkStatus);
+                                        } else if ('INPUT' == n.tagName) n.checked = checkStatus;
+                                    }
+                                }
+                                addEvent(liInner, 'click', (function(root, liCheck, li) {
+                                    return function() {
+                                        selectSubtree(root, false);
+                                        selectSubtree(li, true);
+                                        for (var parentCheckbox = liCheck.parentCheckbox; parentCheckbox; parentCheckbox = parentCheckbox.parentCheckbox) parentCheckbox.checked = true;
+                                        applyFilters();
+                                    };
+                                })(root, liCheck, li));
+                                if (hasSubnodes) createFilterTree(root, createElement(li, 'ul'), n.children, subPath, liCheck);
+                                addEvent(liCheck, 'click', (function(liCheck, li) {
+                                    return function() {
+                                        selectSubtree(li, liCheck.checked);
+                                        applyFilters();
+                                    };
+                                })(liCheck, li));
                             }
-                            addEvent(liCheck, 'click', (function(liCheck, subChecks) {
-                                return function() {
-                                    var checkStatus = liCheck.checked;
-                                    for (var i = 0; i < subChecks.length; i++) subChecks[i].checked = checkStatus;
-                                    applyFilters();
-                                };
-                            })(liCheck, subChecks));
                         }
+                        createFilterTree(ft, ft, filterTree, resultList[0].path.slice(0, depth * 2));
                     }
                 }
             } else {
