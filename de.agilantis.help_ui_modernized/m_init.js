@@ -721,7 +721,19 @@ function getCookie(cname) {
     return undefined;
 }
 
-/* TODO */
+function toggleHighlight() {
+    var highlightStyle = document.getElementById('h-toggle-highlight').style;
+    var highlightMode = getCookie("highlight");
+
+    if ( highlightMode == undefined ) {
+        highlightMode = "OFF";
+    }
+    highlightMode = highlightMode === 'OFF' ? 'ON' : 'OFF';
+    highlightStyle.backgroundColor = highlightMode === 'ON' ? '#FFFF66' : '';
+    highlightStyle.fontWeight      = highlightMode === 'ON' ? 'bold' : 'normal';
+    setCookie("highlight", highlightMode, 365);
+}
+/*
 function toggleHighlight(button, param) {
     try {
         parent.ContentViewFrame.toggleHighlight();
@@ -736,3 +748,4 @@ function toggleHighlight(button, param) {
     } catch (e) {
     }
 }
+*/
