@@ -100,8 +100,12 @@
     }
     ///////////////////////////////////////////////////////////////////////////
 
-    var topCount = 10;
-    var maxPerGroup = 3;
+    function getCookieOrDefault(cname, defaultValue) {
+        var value = getCookie(cname);
+        return value == undefined ? defaultValue : value;
+    }
+    var topCount = getCookieOrDefault("search-result-tree-top-count", 10);
+    var maxPerGroup = getCookieOrDefault("search-result-tree-max-per-group", 3);
     function recalculatePageSize() {
         if (parent && parent.updateContentFrameSize) parent.updateContentFrameSize();
     }

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Search Results</title>
+  <link rel="stylesheet" type="text/css" href="m.css">
+  <script type="text/javascript">
+
+    ///////////////////////////////////////////////////////////////////////////
+    // copied functions from m.js
+    function preventDefault(e) {
+        e = e || window.event;
+        e.returnValue = false; if (e.preventDefault) e.preventDefault();
+    }
+    function stopPropagation(e) {
+        e = e || window.event;
+        e.cancelBubble = true; if (e.stopPropagation) e.stopPropagation();
+    }
+    function createElement(parent, name, clazz, text) {
+        var element = document.createElement(name);
+        if (parent) {
+            parent.appendChild(element);
+        }
+        if (clazz) {
+            element.setAttribute('class', classPrefix + clazz);
+        }
+        if (text) {
+            element.appendChild(document.createTextNode(text));
+        }
+        return element;
+    }
+    var openRequest;
+    function remoteRequest(url, callbackFn, uncancelable) {
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+            if (request.readyState == 4 && request.status == 200)
+                callbackFn(request.responseText);
+        }
+        request.open('GET', url);
+        request.send();
+        if (openRequest && openRequest.abort) openRequest.abort();
+        if (!uncancelable) openRequest = request;
+    }
+    function addHighlightedText(element, text, searchWord) {
+        var searchWordLowerCase = searchWord.toLowerCase();
+        var textLowerCase = text.toLowerCase();
+        var hIndex = textLowerCase.indexOf(searchWordLowerCase);
+        if (hIndex < 0) {
+            element.appendChild(document.createTextNode(text));
+            return;
+        }
+
+        var lastEnd = 0;
+        while (hIndex >=0 && searchWord.length > 0) {
+            element.appendChild(document.createTextNode(text.substring(lastEnd, hIndex)));
+            lastEnd = hIndex + searchWord.length;
+            if (   hIndex == 0
+                || text.substring(hIndex - 1, hIndex).replace(/\w/, "").length != 0) {
+                createElement(element, 'strong', false, text.substring(hIndex, lastEnd));
+            } else {
+                element.appendChild(document.createTextNode(text.substring(hIndex, lastEnd)));
+            }
+            hIndex = textLowerCase.indexOf(searchWordLowerCase, lastEnd);
+        }
+        element.appendChild(document.createTextNode(text.substring(lastEnd)));
+    }
+    function addEvent(o, type, fn){
+        if (o.addEventListener) o.addEventListener(type, fn, false);
+        else if (o.attachEvent) {
+           o['e'+type+fn] = fn;
+           o[type+fn] = function() { o['e'+type+fn](window.event); }
+           o.attachEvent('on'+type, o[type+fn]);
+        }
+     }
+
+    ///////////////////////////////////////////////////////////////////////////
+    // copied functions from m_init.js
+    function setCookie(cname, cvalue, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        var expires = "expires=" + d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    }
+    function getCookie(cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return undefined;
+    }
+    ///////////////////////////////////////////////////////////////////////////
+
+    function getCookieOrDefault(cname, defaultValue) {
+        var value = getCookie(cname);
+        return value == undefined ? defaultValue : value;
+    }
+
+    function init() {
+        document.getElementById("topCount").value = getCookieOrDefault("search-result-tree-top-count", 10);
+        document.getElementById("maxPerGroup").value = getCookieOrDefault("search-result-tree-max-per-group", 3);
+    }
+
+    function updateSettings() {
+        var topCountSelect = document.getElementById("topCount");
+        var topCount = topCountSelect.options[topCountSelect.selectedIndex].value;
+        var maxPerGroupSelect = document.getElementById("maxPerGroup");
+        var maxPerGroup = maxPerGroupSelect.options[maxPerGroupSelect.selectedIndex].value;
+        setCookie("search-result-tree-top-count", topCount, 365);
+        setCookie("search-result-tree-max-per-group", maxPerGroup, 365);
+    }
+
+    function restoreDefaults() {
+        document.getElementById("topCount").value = 10;
+        document.getElementById("maxPerGroup").value = 3;
+        updateSettings();
+    }
+
+  </script>
+</head>
+<body onLoad="init()" id="settings">
+<h4>Search results tree view:</h4>
+<p>Number of top results:
+ <select onchange="updateSettings()" id="topCount">
+  <option value="3">3</option>
+  <option value="4">4</option>
+  <option value="5">5</option>
+  <option value="6">6</option>
+  <option value="7">7</option>
+  <option value="8">8</option>
+  <option value="9">9</option>
+  <option value="10" selected>10</option>
+  <option value="12">12</option>
+  <option value="14">14</option>
+  <option value="16">16</option>
+  <option value="18">18</option>
+  <option value="20">20</option>
+  <option value="24">24</option>
+  <option value="28">28</option>
+  <option value="32">32</option>
+  <option value="36">36</option>
+  <option value="40">40</option>
+</select>
+</p>
+<p>Maximum number of results per group:
+ <select onchange="updateSettings()" id="maxPerGroup">
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="3"selected>3</option>
+  <option value="4">4</option>
+  <option value="5">5</option>
+  <option value="6">6</option>
+  <option value="7">7</option>
+  <option value="8">8</option>
+  <option value="9">9</option>
+  <option value="10">10</option>
+  <option value="12">12</option>
+  <option value="14">14</option>
+  <option value="16">16</option>
+  <option value="18">18</option>
+  <option value="20">20</option>
+  <option value="24">24</option>
+  <option value="28">28</option>
+  <option value="32">32</option>
+  <option value="36">36</option>
+  <option value="40">40</option>
+</select>
+</p>
+
+<p><input type="button" value="Restore Defaults" onclick="restoreDefaults()"/></p>
+</body>
+</html>
