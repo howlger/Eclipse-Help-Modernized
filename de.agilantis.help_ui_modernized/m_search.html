@@ -375,6 +375,7 @@
                                 addEvent(liCheck, 'click', (function(liCheck, li) {
                                     return function() {
                                         selectSubtree(li, liCheck.checked);
+                                        if (liCheck.checked) for (var parentCheckbox = liCheck.parentCheckbox; parentCheckbox; parentCheckbox = parentCheckbox.parentCheckbox) parentCheckbox.checked = true;
                                         applyFilters();
                                     };
                                 })(liCheck, li));
