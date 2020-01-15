@@ -193,6 +193,12 @@ a {
 #m-toc a img {
     margin: 0 4px -2px -20px;
 }
+#about header {
+    background-color: transparent;
+}
+#about body {
+    margin-left: 10px;
+}
 div#results {
     margin: 1em;
     padding: 0;
