@@ -107,6 +107,8 @@
     function init() {
         document.getElementById("topCount").value = getCookieOrDefault("search-result-tree-top-count", 10);
         document.getElementById("maxPerGroup").value = getCookieOrDefault("search-result-tree-max-per-group", 3);
+        document.getElementById("scroll").value = getCookieOrDefault("scroll", 'scroll-page');
+        //setTheme(getCookieOrDefault("theme", '#eee'));
     }
 
     function updateSettings() {
@@ -114,20 +116,55 @@
         var topCount = topCountSelect.options[topCountSelect.selectedIndex].value;
         var maxPerGroupSelect = document.getElementById("maxPerGroup");
         var maxPerGroup = maxPerGroupSelect.options[maxPerGroupSelect.selectedIndex].value;
+        var scrollSelect = document.getElementById("scroll");
+        var scroll = scrollSelect.options[scrollSelect.selectedIndex].value;
         setCookie("search-result-tree-top-count", topCount, 365);
         setCookie("search-result-tree-max-per-group", maxPerGroup, 365);
+        setCookie("scroll", scroll, 365);
+
+        /*
+        var themeSelect = document.getElementById("theme");
+        var theme = themeSelect.options[themeSelect.selectedIndex];
+        var themeColor = theme.value;
+        setCookie("theme", theme.value, 365);
+        color = themeSelect.options[themeSelect.selectedIndex].className;
+        themeSelect.className = color;
+        themeSelect.blur(); //This just unselects the select list without having to click
+        setTheme(themeColor);
+        */
+
     }
 
     function restoreDefaults() {
         document.getElementById("topCount").value = 10;
         document.getElementById("maxPerGroup").value = 3;
+        document.getElementById("scroll").value = 'scroll-page';
         updateSettings();
+        //setTheme('#eee');
     }
+
+    function setTheme(color) {
+        parent.document.getElementById('m-header').style.backgroundColor = color;
+        parent.document.getElementById('m-footer').style.backgroundColor = color;
+
+    }
+
+
 
   </script>
 </head>
 <body onLoad="init()" id="settings">
 <h1>Experimental settings</h1>
+<p>Used during beta testing only to determine the final settings.</p>
+
+<h3>Scrolling (wip)</h3>
+<p>Scroll
+  <select onchange="updateSettings()" id="scroll">
+    <option value="scroll-page">the whole page</option>
+    <option value="scroll-all">only TOC and content</option>
+  </select>
+</p>
+
 <h3>Search results tree view</h3>
 <p>Number of top results:
  <select onchange="updateSettings()" id="topCount">
@@ -175,7 +212,21 @@
   <option value="40">40</option>
 </select>
 </p>
+<!--
+<h3>Theme (wip)</h3>
+<p>
+  <select id="theme" onchange="updateSettings()">
+   <option class="one" value="grey">1</option>
+   <option class="two" value="red">2</option>
+   <option class="three" value="yellow">3</option>
+   <option class="four" value="green">4</option>
+  </select>
+</p>
+ -->
 
-<p><input type="button" value="Restore Defaults" onclick="restoreDefaults()"/></p>
+<p><button id="restore" type="button"
+    onclick="restoreDefaults()">Restore defaults</button></p>
 </body>
+
+
 </html>

@@ -209,7 +209,7 @@ div#results .stats {
     color: #999;
     margin-bottom: 1em;
 }
-div#results .stats button {
+div#results .stats button, #restore button {
     background: #eee;
     margin-left: 1em;
     border: none;
@@ -219,7 +219,7 @@ div#results .stats button {
     cursor: pointer;
     color: #666;
 }
-div#results .stats button:hover {
+div#results .stats button:hover, #restore button:hoover {
     background-color: #e8f2fe;
     color: #000;
 }
@@ -301,6 +301,14 @@ div#results .more:hover {
     text-align: center;
 }
 
+#theme { width:150px; color:rgba(0, 0, 0, 0); }
+#theme:focus, #theme:focus {
+    color: black;
+}
+.one   { background: #eee; }
+.two   { background: red; }
+.three { background: yellow; }
+.four  { background: green; }
 
 /*******************************************************************************
  * Eclipse Help search fields CSS
