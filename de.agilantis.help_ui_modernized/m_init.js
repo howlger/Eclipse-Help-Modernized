@@ -47,6 +47,7 @@ function addEvent(o, type, fn) {
     }
 }
 function updateContentFrameSize() {
+    if (!scrollPageMode) return;
 
     // see https://stackoverflow.com/a/49261999 and https://stackoverflow.com/a/819455
     var contentFrame = document.getElementById('m-content');
@@ -87,8 +88,18 @@ function updateContentFrameSize() {
 
 }
 function initContentFrame() {
-    updateContentFrameSize();
+
+    // scroll mode
+    var scroll = getCookie('scroll');
+    if ('scroll-areas' == scroll) {
+        scrollPageMode = false;
+        document.getElementsByTagName('body')[0].setAttribute('class', scroll);
+    } else {
+        document.getElementById('m-content').scrolling = 'no';
+        updateContentFrameSize();
+    }
     addEvent(window, 'resize', updateContentFrameSize);
+
     //fixAnchorLinks();
 }
 
@@ -155,6 +166,7 @@ if (typeof window.DOMParser != "undefined") {
     };
 }
 
+var scrollPageMode = true;
 function init() {
 
     // load TOC

@@ -105,10 +105,13 @@
     }
 
     function init() {
+        document.getElementById("scroll").value = getCookieOrDefault("scroll", 'scroll-page');
         document.getElementById("topCount").value = getCookieOrDefault("search-result-tree-top-count", 10);
         document.getElementById("maxPerGroup").value = getCookieOrDefault("search-result-tree-max-per-group", 3);
-        document.getElementById("scroll").value = getCookieOrDefault("scroll", 'scroll-page');
         //setTheme(getCookieOrDefault("theme", '#eee'));
+        addEvent(document.getElementById("scroll"), 'change', updateSettings);
+        addEvent(document.getElementById("topCount"), 'change', updateSettings);
+        addEvent(document.getElementById("maxPerGroup"), 'change', updateSettings);
     }
 
     function updateSettings() {
@@ -121,6 +124,19 @@
         setCookie("search-result-tree-top-count", topCount, 365);
         setCookie("search-result-tree-max-per-group", maxPerGroup, 365);
         setCookie("scroll", scroll, 365);
+        if (parent) {
+            parent.scrollPageMode = 'scroll-page' == scroll;
+            parent.document.getElementsByTagName('body')[0].setAttribute('class', scroll);
+            var contentFrame = parent.document.getElementById("m-content");
+            if ('scroll-areas' == scroll) {
+                contentFrame.width = 'inherit';
+                contentFrame.height = 'inherit';
+                contentFrame.scrolling = 'auto';
+            } else {
+                parent.updateContentFrameSize();
+                contentFrame.scrolling = 'no';
+            }
+        }
 
         /*
         var themeSelect = document.getElementById("theme");
@@ -157,17 +173,17 @@
 <h1>Experimental settings</h1>
 <p>Used during beta testing only to determine the final settings.</p>
 
-<h3>Scrolling (wip)</h3>
+<h3>Scrolling</h3>
 <p>Scroll
-  <select onchange="updateSettings()" id="scroll">
-    <option value="scroll-page">the whole page</option>
-    <option value="scroll-all">only TOC and content</option>
+  <select id="scroll">
+    <option value="scroll-page">the site as a whole</option>
+    <option value="scroll-areas">TOC and content areas separately</option>
   </select>
 </p>
 
 <h3>Search results tree view</h3>
 <p>Number of top results:
- <select onchange="updateSettings()" id="topCount">
+ <select id="topCount">
   <option value="3">3</option>
   <option value="4">4</option>
   <option value="5">5</option>
@@ -189,10 +205,10 @@
 </select>
 </p>
 <p>Maximum number of results per group:
- <select onchange="updateSettings()" id="maxPerGroup">
+ <select id="maxPerGroup">
   <option value="1">1</option>
   <option value="2">2</option>
-  <option value="3"selected>3</option>
+  <option value="3" selected>3</option>
   <option value="4">4</option>
   <option value="5">5</option>
   <option value="6">6</option>
@@ -213,9 +229,9 @@
 </select>
 </p>
 <!--
-<h3>Theme (wip)</h3>
+<h3>Theme</h3>
 <p>
-  <select id="theme" onchange="updateSettings()">
+  <select id="theme">
    <option class="one" value="grey">1</option>
    <option class="two" value="red">2</option>
    <option class="three" value="yellow">3</option>

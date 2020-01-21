@@ -18,19 +18,38 @@ html, body {
     border: 0;
     background-color: #fff;
 }
-
 header {
     background-color: #eee;
     display: flex;
     height: 85px;
     min-height: 85px;
+    z-index: 99;
+}
+body.scroll-areas header {
     /* Sticky header */
+    /*/
     position: -webkit-sticky;
     position: sticky;
     top: 0;
-    z-index: 99;
+    /*/
 }
-
+body.scroll-areas {
+    height: 100%;
+}
+body.scroll-areas #container {
+    height: 100%;
+    display: flex;
+    flex-flow: column;
+}
+body.scroll-areas header {
+    flex: 0 1 auto;
+}
+body.scroll-areas main {
+    flex: 0 1 auto;
+}
+body.scroll-areas main .m-content iframe {
+    height: 100%;
+}
 footer {
     flex-shrink: 0;
     height: 50px;
@@ -58,19 +77,38 @@ html, body, #m-b
 }
 iframe {
     border: 0;
-    overflow: hidden;
     width: 100%;
     margin: 0;
 }
+body.scroll-page iframe {
+    overflow: hidden;
+    -ms-overflow-style: none;
+}
+body.scroll-areas iframe {
+    overflow: auto;
+    -ms-overflow-style: scrollbar;
+}
 main {
+    width: 100%;
+}
+body.scroll-page main {
     display: table;
     table-layout: fixed;
     height: calc(100vh - 135px); /* viewport-percentage lengths 100vh - height header 85 + footer 50 = 135 */
-    width: 100%;
-    flex: 1 0 auto;
+}
+body.scroll-areas main {
+    display: flex;
+    height: 100%;
 }
 main .m-content {
+    height: 100%;
+}
+body.scroll-page main .m-content {
     display: table-cell;
+    width: *;
+}
+body.scroll-areas main .m-content {
+    flex: auto;
     width: *;
     height: 100%;
 }
@@ -78,10 +116,25 @@ a {
     outline: 0; /* Remove the dotted outline  */
 }
 #m-aside {
-    display: table-cell;
     position: relative;
+}
+body.scroll-page #m-aside {
+    display: table-cell;
     overflow: hidden;
     vertical-align: top;
+}
+body.scroll-areas #m-aside {
+    height: 100%;
+    max-height: 100%;
+    overflow: auto;
+    -ms-overflow-style: scrollbar;
+}
+body.scroll-areas #m-aside {
+    height: 1px;
+    max-height: 100%;
+    min-height: 100%;
+    overflow: auto;
+    -ms-overflow-style: scrollbar;
 }
 #m-toc {
     margin: 4px 0 0 -8px;
