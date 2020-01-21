@@ -259,6 +259,14 @@ function init() {
 
     addEvent(document.getElementById('m-content'), 'load', scrollToTop);
 
+    // init "Highlight search terms" menu
+    var enableHighlighting = 'false' != getCookie('highlight');
+    if (enableHighlighting) {
+        var highlightStyle = document.getElementById('h-toggle-highlight').style;
+        highlightStyle.backgroundColor = '#FFFF66';
+        highlightStyle.fontWeight      = 'bold';
+    }
+
 }
 
 var syncedTocItem;
@@ -733,31 +741,20 @@ function getCookie(cname) {
     return undefined;
 }
 
+function HighlightConnector() {};
+HighlightConnector.prototype.setButtonState = function(name, state) {
+    // dummy for highlight() in org.eclipse.help.webapp/advanced/highlight.js
+};
+var ContentToolbarFrame = new HighlightConnector();
 function toggleHighlight() {
     var highlightStyle = document.getElementById('h-toggle-highlight').style;
-    var highlightMode = getCookie("highlight");
-
-    if ( highlightMode == undefined ) {
-        highlightMode = "OFF";
-    }
-    highlightMode = highlightMode === 'OFF' ? 'ON' : 'OFF';
-    highlightStyle.backgroundColor = highlightMode === 'ON' ? '#FFFF66' : '';
-    highlightStyle.fontWeight      = highlightMode === 'ON' ? 'bold' : 'normal';
-    setCookie("highlight", highlightMode, 365);
-}
-/*
-function toggleHighlight(button, param) {
-    try {
-        parent.ContentViewFrame.toggleHighlight();
-        var highlight = parent.ContentViewFrame.currentHighlight;
-        window.setButtonState("toggle_highlight", highlight);
-        var date = new Date();
-        date.setTime(date.getTime() + (365 * 24 * 60 * 60 * 1000));
-        document.cookie = document.cookie = "highlight=" + highlight
-                + "; expires=" + date.toGMTString() + ";path=/";
-        ;
-
-    } catch (e) {
+    var enableHighlighting = 'false' == getCookie('highlight');
+    highlightStyle.backgroundColor = enableHighlighting ? '#ffff66' : '';
+    highlightStyle.fontWeight      = enableHighlighting ? 'bold' : 'normal';
+    setCookie('highlight', enableHighlighting ? 'true' : 'false', 365);
+    var contentFrameWindow = document.getElementById('m-content').contentWindow;
+    if (contentFrameWindow && contentFrameWindow.highlight && contentFrameWindow.toggleHighlight) {
+        contentFrameWindow.toggleHighlight();
+        contentFrameWindow.highlight();
     }
 }
-*/
