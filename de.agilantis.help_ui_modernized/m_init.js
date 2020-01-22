@@ -251,7 +251,7 @@ function init() {
     scrollToTop();
     // Read font size from cookie if already set
     var fontSize = getFontSize();
-    if (fontSize != "") {
+    if ( fontSize !== undefined ) {
         setFontSize(fontSize);
     }
 
