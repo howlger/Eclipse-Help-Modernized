@@ -457,7 +457,9 @@
             var r = createElement(ul, 'li');
             if (mode == 'filter_list' && !n.isNode) {
                 resultsToFilter.push(r);
-                resultsValues.push(toValue(n.path));
+                var resultofStart = n.href.indexOf('?resultof=');
+                var hrefNormed = '../topic' + (resultofStart < 0 ? n.href : n.href.substring(0, resultofStart));
+                resultsValues.push(toValue(n.path.slice(0, n.path.length).concat(hrefNormed).concat(n.title)));
             }
 
             // subtree
