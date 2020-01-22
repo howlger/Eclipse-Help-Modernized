@@ -238,11 +238,11 @@
     var resultsToFilter = [];
     var resultsValues = [];
     function applyFilters(e) {
-        var excludeFilters = [];
-        for (var i = 0; i < filters.length; i++) if (!filters[i].checked) excludeFilters.push(filterValues[i]);
+        var includeFilters = [];
+        for (var i = 0; i < filters.length; i++) if (filters[i].checked && !filters[i].indeterminate) includeFilters.push(filterValues[i]);
         for (var i = 0; i < resultsToFilter.length; i++) {
             resultsToFilter[i].style.display =
-                arrayContains(excludeFilters, resultsValues[i]) ? 'none' : 'block';
+                arrayContains(includeFilters, resultsValues[i]) ? 'block' : 'none';
         }
         stopPropagation(e);
         recalculatePageSize();
@@ -364,14 +364,65 @@
                                         var n = element.children[i];
                                         if ('UL' == n.tagName || 'LI' == n.tagName || 'DIV' == n.tagName) {
                                             selectSubtree(n, checkStatus);
-                                        } else if ('INPUT' == n.tagName) n.checked = checkStatus;
+                                        } else if ('INPUT' == n.tagName) {
+                                            n.indeterminate = false;
+                                            n.checked = checkStatus;
+                                        }
                                     }
+                                }
+                                function getChildrenChecks(checkbox) {
+                                    if (!checkbox || !checkbox.parentElement || !checkbox.parentElement.parentElement || 'LI' != checkbox.parentElement.parentElement.tagName) return [];
+                                    var li = checkbox.parentElement.parentElement;
+                                    var children = [];
+                                    for (var i = 0; i < li.children.length; i++) {
+                                        var n1 = li.children[i];
+                                        if ('UL' != n1.tagName) continue;
+                                        for (var j = 0; j < n1.children.length; j++) {
+                                            var n2 = n1.children[j];
+                                            if ('LI' != n2.tagName) continue;
+                                            for (var k = 0; k < n2.children.length; k++) {
+                                                var n3 = n2.children[k];
+                                                for (var l = 0; l < n3.children.length; l++) {
+                                                    var n4 = n3.children[l];
+                                                    if ('INPUT' == n4.tagName) children.push(n4);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    return children;
+                                }
+                                function updateParentsChecks(checkbox) {
+                                    for (var parentCheckbox = checkbox.parentCheckbox; parentCheckbox; parentCheckbox = parentCheckbox.parentCheckbox) {
+                                        var allChildrenChecked = true;
+                                        var allChildrenUnchecked = true;
+                                        var children = getChildrenChecks(parentCheckbox);
+                                        for (var i = 0; i < children.length; i++) {
+                                            var n = children[i];
+                                            if (n.indeterminate) {
+                                                allChildrenUnchecked = false;
+                                                allChildrenChecked = false;
+                                            } else if (n.checked) {
+                                                allChildrenUnchecked = false;
+                                            } else {
+                                                allChildrenChecked = false;
+                                            }
+                                        }
+                                        if (allChildrenChecked) {
+                                            parentCheckbox.indeterminate = false;
+                                            parentCheckbox.checked = true;
+                                        } else if (allChildrenUnchecked) {
+                                            parentCheckbox.indeterminate = false;
+                                            parentCheckbox.checked = false;
+                                        } else {
+                                            parentCheckbox.indeterminate = true;
+                                    }
+                                }
                                 }
                                 addEvent(liInner, 'click', (function(root, liCheck, li) {
                                     return function() {
                                         selectSubtree(root, false);
                                         selectSubtree(li, true);
-                                        for (var parentCheckbox = liCheck.parentCheckbox; parentCheckbox; parentCheckbox = parentCheckbox.parentCheckbox) parentCheckbox.checked = true;
+                                        updateParentsChecks(liCheck);
                                         applyFilters();
                                     };
                                 })(root, liCheck, li));
@@ -379,7 +430,7 @@
                                 addEvent(liCheck, 'click', (function(liCheck, li) {
                                     return function() {
                                         selectSubtree(li, liCheck.checked);
-                                        if (liCheck.checked) for (var parentCheckbox = liCheck.parentCheckbox; parentCheckbox; parentCheckbox = parentCheckbox.parentCheckbox) parentCheckbox.checked = true;
+                                        updateParentsChecks(liCheck);
                                         applyFilters();
                                     };
                                 })(liCheck, li));
