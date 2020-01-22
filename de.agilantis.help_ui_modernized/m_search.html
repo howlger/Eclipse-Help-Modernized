@@ -155,7 +155,7 @@
         for (var i = 0; i < tree.length; i++) {
             var r = tree[i];
             if (!r.isNode) continue;
-            if (!raw) compact(path, r);
+            compact(path, r);
             r.children = asTree(r.children, r.children[0].path.slice(0, path.length + r.name.length), depth - 1);
         }
 
@@ -357,7 +357,11 @@
                                 filters.push(liCheck);
                                 var subPath = path.slice(0, path.length).concat(n.name);
                                 filterValues.push(toValue(subPath));
-                                liInner.appendChild(document.createTextNode(n.name[1] + ' '));
+                                var name = '';
+                                for (var j = 0; j < n.name.length; j+=2) {
+                                    name += (j == 0 ? '' : ' > ') + n.name[j+1];
+                                }
+                                liInner.appendChild(document.createTextNode(name + ' '));
                                 createElement(liInner, 'span', 'count', n.count);
                                 function selectSubtree(element, checkStatus) {
                                     for (var i = 0; i < element.children.length; i++) {
