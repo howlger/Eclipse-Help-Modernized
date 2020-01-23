@@ -1254,9 +1254,17 @@ a:hover {
 
 /* tablet styles */
 @media screen and (max-width: 768px) {
-    .s, #m-slider,
+    #m-slider,
     .-ehc, .-ehw  {
       display: none;
+    }
+    .f {
+      display: flex;
+      align-items: baseline;
+    }
+    .s {
+      width:  26px;
+      height: 26px;
     }
     .-ehp, .-ehq, .-ehs, .-ehr{
       display: block;
