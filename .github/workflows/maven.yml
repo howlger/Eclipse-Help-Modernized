@@ -1,10 +1,12 @@
-name: Build
+name: Build plug-in and publish update site
 
 on: [push]
 
 jobs:
   build:
 
+    # POM-less Tycho requires Maven 3.6.3 or higher:
+    # https://help.github.com/en/actions/automating-your-workflow-with-github-actions/software-installed-on-github-hosted-runners
     runs-on: macos-latest
 
     steps:
@@ -13,5 +15,48 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: Build with Maven
+    - name: Build with Maven and Tycho
       run: mvn -V -B clean verify --file pom.xml
+    - name: Publish update site
+      env:
+
+        # Preparation
+        #
+        # BE WARNED: Anyone with push access to this repository can use this to erase or rewrite the history of any
+        #            of your public repositories, since this can be used for a `push --force` with your access rights.
+        #
+        # 1. Create a new personal access token with the scope "repo > public_repo":
+        #    1. In <https://github.com/settings/tokens> click "Generate new token"
+        #    2. Enter a name of your choice (e.g. "Update Site <Repository>")
+        #    3. Select the scope "repo > public_repo"
+        #    4. Click "Generate token"
+        #    5. Copy the token value (40-digit hexadecimal number)
+        # 2. In the repository that contains this workflow file, add the created personal access token as a secret:
+        #    1. In the repository in the "Settings" tab go to "Secrets"
+        #    2. Click the link "Add a new secret"
+        #    3. Paste the copied token value from above (the 40-digit hexadecimal number) into the "Value" field
+        #    4. Enter the name "PUBLISH_UPDATE_SITE"
+        # 3. In the update site repository make sure that the "master" branch have been created
+        TOKEN: ${{ secrets.PUBLISH_UPDATE_SITE }}
+
+        UPDATE_SITE_PATH: update-site/target/repository
+        UPDATE_SITE_REPO: howlger/Eclipse-Help-Modernized-Update-Site
+      if: success()
+      run: |
+        SOURCE_DIR="$(pwd)/${UPDATE_SITE_PATH}"
+        REMOTE="https://${GITHUB_ACTOR}:${TOKEN}@github.com/${UPDATE_SITE_REPO}.git"
+        echo Cloning update site repository...
+        mkdir "${HOME}/target_repo"
+        cd "${HOME}/target_repo"
+        git clone "${REMOTE}" . --branch master --depth 1
+        echo Copying the update site into the update site repository...
+        rm -rf update
+        cp -av "${SOURCE_DIR}" update
+        echo Creating commit...
+        git config --local user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+        git config --local user.name  "${GITHUB_ACTOR}"
+        git add update
+        git commit --amend -m "Update update site"
+        echo Pushing to the update site repository...
+        git push --force "${REMOTE}" HEAD:master
+        echo Done. See https://github.com/${UPDATE_SITE_REPO}/blob/master/update
