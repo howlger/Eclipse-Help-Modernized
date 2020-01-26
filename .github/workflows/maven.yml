@@ -22,7 +22,7 @@ jobs:
       run: mvn -V -B clean verify --file pom.xml
     - name: Publish update site
       env:
-        UPDATE_SITE_PATH: out
+        UPDATE_SITE_PATH: update-site/target/repository
         TOKEN: ${{ secrets.GITHUB_TOKEN }}
       if: success()
       run: |
