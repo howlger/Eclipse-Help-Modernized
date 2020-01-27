@@ -22,32 +22,38 @@ jobs:
       run: mvn -V -B clean verify --file pom.xml
     - name: Publish update site
       env:
-        UPDATE_SITE_PATH: update-site/target/repository
+        SOURCE_PATH: update-site/target/repository
+        TARGET_BRANCH: update-site
+        TARGET_PATH: staging
         TOKEN: ${{ secrets.GITHUB_TOKEN }}
       if: success()
       run: |
+        COMMIT_MESSAGE="$(git log --oneline --format=%s -n 1 HEAD)"
+        COMMIT_AUTHOR="$(git log --oneline --format='%an <%ae>' -n 1 HEAD)"
         mkdir "${HOME}/target_repo"
         cd "${HOME}/target_repo"
         git clone --no-checkout --depth 1 "file://${GITHUB_WORKSPACE}" .
         git remote add github "https://github.com/${GITHUB_REPOSITORY}"
-        if [ "`git ls-remote --heads github update-site`" ]; then git fetch github update-site; fi
-        if [ "`git branch -r --list github/update-site`" ]
+        if [ "`git ls-remote --heads github ${TARGET_BRANCH}`" ]; then git fetch --depth=1 github ${TARGET_BRANCH}; fi
+        if [ "`git branch -r --list github/${TARGET_BRANCH}`" ]
         then
-          git checkout -t github/update-site
+          git checkout -t github/${TARGET_BRANCH}
         else
-          git checkout --orphan update-site
+          git checkout --orphan ${TARGET_BRANCH}
+          git rm --cached -r .
         fi
-        rm -rf staging
-        cp -av "${GITHUB_WORKSPACE}/${UPDATE_SITE_PATH}" staging
+        mkdir -p "${TARGET_PATH}"
+        rm -rf "${TARGET_PATH}"
+        cp -av "${GITHUB_WORKSPACE}/${SOURCE_PATH}" "${TARGET_PATH}"
         git config --local user.email "${GITHUB_ACTOR}@users.noreply.github.com"
         git config --local user.name  "${GITHUB_ACTOR}"
-        git add staging
-        if [ "`git branch -r --list github/update-site`" ]
+        git add "${TARGET_PATH}"
+        if [ "`git branch -r --list github/${TARGET_BRANCH}`" ]
         then
-          git commit --amend -m "Update update site"
+          git commit --amend -m "${COMMIT_MESSAGE}" --author="${COMMIT_AUTHOR}"
         else
-          git commit -m "Update update site"
+          git commit -m "${COMMIT_MESSAGE}" --author="${COMMIT_AUTHOR}"
         fi
-        git push --force "https://${GITHUB_ACTOR}:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:update-site
-        echo "Done. See: https://github.com/${GITHUB_REPOSITORY}/blob/update-site/staging"
-        echo "Update site: https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/update-site/staging"
+        git push --force "https://${GITHUB_ACTOR}:${TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:${TARGET_BRANCH}
+        echo "Done. See: https://github.com/${GITHUB_REPOSITORY}/blob/${TARGET_BRANCH}/${TARGET_PATH}"
+        echo "Raw base:  https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/${TARGET_BRANCH}/${TARGET_PATH}/"
