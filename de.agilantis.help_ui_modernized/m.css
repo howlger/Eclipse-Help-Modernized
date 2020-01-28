@@ -1260,7 +1260,7 @@ a:hover {
     }
     .f {
       display: flex;
-      align-items: baseline;
+      align-items: center;
     }
     .s {
       width:  26px;
