@@ -140,11 +140,12 @@
             var r = tree[i];
             if (r.isNode) {
                 r.count = r.children.length + (r.root ? 1 : 0);
-            } else if (!raw){
+            } else if (!raw) {
                 var resultofStart = r.href.indexOf('?resultof=');
                 var rootOfGroup = grouped['../topic' + (resultofStart < 0 ? r.href : r.href.substring(0, resultofStart))  + '\n' + r.title];
                 if (rootOfGroup) {
                     rootOfGroup.root = r;
+                    rootOfGroup.count++;
                     tree.splice(i,1);
                     i--;
                 }
