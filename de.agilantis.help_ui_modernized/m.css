@@ -140,6 +140,10 @@ body.scroll-areas #m-aside {
     overflow: auto;
     -ms-overflow-style: scrollbar;
 }
+body.scroll-areas #m-aside.min {
+    overflow: hidden;
+    -ms-overflow-style: none;
+}
 #m-toc {
     margin: 4px 0 0 -8px;
     padding: 0;

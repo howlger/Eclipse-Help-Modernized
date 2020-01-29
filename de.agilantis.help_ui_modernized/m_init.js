@@ -12,6 +12,7 @@
 var menuWidth = 280; // Right side menu width
 var SMALL_SCREEN_WIDTH = 768;
 var TOC_DEFAULT_WIDTH = 360;
+var TOC_MIN_WIDTH = 64;
 var tocWidth = TOC_DEFAULT_WIDTH;
 var sliderWidth = 12;
 var isEmbeddedHelp = false;
@@ -211,21 +212,17 @@ function init() {
 
     slider.mousemove = function(e) {
         tocWidth = e.pageX + 8;
-        if (tocWidth < sliderWidth)
-            tocWidth = sliderWidth;
+        if (tocWidth < sliderWidth) tocWidth = sliderWidth;
         asideStyle.transition = '';
         asideStyle.width = tocWidth + 'px';
         document.getElementById("m-slider").setAttribute('class', '');
         updateContentFrameSize();
-        setTocWidth(tocWidth);
     };
     slider.onmousedown = function(e) {
         try {
             document.getElementById("m-ovrl").style.display = 'block';
-            document.documentElement.addEventListener('mousemove',
-                    slider.doDrag, false);
-            document.documentElement.addEventListener('mouseup',
-                    slider.stopDrag, false);
+            document.documentElement.addEventListener('mousemove', slider.doDrag, false);
+            document.documentElement.addEventListener('mouseup', slider.stopDrag, false);
         } catch (e) {
         }
     }
@@ -237,33 +234,36 @@ function init() {
         slider.mousemove(e);
     }
     slider.stopDrag = function(e) {
+        if (tocWidth >= 0 && tocWidth < TOC_MIN_WIDTH) {
+            var oldWidth = getCookie('toc-width');
+            tocWidth = oldWidth ? oldWidth : TOC_DEFAULT_WIDTH;
+            toggle_toc();
+        } else {
+            document.getElementById("m-aside").setAttribute('class', tocWidth < 0 ? 'min' : '');
+            setCookie('toc-width', tocWidth, 365);
+        }
         document.getElementById("m-ovrl").style.display = 'none';
-        document.documentElement.removeEventListener('mousemove',
-                slider.doDrag, false);
-        document.documentElement.removeEventListener('mouseup',
-                slider.stopDrag, false);
+        document.documentElement.removeEventListener('mousemove', slider.doDrag, false);
+        document.documentElement.removeEventListener('mouseup', slider.stopDrag, false);
         updateContentFrameSize();
     }
-    var toggle_toc = function(e) {
+    function toggle_toc() {
         tocWidth = -tocWidth;
-        var asideStyle = document.getElementById("m-aside").style;
-        asideStyle.transition = 'width .25s ease-in';
-        asideStyle.width = (tocWidth < sliderWidth ? sliderWidth : tocWidth)
-                + 'px';
-        document.getElementById("m-slider").setAttribute('class',
-                tocWidth < sliderWidth ? 'o' : '');
+        var aside = document.getElementById("m-aside");
+        aside.setAttribute('class', tocWidth < 0 ? 'min' : '');
+        aside.style.transition = 'width .25s ease-in';
+        aside.style.width = (tocWidth < sliderWidth ? sliderWidth : tocWidth) + 'px';
+        document.getElementById("m-slider").setAttribute('class', tocWidth < sliderWidth ? 'o' : '');
         updateContentFrameSize();
     }
-
-    slider.ondblclick = toggle_toc;
-    document.getElementById("m-slider_").onclick = toggle_toc;
+    addEvent(slider, 'dblclick', toggle_toc);
+    addEvent(document.getElementById("m-slider_"), 'click', toggle_toc);
 
     scrollToTop();
-    // Read font size from cookie if already set
+
+    // read font size from cookie if already set
     var fontSize = getFontSize();
-    if ( fontSize !== undefined ) {
-        setFontSize(fontSize);
-    }
+    if (fontSize) setFontSize(fontSize);
 
     addEvent(document.getElementById('m-content'), 'load', syncToc);
 
@@ -393,11 +393,6 @@ function getLiNr(ul, nr) {
         count++;
         if (nr == count) return ul.childNodes[i];
     }
-}
-
-// Stores the toc width in a cookie
-function setTocWidth(w) {
-    setCookie('toc-width', w, 365);
 }
 
 // TODO remove when integrated into Eclipse
