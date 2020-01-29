@@ -282,7 +282,7 @@ function init() {
 var syncedTocItem;
 var syncedTocItemLocation;
 function syncToc() {
-    var currentLocation = document.getElementById('m-content').contentWindow.location.href;
+    var currentLocation = document.getElementById('m-content').contentWindow.location.href.replace('/ntopic/', '/topic/');
     if (syncedTocItemLocation && syncedTocItemLocation == currentLocation) return;
     if (syncedTocItem) {
         syncedTocItem.setAttribute('class', syncedTocItem.getAttribute('class').replace('selected', ''));
