@@ -9,23 +9,12 @@
  *
  ******************************************************************************/
 
-var clientWidth = document.documentElement.clientWidth
-               || document.body.clientWidth;
 var menuWidth = 280; // Right side menu width
-var smallScreenWidth = 768; // Tablet breakpoint;
+var SMALL_SCREEN_WIDTH = 768;
+var TOC_DEFAULT_WIDTH = 360;
+var tocWidth = TOC_DEFAULT_WIDTH;
 var sliderWidth = 12;
 var isEmbeddedHelp = false;
-
-// Read toc width from cookie
-var tocWidth = getCookie('toc-width');
-//console.log('tocWidth0=' + tocWidth);
-if ( tocWidth == undefined ) {
-    tocWidth = 360;
-}
-if (clientWidth < smallScreenWidth && tocWidth > sliderWidth) {
-    tocWidth = -tocWidth;
-}
-//console.log('tocWidth1=' + tocWidth);
 
 function h(a, c, d, e) {
     if (typeof _eh != 'undefined')
@@ -44,6 +33,24 @@ function addEvent(o, type, fn) {
             o['e' + type + fn](window.event);
         }
         o.attachEvent('on' + type, o[type + fn]);
+    }
+}
+function toggleToc(initToc) {
+    var tocSidebar = document.getElementById('m-aside');
+    var currentClass = tocSidebar.getAttribute('class');
+    var clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
+    var hideToc = currentClass ? currentClass == 'show' : clientWidth > SMALL_SCREEN_WIDTH;
+    if (initToc) {
+        tocWidth = getCookie('toc-width');
+        hideToc = (clientWidth <= SMALL_SCREEN_WIDTH) || (tocWidth && tocWidth < 0);
+        if (!tocWidth) tocWidth = TOC_DEFAULT_WIDTH;
+        document.getElementById('m-aside').style.width = (tocWidth < 0 ? -tocWidth : tocWidth) + 'px';
+    }
+    var newClass = clientWidth > SMALL_SCREEN_WIDTH ? (hideToc ? 'hide' : '') : (hideToc ? '' : 'show');
+    tocSidebar.setAttribute('class', newClass);
+    if ((hideToc && tocWidth > 0) || (!hideToc && tocWidth < 0)) {
+        tocWidth = -tocWidth;
+        setCookie('toc-width', tocWidth, 365);
     }
 }
 function updateContentFrameSize() {
@@ -168,6 +175,9 @@ if (typeof window.DOMParser != "undefined") {
 
 var scrollPageMode = true;
 function init() {
+
+    // init TOC width (cookie: 'toc-width')
+    toggleToc(true);
 
     // load TOC
     var callbackFn = function(responseText) {
@@ -387,7 +397,7 @@ function getLiNr(ul, nr) {
 
 // Stores the toc width in a cookie
 function setTocWidth(w) {
-    setCookie("toc-width", w, 365);
+    setCookie('toc-width', w, 365);
 }
 
 // TODO remove when integrated into Eclipse
@@ -490,12 +500,10 @@ function showLoadedTocChildren(item, nodes, toc) {
         var a = createElement(li, 'a');
         a.setAttribute('href', '../../' + n.getAttribute('href').substring(3));
         a.setAttribute('target', 'm-content');
-        // For small screen close the TOC again when link is clicked
-        var clientWidth = document.documentElement.clientWidth
-                || document.body.clientWidth;
-        if (clientWidth < smallScreenWidth) {
-            a.setAttribute('onclick', 'closeToc();');
-        }
+        addEvent(a, 'click', function() {
+            var clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
+            if (clientWidth < SMALL_SCREEN_WIDTH) toggleToc();
+        });
         var icon = n.getAttribute('image');
         if (icon) {
             var iconImg = createElement(a, 'img');
@@ -581,39 +589,10 @@ window.onclick = function(event) {
 function closeToc() {
     var masideStyle = document.getElementById("m-aside").style;
     masideStyle.width = '0px';
-    if (clientWidth < smallScreenWidth && tocWidth > sliderWidth) {
+    if (clientWidth < SMALL_SCREEN_WIDTH && tocWidth > sliderWidth) {
         tocWidth = -tocWidth;
     }
     updateContentFrameSize();
-}
-
-// Show or hide the table of contents
-function toggleToc() {
-
-    updateContentFrameSize();
-    var masideStyle = document.getElementById("m-aside").style;
-    var mSlider = document.getElementById("m-slider");
-
-    tocWidth = -tocWidth;
-    mSlider.setAttribute('class', tocWidth < sliderWidth ? 'o' : '');
-    /*
-    console.log( 'display=' + masideStyle.display
-            + ', width=' + masideStyle.width
-            + ', tocWidth=' + tocWidth
-            + ', sliderWidth=' + sliderWidth
-            + ', clientWidth=' + clientWidth );
-     */
-    if (tocWidth < sliderWidth) {
-        masideStyle.width = '0px';
-        // For Microsoft Edge
-        if (/Edge\/\d./i.test(navigator.userAgent)) {
-            masideStyle.display = "none";
-        }
-    } else {
-        masideStyle.width = tocWidth + 'px';
-        masideStyle.display = "table-cell";
-    }
-    //console.log( 'tocWidth=' + tocWidth + ', sliderWidth=' + sliderWidth );
 }
 
 // Sets cursor in search field

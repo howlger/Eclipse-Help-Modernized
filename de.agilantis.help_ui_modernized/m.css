@@ -116,7 +116,11 @@ a {
     outline: 0; /* Remove the dotted outline  */
 }
 #m-aside {
+    display: block;
     position: relative;
+}
+#m-aside.hide, body.scroll-page #m-aside.hide {
+    display: none;
 }
 body.scroll-page #m-aside {
     display: table-cell;
@@ -1270,11 +1274,19 @@ a:hover {
       display: block;
       width: 320px;
     }
-    #m-aside {
+    #m-aside, body.scroll-page #m-aside {
       display: none;
       height: 100%;
       width: 0px;
       overflow-x: hidden;
+    }
+    #m-aside.show {
+      display: block;
+      min-width: 100%;
+    }
+    body.scroll-page #m-aside.show {
+      display: table-cell;
+      min-width: 100%;
     }
     div#results ul {
         width: 100%;
