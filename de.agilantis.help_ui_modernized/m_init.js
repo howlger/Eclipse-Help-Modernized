@@ -13,8 +13,8 @@ var menuWidth = 280; // Right side menu width
 var SMALL_SCREEN_WIDTH = 768;
 var TOC_DEFAULT_WIDTH = 360;
 var TOC_MIN_WIDTH = 64;
+var TOC_SLIDER_WIDTH = 12;
 var tocWidth = TOC_DEFAULT_WIDTH;
-var sliderWidth = 12;
 var isEmbeddedHelp = false;
 
 function h(a, c, d, e) {
@@ -40,19 +40,31 @@ function toggleToc(initToc) {
     var tocSidebar = document.getElementById('m-aside');
     var currentClass = tocSidebar.getAttribute('class');
     var clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
-    var hideToc = currentClass ? currentClass == 'show' : clientWidth > SMALL_SCREEN_WIDTH;
+    var hideToc = currentClass ? currentClass == 'show' || currentClass == 'showm' : clientWidth > SMALL_SCREEN_WIDTH;
+    var isMinimized = currentClass == 'm' || currentClass == 'showm';
     if (initToc) {
         tocWidth = getCookie('toc-width');
+        if (tocWidth && tocWidth.charAt(0) == 'l') {
+            isMinimized = true;
+            tocWidth = Number(tocWidth.substring(1));
+        }
         hideToc = (clientWidth <= SMALL_SCREEN_WIDTH) || (tocWidth && tocWidth < 0);
         if (!tocWidth) tocWidth = TOC_DEFAULT_WIDTH;
-        document.getElementById('m-aside').style.width = (tocWidth < 0 ? -tocWidth : tocWidth) + 'px';
+        tocSidebar.style.width = isMinimized ? TOC_SLIDER_WIDTH : (tocWidth < 0 ? -tocWidth : tocWidth) + 'px';
     }
-    var newClass = clientWidth > SMALL_SCREEN_WIDTH ? (hideToc ? 'hide' : '') : (hideToc ? '' : 'show');
+    var newClass = clientWidth > SMALL_SCREEN_WIDTH
+                   ? (hideToc ? (isMinimized ? 'm' : 'hide') : '')
+                   : (hideToc ? '' : 'show') + (isMinimized ? 'm' : '');
     tocSidebar.setAttribute('class', newClass);
     if ((hideToc && tocWidth > 0) || (!hideToc && tocWidth < 0)) {
         tocWidth = -tocWidth;
-        setCookie('toc-width', tocWidth, 365);
+        if (clientWidth > SMALL_SCREEN_WIDTH) storeTocWidth();
     }
+    if (isMinimized) tocSidebar.style.width = (hideToc ? TOC_SLIDER_WIDTH : tocWidth) + 'px';
+}
+function storeTocWidth() {
+    var currentClass = document.getElementById('m-aside').getAttribute('class');
+    setCookie('toc-width', (currentClass == 'm' || currentClass == 'showm' ? 'l' : '') + tocWidth, 365);
 }
 function updateContentFrameSize() {
     if (!scrollPageMode) return;
@@ -212,10 +224,9 @@ function init() {
 
     slider.mousemove = function(e) {
         tocWidth = e.pageX + 8;
-        if (tocWidth < sliderWidth) tocWidth = sliderWidth;
+        if (tocWidth < TOC_SLIDER_WIDTH) tocWidth = TOC_SLIDER_WIDTH;
         asideStyle.transition = '';
         asideStyle.width = tocWidth + 'px';
-        document.getElementById("m-slider").setAttribute('class', '');
         updateContentFrameSize();
     };
     slider.onmousedown = function(e) {
@@ -236,11 +247,12 @@ function init() {
     slider.stopDrag = function(e) {
         if (tocWidth >= 0 && tocWidth < TOC_MIN_WIDTH) {
             var oldWidth = getCookie('toc-width');
+            if (oldWidth && oldWidth.charAt(0) == 'l') oldWidth = Number(tocWidth.substring(1));
             tocWidth = oldWidth ? oldWidth : TOC_DEFAULT_WIDTH;
             toggle_toc();
         } else {
-            document.getElementById("m-aside").setAttribute('class', tocWidth < 0 ? 'min' : '');
-            setCookie('toc-width', tocWidth, 365);
+            document.getElementById('m-aside').setAttribute('class', tocWidth < 0 ? 'm' : '');
+            storeTocWidth();
         }
         document.getElementById("m-ovrl").style.display = 'none';
         document.documentElement.removeEventListener('mousemove', slider.doDrag, false);
@@ -249,15 +261,15 @@ function init() {
     }
     function toggle_toc() {
         tocWidth = -tocWidth;
-        var aside = document.getElementById("m-aside");
-        aside.setAttribute('class', tocWidth < 0 ? 'min' : '');
+        var aside = document.getElementById('m-aside');
+        aside.setAttribute('class', tocWidth < 0 ? 'm' : '');
         aside.style.transition = 'width .25s ease-in';
-        aside.style.width = (tocWidth < sliderWidth ? sliderWidth : tocWidth) + 'px';
-        document.getElementById("m-slider").setAttribute('class', tocWidth < sliderWidth ? 'o' : '');
-        updateContentFrameSize();
+          aside.style.width = (tocWidth < TOC_SLIDER_WIDTH ? TOC_SLIDER_WIDTH : tocWidth) + 'px';
+      updateContentFrameSize();
+        storeTocWidth();
     }
     addEvent(slider, 'dblclick', toggle_toc);
-    addEvent(document.getElementById("m-slider_"), 'click', toggle_toc);
+    addEvent(document.getElementById('m-slider_'), 'click', toggle_toc);
 
     scrollToTop();
 
@@ -584,7 +596,7 @@ window.onclick = function(event) {
 function closeToc() {
     var masideStyle = document.getElementById("m-aside").style;
     masideStyle.width = '0px';
-    if (clientWidth < SMALL_SCREEN_WIDTH && tocWidth > sliderWidth) {
+    if (clientWidth < SMALL_SCREEN_WIDTH && tocWidth > TOC_SLIDER_WIDTH) {
         tocWidth = -tocWidth;
     }
     updateContentFrameSize();

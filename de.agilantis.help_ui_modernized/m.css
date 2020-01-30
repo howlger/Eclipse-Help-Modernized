@@ -140,7 +140,7 @@ body.scroll-areas #m-aside {
     overflow: auto;
     -ms-overflow-style: scrollbar;
 }
-body.scroll-areas #m-aside.min {
+body.scroll-areas #m-aside.m {
     overflow: hidden;
     -ms-overflow-style: none;
 }
@@ -176,7 +176,7 @@ body.scroll-areas #m-aside.min {
     height: 36px;
     cursor: default;
 }
-#m-slider:hover div, #m-slider.o div {
+#m-slider:hover div, #m-aside.m #m-slider div {
     background-color: #a00145;
     border-color: transparent #666 transparent transparent;
     cursor: pointer;
@@ -193,11 +193,11 @@ body.scroll-areas #m-aside.min {
 #m-slider:hover div span {
     border-color: transparent #eee transparent transparent;
 }
-#m-slider.o div span {
+#m-aside.m #m-slider div span {
     border-width: 4px 0 4px 4px;
     border-color: transparent transparent transparent #eee;
 }
-#m-slider:hover, #m-slider.o {
+#m-slider:hover, #m-aside.m #m-slider {
     background-color: #eee;
 }
 
@@ -1284,11 +1284,11 @@ a:hover {
       width: 0px;
       overflow-x: hidden;
     }
-    #m-aside.show {
+    #m-aside.show, #m-aside.showm {
       display: block;
       min-width: 100%;
     }
-    body.scroll-page #m-aside.show {
+    body.scroll-page #m-aside.show, body.scroll-page #m-aside.showm {
       display: table-cell;
       min-width: 100%;
     }
