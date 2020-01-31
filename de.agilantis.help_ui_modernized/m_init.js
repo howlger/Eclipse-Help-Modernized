@@ -529,15 +529,15 @@ function toggleTocItem(li, toc, path) {
     loadTocChildren(li, toc, path);
 }
 
-// Prints current loaded topic
+//Prints current loaded topic
 function printContent() {
-    var content = document.getElementById('m-content');
     try {
-        var orgTitle = document.title;
-        document.title = content.contentDocument.title;
-        window.print();
+        var c = document.getElementById('m-content');
+        var ot = document.title;
+        document.title = c.contentDocument.title;
+        c.contentWindow.print();
         // Reset the title again to the original value
-        document.title = orgTitle;
+        document.title = ot;
     } catch (e) {
     }
 }
