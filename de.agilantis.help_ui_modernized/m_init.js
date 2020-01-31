@@ -120,7 +120,7 @@ function initContentFrame() {
     }
     addEvent(window, 'resize', updateContentFrameSize);
 
-    //fixAnchorLinks();
+    fixAnchorLinks();
 }
 
 function initSearchField() {
@@ -666,7 +666,7 @@ function fixAnchorLinks() {
 
     var anchors = doc.getElementsByTagName('a');
     for (var i = 0; i < anchors.length; i++)
-        anchors[i].target = '_parent';
+        anchors[i].target = 'm-content';
 }
 
 // In-Decrease the font size for the toc and content iframe
