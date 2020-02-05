@@ -139,6 +139,7 @@ body.scroll-areas #m-aside {
     min-height: 100%;
     overflow: auto;
     -ms-overflow-style: scrollbar;
+    scroll-behavior: smooth;
 }
 body.scroll-areas #m-aside.m {
     overflow: hidden;

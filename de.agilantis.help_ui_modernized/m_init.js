@@ -389,6 +389,25 @@ function syncTocByPath(location, numericPath, xml) {
 function setAsSynced(item) {
     syncedTocItem = item;
     syncedTocItem.setAttribute('class', syncedTocItem.getAttribute('class') + ' selected');
+
+    // make sure active TOC item in viewport (otherwise scroll)
+    try {
+        if ('scroll-areas' != document.getElementsByTagName('body')[0].className) return;
+        if (!syncedTocItem.getBoundingClientRect) syncedTocItem.scrollIntoView(true);
+        for (var i = 0; i < syncedTocItem.childNodes.length; i++) {
+            var node = syncedTocItem.childNodes[i];
+            if (node.tagName == 'A') {
+                var tocElement = document.getElementById('m-aside');
+                var tocBoundaries = tocElement.getBoundingClientRect();
+                var itemBoundaries = node.getBoundingClientRect();
+                if (itemBoundaries.top >= tocBoundaries.top && itemBoundaries.bottom <= tocBoundaries.bottom) return;
+                tocElement.scrollTop += itemBoundaries.bottom <= tocBoundaries.bottom
+                                        ? itemBoundaries.top - tocBoundaries.top
+                                        : itemBoundaries.bottom - tocBoundaries.bottom;
+                return;
+            }
+        }
+    } catch (e) {}
 }
 function getNodeNr(nodes, nr) {
     var count = -1;
