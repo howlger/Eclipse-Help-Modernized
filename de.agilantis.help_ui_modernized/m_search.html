@@ -283,7 +283,6 @@
                 s.appendChild(document.createTextNode(':'));
 
                 if (withBreadcrumbs && resultList.length > topCount) {
-/*
                     var treeButton = createElement(s, 'button', false, 'Tree');
                     treeButton.setAttribute('type', 'button');
                     treeButton.setAttribute('id', 'tree');
@@ -306,11 +305,11 @@
                             setCookie("search-result-mode", 'filter_list', 365);
                         }
                     }(resultList, withBreadcrumbs, depth);
-*/
+
                     // filters
                     if (mode == 'filter_list') {
-                        //filterListButton.style.background = '#666';
-                        //filterListButton.style.color = '#fff';
+                        filterListButton.style.background = '#666';
+                        filterListButton.style.color = '#fff';
                         filters = [];
                         filterValues = [];
                         resultsToFilter = [];
