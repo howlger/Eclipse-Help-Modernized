@@ -195,7 +195,6 @@ function init() {
     // load TOC
     var callbackFn = function(responseText) {
         var start = responseText.indexOf('title="Topic View" src=\'');
-
         if (start > 0) {
             var end = responseText.indexOf("'", start + 24);
             var element = createElement(null, 'p');
@@ -264,8 +263,8 @@ function init() {
         var aside = document.getElementById('m-aside');
         aside.setAttribute('class', tocWidth < 0 ? 'm' : '');
         aside.style.transition = 'width .25s ease-in';
-          aside.style.width = (tocWidth < TOC_SLIDER_WIDTH ? TOC_SLIDER_WIDTH : tocWidth) + 'px';
-      updateContentFrameSize();
+        aside.style.width = (tocWidth < TOC_SLIDER_WIDTH ? TOC_SLIDER_WIDTH : tocWidth) + 'px';
+        updateContentFrameSize();
         storeTocWidth();
     }
     addEvent(slider, 'dblclick', toggle_toc);
@@ -294,12 +293,13 @@ function init() {
 var syncedTocItem;
 var syncedTocItemLocation;
 function syncToc() {
-    var currentLocation = document.getElementById('m-content').contentWindow.location.href.replace('/ntopic/', '/topic/');
+    var currentLocation = normalizeHref(document.getElementById('m-content').contentWindow.location.href);
     if (syncedTocItemLocation && syncedTocItemLocation == currentLocation) return;
     if (syncedTocItem) {
         syncedTocItem.setAttribute('class', syncedTocItem.getAttribute('class').replace('selected', ''));
     }
     syncedTocItem = false;
+    syncedTocItemLocation = currentLocation;
     var todo = [[], document.getElementById('m-toc').childNodes];
     findTocItem: while (todo.length > 1) {
         var parents = todo[todo.length - 2];
@@ -315,29 +315,31 @@ function syncToc() {
             if (n.tagName != 'LI') continue;
             for (var j = 0; j < n.childNodes.length; j++) {
                 var m = n.childNodes[j];
-                if (m.tagName != 'A' || currentLocation != m.href) continue;
-                syncedTocItem = n;
+                if (m.tagName != 'A' || currentLocation != normalizeHref(m.href)) continue;
                 for (var k = 0; k < newParents.length - 1; k++) {
                     if (newParents[k].tagName != 'LI') continue;
                     newParents[k].setAttribute('class', newParents[k].getAttribute('class').replace('closed', 'open'));
                 }
-                break findTocItem;
+                setAsSynced(n);
+                return;
             }
         }
     }
-    if (syncedTocItem) syncedTocItem.setAttribute('class', syncedTocItem.getAttribute('class') + ' selected');
-    else {
-        var callbackFn = function(responseText) {
-            syncTocByLocation(currentLocation, parseXml(responseText));
-        }
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = function() {
-            if (request.readyState == 4 && request.status == 200) callbackFn(request.responseText);
-        }
-        request.open('GET', '../../advanced/tocfragment?errorSuppress=true&topic=' + currentLocation);
-        request.send();
+    var callbackFn = function(responseText) {
+        syncTocByLocation(currentLocation, parseXml(responseText));
     }
-    syncedTocItemLocation = currentLocation;
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function() {
+        if (request.readyState == 4 && request.status == 200) callbackFn(request.responseText);
+    }
+    request.open('GET', '../../advanced/tocfragment?errorSuppress=true&topic=' + currentLocation);
+    request.send();
+}
+function normalizeHref(href) {
+    if (!href) return href;
+    var result = href.replace('/ntopic/', '/topic/');
+    var queryStart = result.indexOf('?');
+    return queryStart > 0 ? result.substring(0, queryStart) : result;
 }
 function syncTocByLocation(location, xml) {
     var children = xml.documentElement.childNodes;
@@ -381,9 +383,12 @@ function syncTocByPath(location, numericPath, xml) {
         nodes = node.childNodes;
         var item = getLiNr(ul, nr);
         if (i < path.length-1) continue;
-        syncedTocItem = item;
-        syncedTocItem.setAttribute('class', syncedTocItem.getAttribute('class') + ' selected');
+        setAsSynced(item);
     }
+}
+function setAsSynced(item) {
+    syncedTocItem = item;
+    syncedTocItem.setAttribute('class', syncedTocItem.getAttribute('class') + ' selected');
 }
 function getNodeNr(nodes, nr) {
     var count = -1;
@@ -529,7 +534,7 @@ function toggleTocItem(li, toc, path) {
     loadTocChildren(li, toc, path);
 }
 
-//Prints current loaded topic
+// Prints current loaded topic
 function printContent() {
     try {
         var c = document.getElementById('m-content');
