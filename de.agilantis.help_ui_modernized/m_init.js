@@ -120,7 +120,7 @@ function initContentFrame() {
     }
     addEvent(window, 'resize', updateContentFrameSize);
 
-    fixAnchorLinks();
+    //fixAnchorLinks();
 }
 
 function initSearchField() {
