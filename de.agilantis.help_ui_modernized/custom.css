@@ -3,7 +3,9 @@
 
 /* no toc icons */
 #m-toc a {
-    padding-left: 16px;
+    margin-left: 12px;
+    padding-left: 4px;
+    padding-right: 4px;
 }
 #m-toc img {
     display: none;
