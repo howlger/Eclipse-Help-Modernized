@@ -222,7 +222,7 @@
                 });
             }
 
-            var mode = getCookie("search-result-mode");
+            var mode = 'filter_list'
             showResults(results, withBreadcrumbs, false, scopeName ? 1 : 0, mode == undefined ? 'filter_list' : mode);
         }
         var url = href.replace('/m_search.html?', '/../../advanced/searchView.jsp?');
@@ -283,6 +283,11 @@
                 s.appendChild(document.createTextNode(':'));
 
                 if (withBreadcrumbs && resultList.length > topCount) {
+
+                    // Initial value
+                    setCookie("search-result-mode", 'filter_list', 365);
+
+/*
                     var treeButton = createElement(s, 'button', false, 'Tree');
                     treeButton.setAttribute('type', 'button');
                     treeButton.setAttribute('id', 'tree');
@@ -305,11 +310,11 @@
                             setCookie("search-result-mode", 'filter_list', 365);
                         }
                     }(resultList, withBreadcrumbs, depth);
-
+*/
                     // filters
                     if (mode == 'filter_list') {
-                        filterListButton.style.background = '#666';
-                        filterListButton.style.color = '#fff';
+                        //filterListButton.style.background = '#666';
+                        //filterListButton.style.color = '#fff';
                         filters = [];
                         filterValues = [];
                         resultsToFilter = [];
