@@ -405,6 +405,14 @@ function markTocPath(syncedTocItem, closeSiblings) {
             li.setAttribute('class', li.getAttribute('class') + ' selected-p');
             syncedTocItemPath.push(li);
         }
+        if (li.parentElement.parentElement.tagName != 'LI') {
+            for (var i = 0; i < li.childNodes.length; i++) {
+                var n = li.childNodes[i];
+                if (n.tagName != 'A') continue;
+                if (window.setBook) window.setBook(n.href);
+                break;
+            }
+        }
         if (!closeSiblings) continue;
         var ul = li.parentElement;
         for (var i = 0; i < ul.childNodes.length; i++) {

@@ -432,6 +432,20 @@
                 updateProposals();
             }
 
+            // function to set book programmatically by href from another script
+            window.setBook = (function(books, tocField, setBook) {
+                return function(href) {
+                    if (!tocField.value) return;
+                    for (var i = 0; i < books.length; i+=3) {
+                        var link = document.createElement('a');
+                        link.href = '../' + books[i+2];
+                        if (href != link.href) continue;
+                        setBook(books[i], books[i+1], books[i+2])
+                        break;
+                    }
+                }
+            })(books, tocField, setBook);
+
             // button
             var booksButton = createElement(null, 'button', 'p');
             booksButton.setAttribute('type', 'button');
