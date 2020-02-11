@@ -110,7 +110,7 @@ function updateContentFrameSize() {
 function initContentFrame() {
 
     // scroll mode
-    var scroll = getCookie('scroll');
+    var scroll = 'scroll-areas';
     if ('scroll-areas' == scroll) {
         scrollPageMode = false;
         document.getElementsByTagName('body')[0].setAttribute('class', scroll);
@@ -186,7 +186,7 @@ if (typeof window.DOMParser != "undefined") {
     };
 }
 
-var scrollPageMode = true;
+var scrollPageMode = false;
 function init() {
 
     // init TOC width (cookie: 'toc-width')
