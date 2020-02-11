@@ -120,7 +120,6 @@ function initContentFrame() {
     }
     addEvent(window, 'resize', updateContentFrameSize);
 
-    //fixAnchorLinks();
 }
 
 function initSearchField() {
@@ -704,17 +703,6 @@ function scrollToTop() {
 function scrollToHeading() {
     var content = document.getElementById('m-content');
     location.href = "#ariaid-title1";
-}
-
-// Adds target for anchor links (https://stackoverflow.com/a/19325592)
-function fixAnchorLinks() {
-    var iframe = document.getElementById('m-content');
-    var doc = (iframe.contentDocument) ? iframe.contentDocument
-            : iframe.contentWindow.document;
-
-    var anchors = doc.getElementsByTagName('a');
-    for (var i = 0; i < anchors.length; i++)
-        anchors[i].target = 'm-content';
 }
 
 // In-Decrease the font size for the toc and content iframe
