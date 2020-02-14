@@ -143,7 +143,7 @@ function initSearchField() {
         _eh.e(document.getElementById('f'), tocs, firstId, true, 10,
                 function shortenBookName(bookName) {
                     return bookName.replace(
-                            /\s+Documentation(\s+\-\s+([0-9,\-]+\s+)?Preview(\s+[0-9,\-]+)?\s*)?$/i,
+                            /\s+(Documentation\s+)?\-\s+([0-9,\-]+\s+)?Preview(\s+[0-9,\-]+)?\s*)?$/i,
                             '')
                 });
     }
