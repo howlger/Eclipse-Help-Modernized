@@ -100,6 +100,17 @@
     }
     ///////////////////////////////////////////////////////////////////////////
 
+    function slice(array, end) {
+        try {
+            return array.slice(0, end);
+        } catch(e) { // workaround for IE/Edge when throwing "Can't execute code from a freed script"
+            var sliced = [];
+            for (var i = 0; i < end; i++) {
+                sliced.push(array[i]);
+            }
+            return sliced;
+        }
+    }
     function getCookieOrDefault(cname, defaultValue) {
         var value = getCookie(cname);
         return value == undefined ? defaultValue : value;
@@ -157,7 +168,7 @@
             var r = tree[i];
             if (!r.isNode) continue;
             compact(path, r);
-            r.children = asTree(r.children, r.children[0].path.slice(0, path.length + r.name.length), depth - 1);
+            r.children = asTree(r.children, slice(r.children[0].path, path.length + r.name.length), depth - 1);
         }
 
         return tree;
@@ -173,9 +184,18 @@
             r.name.push(r.children[0].path[i+1]);
         }
     }
-    var results = [];
-    var searchWord = '';
-    var scopeName = false;
+    var queryDefaults = {
+        href: '',
+        results: [],
+        withBreadcrumbs: false,
+        searchWord: '',
+        scopeName: '',
+        filtersExpanded: {},
+        filtersDeselected: {},
+        filtersIndeterminate: {}
+    };
+    if (parent && !parent.query) parent.query = queryDefaults;
+    var query = parent ? parent.query : queryDefaults;
     function init() {
         var href = window.location.href;
         if (!href || href.indexOf('/m_search.html?') < 0) return;
@@ -186,11 +206,11 @@
             // search word
             var element = createElement(null, 'p');
             element.innerHTML = match[1].replace(/\\u([0-9A-F]{4})/g,'&#x$1;');
-            searchWord = (element.textContent ? element.textContent : element.innerText).replace(/\*(?=\&)|(^searchWord=)|(\&maxHits=.+$)/g,'');
-            searchWord = searchWord.indexOf('&') < 0 ? searchWord : searchWord.substr(0, searchWord.indexOf('&'));
-            searchWord = decodeURIComponent(searchWord.replace(/\+/g, '%20'));
+            query.searchWord = (element.textContent ? element.textContent : element.innerText).replace(/\*(?=\&)|(^searchWord=)|(\&maxHits=.+$)/g,'');
+            query.searchWord = query.searchWord.indexOf('&') < 0 ? query.searchWord : query.searchWord.substr(0, query.searchWord.indexOf('&'));
+            query.searchWord = decodeURIComponent(query.searchWord.replace(/\+/g, '%20'));
             var isSkoped = window.location.href.indexOf('&toc=') > 0;
-            scopeName = false;
+            query.scopeName = '';
 
             // parse HTML for results
             var withBreadcrumbs = false;
@@ -210,10 +230,10 @@
                             breadcrumb.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
                         }
                     }
-                    if (isSkoped && !scopeName && breadcrumb.length > 1) scopeName = breadcrumb[1];
-                    withBreadcrumbs = true;
+                    if (isSkoped && !query.scopeName && breadcrumb.length > 1) query.scopeName = breadcrumb[1];
+                    query.withBreadcrumbs = true;
                 }
-                results.push({
+                query.results.push({
                     title: items[2],
                     desc: (items[4] ? items[4] : items[3]),
                     href: items[0].substring(8),
@@ -223,10 +243,18 @@
             }
 
             var mode = 'filter_list'
-            showResults(results, withBreadcrumbs, false, scopeName ? 1 : 0, mode == undefined ? 'filter_list' : mode);
+            showResults(query.results, query.withBreadcrumbs, false, query.scopeName ? 1 : 0, mode == undefined ? 'filter_list' : mode);
         }
         var url = href.replace('/m_search.html?', '/../../advanced/searchView.jsp?');
-        remoteRequest(url, callback);
+        if (href == query.href) {
+            showResults(query.results, query.withBreadcrumbs, false, query.scopeName ? 1 : 0, 'filter_list');
+            if (withBreadcrumbs && resultList.length > topCount) applyFilters();
+        } else {
+            if (parent) parent.query = queryDefaults;
+            query = parent ? parent.query : queryDefaults;
+            query.href = href;
+            remoteRequest(url, callback);
+        }
 
         // for local help viewer show history buttons
         if (parent && parent.showHistoryButtons) parent.showHistoryButtons();
@@ -240,7 +268,13 @@
     var resultsValues = [];
     function applyFilters(e) {
         var includeFilters = [];
-        for (var i = 0; i < filters.length; i++) if (filters[i].checked && !filters[i].indeterminate) includeFilters.push(filterValues[i]);
+        query.filtersDeselected = {};
+        query.filtersIndeterminate = {};
+        for (var i = 0; i < filters.length; i++) {
+            var f = filters[i];
+            if (f.checked && !f.indeterminate) includeFilters.push(filterValues[i]);
+            else (f.indeterminate ? query.filtersIndeterminate : query.filtersDeselected)[filterValues[i]] = true;
+        }
         for (var i = 0; i < resultsToFilter.length; i++) {
             resultsToFilter[i].style.display =
                 arrayContains(includeFilters, resultsValues[i]) ? 'block' : 'none';
@@ -276,9 +310,9 @@
             if (resultList.length > 0) {
                 var s = createElement(out, 'div', 'stats');
                 createElement(s, 'span', 'count', resultList.length);
-                s.appendChild(document.createTextNode(' results' + (scopeName ? ' in ' : '')));
-                if (scopeName) {
-                    createElement(s, 'span', 'scope', scopeName);
+                s.appendChild(document.createTextNode(' results' + (query.scopeName ? ' in ' : '')));
+                if (query.scopeName) {
+                    createElement(s, 'span', 'scope', query.scopeName);
                 }
                 s.appendChild(document.createTextNode(':'));
 
@@ -319,7 +353,7 @@
                         filterValues = [];
                         resultsToFilter = [];
                         resultsValues = [];
-                        var filterTree = asTree(resultList, resultList[0].path.slice(0, depth * 2), 9, true);
+                        var filterTree = asTree(resultList, slice(resultList[0].path, depth * 2), 9, true);
                         var filterSelect = createElement(createElement(out, 'ul', 'filter'), 'li', 'open');
                         var handle = createElement(filterSelect, 'span', 'h');
                         handle.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor" fill-rule="evenodd"></path></svg>';
@@ -336,7 +370,9 @@
                             for (var i = 0; i < tree.length; i++) {
                                 var n = tree[i];
                                 if (!n.isNode) continue;
-                                var li = createElement(ul, 'li', 'closed');
+                                var subPath = slice(path, path.length).concat(n.name);
+                                var value = toValue(subPath);
+                                var li = createElement(ul, 'li', query.filtersExpanded[value] ? 'open' : 'closed');
                                 var hasSubnodes = false;
                                 for (var j = 0; j < n.children.length; j++) {
                                     if (n.children[j].isNode) {
@@ -347,22 +383,27 @@
                                 if (hasSubnodes) {
                                     var handle = createElement(li, 'span', 'h');
                                     handle.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor" fill-rule="evenodd"></path></svg>';
-                                    addEvent(handle, 'click', (function(li) {
+                                    addEvent(handle, 'click', (function(li, value, memento) {
                                         return function() {
                                             var isOpen = li.getAttribute('class') == 'open' || li.getAttribute('class') == 'open loaded';
                                             li.setAttribute('class', isOpen ? 'closed' : 'open');
+                                            memento[value] = !isOpen;
                                             recalculatePageSize();
                                         };
-                                    })(li));
+                                    })(li, value, query.filtersExpanded));
                                 }
                                 var liInner = createElement(li, 'div', 'scope');
                                 var liCheck = createElement(liInner, 'input');
                                 liCheck.setAttribute('type', 'checkbox');
-                                liCheck.setAttribute('checked', true);
+                                if (!query.filtersDeselected[value]) {
+                                    liCheck.setAttribute('checked', true);
+                                    if (query.filtersIndeterminate[value]) {
+                                        liCheck.indeterminate = true;
+                                    }
+                                }
                                 liCheck.parentCheckbox = parentCheckbox;
                                 filters.push(liCheck);
-                                var subPath = path.slice(0, path.length).concat(n.name);
-                                filterValues.push(toValue(subPath));
+                                filterValues.push(value);
                                 var name = '';
                                 for (var j = 0; j < n.name.length; j+=2) {
                                     name += (j == 0 ? '' : ' > ') + n.name[j+1];
@@ -446,12 +487,12 @@
                                 })(liCheck, li));
                             }
                         }
-                        createFilterTree(ft, ft, filterTree, resultList[0].path.slice(0, depth * 2));
+                        createFilterTree(ft, ft, filterTree, slice(resultList[0].path, depth * 2));
                     }
                 }
             } else {
                 var noResults = createElement(out, 'div', 'no-results', 'No topics found containing ');
-                createElement(noResults, 'strong', false, searchWord);
+                createElement(noResults, 'strong', false, query.searchWord);
                 return;
             }
 
@@ -460,7 +501,7 @@
 
         var results = !withBreadcrumbs || mode != 'tree' || resultList.length <= topCount
                       ? resultList
-                      : asTree(resultList, resultList[0].path.slice(0, depth * 2), 1);
+                      : asTree(resultList, slice(resultList[0].path, depth * 2), 1);
         var previousTop = false;
         for (var i = 0; i < results.length; i++) {
             var n = results[i];
@@ -469,7 +510,7 @@
                 resultsToFilter.push(r);
                 var resultofStart = n.href.indexOf('?resultof=');
                 var hrefNormed = '../topic' + (resultofStart < 0 ? n.href : n.href.substring(0, resultofStart));
-                resultsValues.push(toValue(n.path.slice(0, n.path.length).concat(hrefNormed).concat(n.title)));
+                resultsValues.push(toValue(slice(n.path, n.path.length).concat(hrefNormed).concat(n.title)));
             }
 
             // subtree
@@ -498,7 +539,7 @@
                     showItem(n.root, createElement(r, 'div', 'r'), true, depth+1, n.count);
                 } else {
                     var sub = createElement(r, 'div', 'scope');
-                    addHighlightedText(sub, name + ' ', searchWord);
+                    addHighlightedText(sub, name + ' ', query.searchWord);
                     createElement(sub, 'span', 'count', n.count);
                 }
 
@@ -552,23 +593,29 @@
         var rt = createElement(r, 'h4');
         var ra = createElement(rt, 'a');
         ra.setAttribute('href', '../../topic' + node.href);
-        addHighlightedText(ra, node.title + (count ? ' ' : ''), searchWord);
+        addHighlightedText(ra, node.title + (count ? ' ' : ''), query.searchWord);
         if (count) createElement(ra, 'span', 'count', count);
 if (showAsTree) ra.appendChild(document.createTextNode(' [' + node.pos + ']'));
 
         // breadcrumb (if available)
         if (node.path.length > 0) {
             rb = createElement(r, 'div', 'location');
-            var crumb = node.path.slice(breadcrumbFrom * 2);
+            var crumb;
+            try {
+                crumb = node.path.slice(breadcrumbFrom * 2);
+            } catch(e) {
+                crumb = [];
+                for (var i = breadcrumbFrom * 2; i < node.path.length; i++) crumb.push(node.path[i]);
+            }
             for (var j = 0; j < crumb.length; j+=2) {
                 rbi = createElement(rb, 'span');
-                addHighlightedText(rbi, crumb[j+1], searchWord);
+                addHighlightedText(rbi, crumb[j+1], query.searchWord);
                 if (j < crumb.length-2) createElement(rbi, 'span', false, ' > ');
             }
         }
 
         // description
-        addHighlightedText(createElement(r, 'p'), node.desc, searchWord);
+        addHighlightedText(createElement(r, 'p'), node.desc, query.searchWord);
 
     }
 
