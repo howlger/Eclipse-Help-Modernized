@@ -440,7 +440,7 @@
                         var link = document.createElement('a');
                         link.href = '../' + books[i+2];
                         if (href != link.href) continue;
-                        setBook(books[i], books[i+1], books[i+2])
+                        setBook(bookNameShortener ? bookNameShortener(books[i]) : books[i], books[i+1], books[i+2])
                         break;
                     }
                 }
