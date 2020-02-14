@@ -248,7 +248,7 @@
         var url = href.replace('/m_search.html?', '/../../advanced/searchView.jsp?');
         if (href == query.href) {
             showResults(query.results, query.withBreadcrumbs, false, query.scopeName ? 1 : 0, 'filter_list');
-            if (withBreadcrumbs && resultList.length > topCount) applyFilters();
+            if (query.withBreadcrumbs && query.results.length > topCount) applyFilters();
         } else {
             if (parent) parent.query = queryDefaults;
             query = parent ? parent.query : queryDefaults;
