@@ -376,7 +376,6 @@ function syncTocByPath(location, numericPath, xml, isTocClick) {
     var toc;
     for (var i = 0; i < path.length; i++) {
         var nr = parseInt(path[i]);
-        if (nr >= nodes.length) return;
         var node = getNodeNr(nodes, i < 1 ? 0 : nr);
         if (!node) return;
         if (i < 1) toc = node.getAttribute('id');
