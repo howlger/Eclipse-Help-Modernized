@@ -596,17 +596,46 @@ function printContent() {
     }
 }
 
-// TODO
 function printSection() {
-    var content = document.getElementById('m-content');
-    var url = content.contentDocument.location.href;
-    var topic = url.substr(url.indexOf('/help/topic/'), url.length);
-    topic = topic.replace('/help/topic/', '');
-    return true;
-    /*
-    console.log("topic=" + topic);
-    window.location.href = '../../advanced/print.jsp?topic=' + topic;
-     */
+    var contentElement = document.getElementById('m-content');
+    var contentWindow = contentElement.contentWindow;
+    var topicHref = contentWindow.location.href;
+    if (!topicHref) return;
+    var dummy = document.createElement('a');
+    dummy.href = '../../';
+    var topic = topicHref.substring(dummy.href.length-1);
+    if (topic.length > 7 && '/topic/' == topic.substring(0, 7)) topic = topic.substring(6);
+    else if (topic.length > 5 && '/nav/' == topic.substring(0, 5)) topic = '/..' + topic;
+    else if (topic.length > 8 && ('/rtopic/' == topic.substring(0, 8) || '/ntopic/' == topic.substring(0, 8))) topic = topic.substring(7);
+    var w = contentWindow.innerWidth || contentWindow.document.body.clientWidth;
+    var h = contentWindow.innerHeight || contentWindow.document.body.clientHeight;
+    var element = contentElement;
+    var x = window.screenX;
+    var y = window.screenY;
+    for (var e = contentElement; !!e; e = e.offsetParent) {
+        if (e.tagName == "BODY") {
+            var xScroll = e.scrollLeft || document.documentElement.scrollLeft;
+            var yScroll = e.scrollTop || document.documentElement.scrollTop;
+            x += (e.offsetLeft - xScroll + e.clientLeft);
+            y += (e.offsetTop  - yScroll + e.clientTop);
+        } else {
+            x += (e.offsetLeft - e.scrollLeft + e.clientLeft);
+            y += (e.offsetTop  - e.scrollTop  + e.clientTop);
+        }
+    }
+    var anchor = '';
+    var anchorStart = topic.indexOf('#');
+    if (anchorStart > 0) {
+        anchor = '&anchor=' + topic.substr(anchorStart + 1);
+        topic = topic.substr(0, anchorStart);
+    }
+    var query = '';
+    var queryStart = topic.indexOf('?');
+    if (queryStart > 0) {
+        query = '&' + topic.substr(queryStart + 1);
+        topic = topic.substr(0, queryStart);
+    }
+    window.open('../../advanced/print.jsp?topic=' + topic + query + anchor, 'printWindow', 'directories=yes,location=no,menubar=yes,resizable=yes,scrollbars=yes,status=yes,titlebar=yes,toolbar=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y);
 }
 
 // Opens requested topic in content frame
