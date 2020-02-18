@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2019 Holger Voormann and others.
+
+This program and the accompanying materials are made
+available under the terms of the Eclipse Public License 2.0
+which is available at https://www.eclipse.org/legal/epl-2.0/
+
+SPDX-License-Identifier: EPL-2.0
+-->
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Help</title>
+  <script type="text/javascript">
+
+      // To use this file as the help start/cover page "index.jsp":
+      // In the plug-in "org.eclipse.help.webapp" patch the file "index.jsp" by adding the following line
+      // after the line "LayoutData data = new LayoutData(application,request, response);"
+      // (https://git.eclipse.org/c/platform/eclipse.platform.ua.git/tree/org.eclipse.help.webapp/index.jsp#n20):
+      //
+      // if (request.getParameter("legacy") == null) { request.getRequestDispatcher("/rtopic/de.agilantis.help_ui_modernized/m_integrated.html" + data.getQuery()).forward(request, response); return; }
+      var INTEGRATED = true;
+
+  </script>
+  <link rel="stylesheet" type="text/css" href="rtopic/de.agilantis.help_ui_modernized/m.css">
+  <link rel="stylesheet" type="text/css" href="rtopic/de.agilantis.help_ui_modernized/custom.css">
+  <link rel="stylesheet" type="text/css" media="print" href="rtopic/de.agilantis.help_ui_modernized/m_print.css">
+  <script type="text/javascript" src="rtopic/de.agilantis.help_ui_modernized/m.js"></script>
+</head>
+<body onload="initSearchField();init();" class="scroll-page">
+  <script type="text/javascript" src="rtopic/de.agilantis.help_ui_modernized/m_init.js"></script>
+  <div id="container">
+      <div id="m-ovrl"></div>
+      <header id="m-header">
+        <a href="javascript:void(0)" id="h-toc-btn" onclick="toggleToc();return false" title="Table of contents"><span id="h-toc-icon"></span></a>
+        <a href="javascript:void(0)" id="h-history-back-btn" onclick="goBack();return false" title="Go back"><span id="h-history-back-icon"></span></a>
+        <a href="javascript:void(0)" id="h-history-forward-btn" onclick="goForward();return false" title="Go forward"><span id="h-history-forward-icon"></span></a>
+        <div id="h-search">
+            <form id="f" class="f" action="/help/index.jsp" target="_top" method="GET" accept-charset="utf-8">
+              <input type="hidden" name="tab" value="search">
+              <input id="focusByDefault" name="searchWord" type="text" required
+              alt="&#42; &#61; any string &#13;&#63; &#61; any character &#13;&#34;&#34; &#61; phrase &#13;AND&#44; OR & NOT &#61; boolean operators"
+              title="&#42; &#61; any string &#13;&#63; &#61; any character &#13;&#34;&#34; &#61; phrase &#13;AND&#44; OR & NOT &#61; boolean operators">
+              <input class="s" type="submit" value="" alt="Search" title="Search">
+              <input id="b" type="hidden" name="b" value="">
+            </form>
+        </div>
+        <div id="h-menu">
+            <a href="javascript:void(0)" id="h-more-btn" onclick="openMenu();return false" title="Help menu"><span id="h-more-icon"></span></a>
+        </div>
+        <div id="h-menu-ovrl">
+            <a href="javascript:void(0)" id="h-menu-close-btn" onclick="closeMenu();return false"><span id="h-menu-close-icon"></span></a>
+            <div id="h-menu-ovrl-content">
+                <h2><span id="h-menu-settings-title"></span>Settings</h2>
+                <div id="h-menu-settings-font">
+                    <button id="h-menu-settings-font-btn" onclick="setFontSize('plus');return false" title="Increase font size">+</button>
+                    <button id="h-menu-settings-font-btn" onclick="setFontSize('minus');return false" title="Decrease font size">-</button>
+                    <span>Change font size</span>
+                </div>
+                <a href="javascript:void(0)" onclick="toggleHighlight();return false" title="Highlight search terms">
+                    <span id="h-toggle-highlight">Highlight</span> search terms</a>
+                <h2><span id="h-menu-print"></span>Printing</h2>
+                <a href="javascript:void(0)" onclick="printContent();return false" title="Print selected topic">Print topic</a>
+                <a href="javascript:void(0)" onclick="printSection();return false" title="Print selected topic and all subtopics">Print section</a>
+                <h2><span id="h-menu-help"></span>Help viewer</h2>
+                <a href="javascript:void(0)" onclick="openTopic('../org.eclipse.help.base/doc/help_home.html');return false" title="How to use help">Help</a>
+                <a href="javascript:void(0)" onclick="openTopic('about.html');return false" title="About help">About</a>
+            </div>
+        </div>
+      </header>
+      <main>
+          <aside id="m-aside">
+                <nav id="m-toc"></nav>
+                <div id="m-slider"><div id="m-slider_"><span></span></div></div>
+          </aside>
+          <div class="m-content">
+            <iframe id="m-content" name="m-content" onload="initContentFrame()" frameborder="0" scrolling="auto" allowfullscreen></iframe>
+          </div>
+      </main>
+      <footer id="m-footer">
+       <p id="f-copyright">&nbsp;<!-- add copyright here -->&nbsp;</p>
+       <a href="javascript:void(0)" onclick="scrollToTop();return false" id="f-totop-btn" title="Go to top"><span id="f-totop"></span></a>
+      </footer>
+    </div>
+
+</body>
+</html>

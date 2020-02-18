@@ -152,7 +152,7 @@ function initSearchField() {
         if (request.readyState == 4 && request.status == 200)
             callbackFn(request.responseText);
     }
-    request.open('GET', '../../advanced/tocfragment');
+    request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/tocfragment');
     request.send();
 };
 
@@ -198,9 +198,8 @@ function init() {
             var end = responseText.indexOf("'", start + 24);
             var element = createElement(null, 'p');
             element.innerHTML = responseText.substring(start + 24, end);
-            document.getElementById('m-content').src = '../'
-                    + (element.textContent ? element.textContent
-                            : element.innerText);
+            document.getElementById('m-content').src =   (window.INTEGRATED ? 'topic/' : '../')
+                                                       + (element.textContent ? element.textContent : element.innerText);
             loadTocChildrenInit(document.getElementById('m-toc'));
         }
     }
@@ -209,7 +208,7 @@ function init() {
         if (request.readyState == 4 && request.status == 200)
             callbackFn(request.responseText);
     }
-    request.open('GET', '../../advanced/content.jsp');
+    request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/content.jsp');
     request.send();
 
     // activate slider (to resize TOC width)
@@ -339,7 +338,7 @@ function syncToc() {
     request.onreadystatechange = function() {
         if (request.readyState == 4 && request.status == 200) callbackFn(request.responseText);
     }
-    request.open('GET', '../../advanced/tocfragment?errorSuppress=true&topic=' + currentLocation);
+    request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/tocfragment?errorSuppress=true&topic=' + currentLocation);
     request.send();
 }
 function normalizeHref(href) {
@@ -366,7 +365,7 @@ function syncTocByLocation(location, xml, isTocClick) {
     request.onreadystatechange = function() {
         if (request.readyState == 4 && request.status == 200) callbackFn(request.responseText);
     }
-    request.open('GET', '../../advanced/tocfragment?errorSuppress=true&expandPath=' + numericPath);
+    request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/tocfragment?errorSuppress=true&expandPath=' + numericPath);
     request.send();
 }
 function syncTocByPath(location, numericPath, xml, isTocClick) {
@@ -477,7 +476,7 @@ function loadTocChildrenInit(item, toc, path) {
         if (request.readyState == 4 && request.status == 200)
             callbackFn(request.responseText);
     }
-    request.open('GET', '../../advanced/contentToolbar.jsp');
+    request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/contentToolbar.jsp');
     request.send();
 }
 
@@ -490,7 +489,7 @@ function loadTocChildren(item, toc, path) {
         if (request.readyState == 4 && request.status == 200)
             callbackFn(request.responseText);
     }
-    request.open('GET', '../../advanced/tocfragment' + (toc ? '?toc=' + toc : '') + (path ? '&path=' + path : ''));
+    request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/tocfragment' + (toc ? '?toc=' + toc : '') + (path ? '&path=' + path : ''));
     request.send();
 }
 
@@ -558,7 +557,7 @@ function showLoadedTocChildren(item, nodes, toc) {
             })(li, toc ? toc : n.getAttribute('id'), toc ? n.getAttribute('id') : undefined));
         }
         var a = createElement(li, 'a');
-        a.setAttribute('href', '../../' + n.getAttribute('href').substring(3));
+        a.setAttribute('href', (window.INTEGRATED ? '' : '../../') + n.getAttribute('href').substring(3));
         a.setAttribute('target', 'm-content');
         addEvent(a, 'click', function() {
             var clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
@@ -568,7 +567,7 @@ function showLoadedTocChildren(item, nodes, toc) {
         var icon = n.getAttribute('image');
         if (icon) {
             var iconImg = createElement(a, 'img');
-            iconImg.setAttribute('src', '../../advanced/images/' + icon
+            iconImg.setAttribute('src', (window.INTEGRATED ? '' : '../../') + 'advanced/images/' + icon
                     + iconExtension);
         }
         a.appendChild(document.createTextNode(n.getAttribute('title')));
@@ -602,8 +601,8 @@ function printSection() {
     var topicHref = contentWindow.location.href;
     if (!topicHref) return;
     var dummy = document.createElement('a');
-    dummy.href = '../../';
-    var topic = topicHref.substring(dummy.href.length-1);
+    dummy.href = (window.INTEGRATED ? '' : '../../') + 'x';
+    var topic = topicHref.substring(dummy.href.length - 2);
     if (topic.length > 7 && '/topic/' == topic.substring(0, 7)) topic = topic.substring(6);
     else if (topic.length > 5 && '/nav/' == topic.substring(0, 5)) topic = '/..' + topic;
     else if (topic.length > 8 && ('/rtopic/' == topic.substring(0, 8) || '/ntopic/' == topic.substring(0, 8))) topic = topic.substring(7);
@@ -635,7 +634,7 @@ function printSection() {
         query = '&' + topic.substr(queryStart + 1);
         topic = topic.substr(0, queryStart);
     }
-    window.open('../../advanced/print.jsp?topic=' + topic + query + anchor, 'printWindow', 'directories=yes,location=no,menubar=yes,resizable=yes,scrollbars=yes,status=yes,titlebar=yes,toolbar=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y);
+    window.open((window.INTEGRATED ? '' : '../../') + 'advanced/print.jsp?topic=' + topic + query + anchor, 'printWindow', 'directories=yes,location=no,menubar=yes,resizable=yes,scrollbars=yes,status=yes,titlebar=yes,toolbar=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y);
 }
 
 // Opens requested topic in content frame

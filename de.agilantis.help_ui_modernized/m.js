@@ -40,7 +40,7 @@
 
     var eh = {};
 
-    var baseUrl = '../../'; // relative path from one subfolder) to '/help/'
+    var baseUrl = window.INTEGRATED ? '' : '../../'; // relative path from one subfolder) to '/help/'
 
     // *************************************************************************
     // utilities functions
@@ -396,7 +396,10 @@
 //                           + (toc ? '&quickSearch=true&quickSearchType=QuickSearchToc&toc=' + encodeURIComponent(toc) : '')
 //                           + (href ? '&topic=' + encodeURIComponent(href)  : '');
             var query = getQuery();
-            document.getElementById('m-content').src = window.location.href.replace('/m.html', '/m_search.html')
+            document.getElementById('m-content').src =
+                (window.INTEGRATED
+                 ? window.location.href.replace('/index.jsp', '/rtopic/de.agilantis.help_ui_modernized/m_search.html')
+                 : window.location.href.replace('/m.html', '/m_search.html'))
               + '?searchWord='
               + query.replace(/(\&|$)/, '*$1')
               + '&maxHits=500'
@@ -438,7 +441,7 @@
                     if (!tocField.value) return;
                     for (var i = 0; i < books.length; i+=3) {
                         var link = document.createElement('a');
-                        link.href = '../' + books[i+2];
+                        link.href = 'topic/' + baseUrl + books[i+2];
                         if (href != link.href) continue;
                         setBook(bookNameShortener ? bookNameShortener(books[i]) : books[i], books[i+1], books[i+2])
                         break;
