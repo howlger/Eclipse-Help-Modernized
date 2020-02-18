@@ -213,7 +213,6 @@
             query.scopeName = '';
 
             // parse HTML for results
-            var withBreadcrumbs = false;
             var pattern = new RegExp('<tr[^<]*<td[^<]*<img[^<]*</td[^<]*<td[^<]*<a\\s+(?:(?:class|id|title|onmouseover|onmouseout)\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*href="([^"]*)"(?:\\s+o\\w+="[^"]*")*\\s+title="([^"]*)"[^>]*>([^<]*)</a>(?:(?:(?!<[/]?tr)[\\s\\S])*</tr\\s*>\\s*<tr(?:(?!</tr)(?!class="location">)[\\s\\S])*class="location">((?:(?!</div)[\\s\\S])*))?(?:(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*</tr){1,2}(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*\\sclass=["\']description["\'][^>]*>([^<]*)', 'g');
             for (; (match = pattern.exec(data)) != null;) {
                 var items = [];
@@ -245,7 +244,6 @@
             var mode = 'filter_list'
             showResults(query.results, query.withBreadcrumbs, false, query.scopeName ? 1 : 0, mode == undefined ? 'filter_list' : mode);
         }
-        var url = href.replace('/m_search.html?', '/../../advanced/searchView.jsp?');
         if (href == query.href) {
             showResults(query.results, query.withBreadcrumbs, false, query.scopeName ? 1 : 0, 'filter_list');
             if (query.withBreadcrumbs && query.results.length > topCount) applyFilters();
@@ -253,6 +251,7 @@
             if (parent) parent.query = queryDefaults;
             query = parent ? parent.query : queryDefaults;
             query.href = href;
+            var url = href.replace('/m_search.html?', '/../../advanced/searchView.jsp?');
             remoteRequest(url, callback);
         }
 
