@@ -398,8 +398,8 @@
             var query = getQuery();
             document.getElementById('m-content').src =
                 (window.INTEGRATED
-                 ? window.location.href.replace('/index.jsp', '/rtopic/de.agilantis.help_ui_modernized/m_search.html')
-                 : window.location.href.replace('/m.html', '/m_search.html'))
+                 ? window.location.href.replace(/\/index.jsp([\?#](.*))?/, '/rtopic/de.agilantis.help_ui_modernized/m_search.html')
+                 : window.location.href.replace(/\/m.html([\?#](.*))?/, '/m_search.html'))
               + '?searchWord='
               + query.replace(/(\&|$)/, '*$1')
               + '&maxHits=500'

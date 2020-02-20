@@ -191,25 +191,35 @@ function init() {
     // init TOC width (cookie: 'toc-width')
     toggleToc(true);
 
-    // load TOC
-    var callbackFn = function(responseText) {
-        var start = responseText.indexOf('title="Topic View" src=\'');
-        if (start > 0) {
-            var end = responseText.indexOf("'", start + 24);
-            var element = createElement(null, 'p');
-            element.innerHTML = responseText.substring(start + 24, end);
-            document.getElementById('m-content').src =   (window.INTEGRATED ? 'topic/' : '../')
-                                                       + (element.textContent ? element.textContent : element.innerText);
-            loadTocChildrenInit(document.getElementById('m-toc'));
+    // set content page and load TOC
+    var params = {};
+    var queryPart = window.location.href.replace(/^[^#\?]*(?:\?([^#\?]*))?(#.*)?$/, '$1');
+    queryPart.replace(/(?:^|&+)([^=&]+)=([^&]*)/gi, function(m, param, value) { params[param] = decodeURIComponent(value); });
+    var topicOrNav = params.topic || params.nav;
+    if (topicOrNav) {
+        loadTocChildrenInit(document.getElementById('m-toc'));
+        document.getElementById('m-content').src =   (window.INTEGRATED ? (params.nav ? 'nav' : 'topic') : '../..')
+                                                   + topicOrNav
+                                                   + (params.anchor ? '#' + params.anchor : '');
+    } else {
+        var callbackFn = function(responseText) {
+            var start = responseText.indexOf('title="Topic View" src=\'');
+            if (start > 0) {
+                var end = responseText.indexOf("'", start + 24);
+                var element = createElement(null, 'p');
+                element.innerHTML = responseText.substring(start + 24, end);
+                document.getElementById('m-content').src =   (window.INTEGRATED ? 'topic/' : '../')
+                                                           + (element.textContent ? element.textContent : element.innerText);
+                loadTocChildrenInit(document.getElementById('m-toc'));
+            }
         }
+        var request = new XMLHttpRequest();
+        request.onreadystatechange = function() {
+            if (request.readyState == 4 && request.status == 200) callbackFn(request.responseText);
+        }
+        request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/content.jsp');
+        request.send();
     }
-    var request = new XMLHttpRequest();
-    request.onreadystatechange = function() {
-        if (request.readyState == 4 && request.status == 200)
-            callbackFn(request.responseText);
-    }
-    request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/content.jsp');
-    request.send();
 
     // activate slider (to resize TOC width)
     var slider = document.getElementById("m-slider");
