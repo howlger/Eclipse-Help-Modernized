@@ -119,7 +119,8 @@ function initContentFrame() {
         updateContentFrameSize();
     }
     addEvent(window, 'resize', updateContentFrameSize);
-
+    // Set cursor in search field
+    document.getElementById('focusByDefault').focus();
 }
 
 function initSearchField() {
