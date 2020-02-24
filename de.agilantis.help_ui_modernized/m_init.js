@@ -361,7 +361,10 @@ var syncedTocItemLocationByTocClick;
 function syncToc() {
     var isTocClick = syncedTocItemLocationByTocClick;
     syncedTocItemLocationByTocClick = false;
-    var currentLocation = normalizeHref(document.getElementById('m-content').contentWindow.location.href);
+    var currentLocation;
+    try {
+        currentLocation = normalizeHref(document.getElementById('m-content').contentWindow.location.href);
+    } catch(e) {}
     if (syncedTocItemLocation && syncedTocItemLocation == currentLocation) return;
     if (syncedTocItem) {
         syncedTocItem.setAttribute('class', syncedTocItem.getAttribute('class').replace(' selected', ''));
@@ -372,6 +375,7 @@ function syncToc() {
     }
     syncedTocItemPath = [];
     syncedTocItemLocation = currentLocation;
+    if (!currentLocation) return;
     var todo = [[], document.getElementById('m-toc').childNodes];
     findTocItem: while (todo.length > 1) {
         var parents = todo[todo.length - 2];
