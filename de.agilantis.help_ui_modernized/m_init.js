@@ -17,6 +17,9 @@ var TOC_SLIDER_WIDTH = 12;
 var tocWidth = TOC_DEFAULT_WIDTH;
 var isEmbeddedHelp = false;
 
+var QUERY_PREFIX = 'rtopic/de.agilantis.help_ui_modernized/m_search.html?searchWord=';
+var QUERY_PREFIX_LENGTH = QUERY_PREFIX.length;
+
 function h(a, c, d, e) {
     if (typeof _eh != 'undefined')
         _eh.h(a, '', true, d, c, e)
@@ -108,6 +111,7 @@ function updateContentFrameSize() {
 
 }
 function initContentFrame() {
+    updateDeepLink();
 
     // scroll mode
     var scroll = 'scroll-areas';
@@ -122,7 +126,33 @@ function initContentFrame() {
     // Set cursor in search field
     document.getElementById('focusByDefault').focus();
 }
-
+function updateDeepLink() {
+    function removeHash() {
+        try {
+            window.history.replaceState(null, '', window.location.href.replace(/^([^#\?]*(?:\?([^#\?]*))?)(#.*)?$/, '$1'));
+        } catch(e) {}
+    }
+    try {
+        var link = document.createElement('a');
+        link.href = (window.INTEGRATED ? '' : '../../') + 'x';
+        var base = link.href.substring(0, link.href.length - 1);
+        var src = document.getElementById('m-content').contentDocument.location.href;
+        if (base != src.substring(0, base.length)) return;
+        var current = src.substring(base.length);
+        if (   'nav/' == current.substring(0, 4)
+            || 'topic/' == current.substring(0, 6)
+            || 'rtopic/' == current.substring(0, 7)
+            || 'ntopic/' == current.substring(0, 7)
+            || 'nftopic/' == current.substring(0, 8)) {
+            if (current.length > QUERY_PREFIX_LENGTH && QUERY_PREFIX == current.substring(0, QUERY_PREFIX_LENGTH)) {
+                current = 'q=' + current.substring(QUERY_PREFIX_LENGTH);
+            }
+            window.history.replaceState(null, '', '#' + current);
+        } else removeHash();
+    } catch(e) {
+        removeHash();
+    }
+}
 function initSearchField() {
     var callbackFn = function(responseText) {
         var nodes = getNodes(parseXml(responseText));
@@ -192,35 +222,7 @@ function init() {
     // init TOC width (cookie: 'toc-width')
     toggleToc(true);
 
-    // set content page and load TOC
-    var params = {};
-    var queryPart = window.location.href.replace(/^[^#\?]*(?:\?([^#\?]*))?(#.*)?$/, '$1');
-    queryPart.replace(/(?:^|&+)([^=&]+)=([^&]*)/gi, function(m, param, value) { params[param] = decodeURIComponent(value); });
-    var topicOrNav = params.topic || params.nav;
-    if (topicOrNav) {
-        loadTocChildrenInit(document.getElementById('m-toc'));
-        document.getElementById('m-content').src =   (window.INTEGRATED ? (params.nav ? 'nav' : 'topic') : '../..')
-                                                   + topicOrNav
-                                                   + (params.anchor ? '#' + params.anchor : '');
-    } else {
-        var callbackFn = function(responseText) {
-            var start = responseText.indexOf('title="Topic View" src=\'');
-            if (start > 0) {
-                var end = responseText.indexOf("'", start + 24);
-                var element = createElement(null, 'p');
-                element.innerHTML = responseText.substring(start + 24, end);
-                document.getElementById('m-content').src =   (window.INTEGRATED ? 'topic/' : '../')
-                                                           + (element.textContent ? element.textContent : element.innerText);
-                loadTocChildrenInit(document.getElementById('m-toc'));
-            }
-        }
-        var request = new XMLHttpRequest();
-        request.onreadystatechange = function() {
-            if (request.readyState == 4 && request.status == 200) callbackFn(request.responseText);
-        }
-        request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/content.jsp');
-        request.send();
-    }
+    setContentPageAndLoadToc();
 
     // activate slider (to resize TOC width)
     var slider = document.getElementById("m-slider");
@@ -296,6 +298,59 @@ function init() {
         highlightStyle.backgroundColor = '#FFFF66';
         highlightStyle.fontWeight      = 'bold';
     }
+
+}
+function setContentPageAndLoadToc() {
+
+    // by hash
+    var hash = window.location.hash;
+    try {
+        if (hash && (   'q=' == hash.substring(1, 3)
+                     || 'nav/' == hash.substring(1, 5)
+                     || 'topic/' == hash.substring(1, 7)
+                     || 'rtopic/' == hash.substring(1, 8)
+                     || 'ntopic/' == hash.substring(1, 8)
+                     || 'nftopic/' == hash.substring(1, 9))) {
+            loadTocChildrenInit(document.getElementById('m-toc'));
+            document.getElementById('m-content').src =   (window.INTEGRATED ? '' : '../../')
+                                                       + 'q=' == hash.substring(1, 3)
+                                                         ? QUERY_PREFIX + hash.substring(3)
+                                                         : hash.substring(1);
+            return;
+        }
+    } catch(e) {}
+
+    // by legacy query parameters topic/nav
+    var params = {};
+    var queryPart = window.location.href.replace(/^[^#\?]*(?:\?([^#\?]*))?(#.*)?$/, '$1');
+    queryPart.replace(/(?:^|&+)([^=&]+)=([^&]*)/gi, function(m, param, value) { params[param] = decodeURIComponent(value); });
+    var topicOrNav = params.topic || params.nav;
+    if (topicOrNav) {
+        loadTocChildrenInit(document.getElementById('m-toc'));
+        document.getElementById('m-content').src =   (window.INTEGRATED ? (params.nav ? 'nav' : 'topic') : '../..')
+                                                   + topicOrNav
+                                                   + (params.anchor ? '#' + params.anchor : '');
+        return
+    }
+
+    // default start/cover page
+    var callbackFn = function(responseText) {
+        var start = responseText.indexOf('title="Topic View" src=\'');
+        if (start > 0) {
+            var end = responseText.indexOf("'", start + 24);
+            var element = createElement(null, 'p');
+            element.innerHTML = responseText.substring(start + 24, end);
+            document.getElementById('m-content').src =   (window.INTEGRATED ? 'topic/' : '../')
+                                                       + (element.textContent ? element.textContent : element.innerText);
+            loadTocChildrenInit(document.getElementById('m-toc'));
+        }
+    }
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function() {
+        if (request.readyState == 4 && request.status == 200) callbackFn(request.responseText);
+    }
+    request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/content.jsp');
+    request.send();
 
 }
 
