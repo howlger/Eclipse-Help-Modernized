@@ -938,7 +938,7 @@
 //                                        + '&tab=search&searchWord='
 //                                        + searchWord
 //                                        + (toc ? '*&quickSearch=true&quickSearchType=QuickSearchToc&toc=' + encodeURIComponent(toc) : '*'));
-                    document.getElementById('m-content').src = baseUrl + 'ntopic' + d[1];
+                    document.getElementById('m-content').src = baseUrl + 'topic' + d[1];
                     hideProposals();
 
                 },
@@ -972,7 +972,7 @@
                     // TODO handle absolute paths
                     iFrame.src = /*viaMsproxyNet=*/false
                                  ? b[1].replace(/\/topic[\/]/, '/ntopic/')
-                                 : '/help/ntopic' + b[1];
+                                 : '/help/topic' + b[1];
                 });
 
                 proposals.removeChild(proposals.firstChild);
