@@ -972,7 +972,7 @@
                     // TODO handle absolute paths
                     iFrame.src = /*viaMsproxyNet=*/false
                                  ? b[1].replace(/\/topic[\/]/, '/ntopic/')
-                                 : '/help/topic' + b[1];
+                                 : baseUrl + 'topic' + b[1];
                 });
 
                 proposals.removeChild(proposals.firstChild);
