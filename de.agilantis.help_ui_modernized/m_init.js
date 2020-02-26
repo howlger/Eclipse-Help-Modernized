@@ -391,13 +391,10 @@ function syncToc() {
             if (n.tagName != 'LI') continue;
             for (var j = 0; j < n.childNodes.length; j++) {
                 var m = n.childNodes[j];
-                if (m.tagName != 'A' || currentLocation != normalizeHref(m.href)) continue;
-                for (var k = 0; k < newParents.length - 1; k++) {
-                    if (newParents[k].tagName != 'LI') continue;
-                    newParents[k].setAttribute('class', newParents[k].getAttribute('class').replace('closed', 'open'));
+                if (m.tagName == 'A' && currentLocation == normalizeHref(m.href)) {
+                    setAsSynced(n, isTocClick);
+                    return;
                 }
-                setAsSynced(n, isTocClick);
-                return;
             }
         }
     }
@@ -451,7 +448,6 @@ function syncTocByPath(location, numericPath, xml, isTocClick) {
         var ul = getUl(item);
         if (!ul && toc) {
             showLoadedTocChildren(item, nodes, toc);
-            item.setAttribute('class', item.getAttribute('class').replace('closed', 'open'));
             ul = getUl(item);
         }
         if (!ul) return;
@@ -470,7 +466,7 @@ function setAsSynced(item, isTocClick) {
 function markTocPath(syncedTocItem, closeSiblings) {
     for (var li = syncedTocItem; li.tagName == 'LI'; li = li.parentElement.parentElement) {
         if (li !== syncedTocItem) {
-            li.setAttribute('class', li.getAttribute('class') + ' selected-p');
+            li.setAttribute('class', li.getAttribute('class').replace('closed', 'open') + ' selected-p');
             syncedTocItemPath.push(li);
         }
         if (li.parentElement.parentElement.tagName != 'LI') {
