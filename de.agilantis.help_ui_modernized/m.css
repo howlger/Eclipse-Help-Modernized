@@ -130,7 +130,8 @@ body.scroll-page #m-aside {
 body.scroll-areas #m-aside {
     height: 100%;
     max-height: 100%;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     -ms-overflow-style: scrollbar;
 }
 body.scroll-areas #m-aside {
@@ -138,7 +139,8 @@ body.scroll-areas #m-aside {
     height: 1px;
     max-height: 100%;
     min-height: 100%;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     -ms-overflow-style: scrollbar;
     scroll-behavior: smooth;
 }
@@ -1225,6 +1227,8 @@ a:hover {
     background-image: url(data:image/gif;base64,R0lGODlhCQALAKUxAPT2/PH0++rv+fn6/Iaavoyfwt/o+OLq+OXs+env+pOmxpqsy6Kzz9/o9+bt+Onv+e3y+t/p+OLr+PH1+/D0+vf5/N/p9+3y+fT3+/D1+/f5+/b5+3t0T392ToV5TIx8SYx8SoV4TJyERJSAR5OASKqLQKOIQ5yEReDIj7SQPbCOPrCOP6uLQNSyaNSyadq9fNWyaf///////////////////////////////////////////////////////////yH5BAEKAD8ALAAAAAAJAAsAAAZLwJRw+CumBsiBK1VcVTYVzQum+pUwCwUA9WqxTIEJJUOhBEyiCyNbIEBOo4fgQU88SB/EWtF2gEIHBxKBgh4dBg2JERYGHRyPkJBBADs=);
     background-repeat: no-repeat;
     background-position: 3px 2px;
+    word-wrap: break-word;
+    -ms-word-wrap: break-word;
     overflow-wrap: anywhere;
 }
 .-ehw {
