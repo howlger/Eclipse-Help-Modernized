@@ -528,21 +528,25 @@ function getLiNr(ul, nr) {
 // TODO remove when integrated into Eclipse
 // (the following function is only required to support older Eclipse versions having GIF instead of SVG icons)
 var iconExtension = '.svg';
+
 function loadTocChildrenInit(item, toc, path) {
     var callbackFn = function(responseText) {
-        if (responseText.indexOf('"images/e_restore.gif"') > 0) {
-            iconExtension = '.gif';
-            //isEmbeddedHelp = true;
+        if (responseText.indexOf('e_contents_view.gif') > 0) iconExtension = '.gif';
+
+        // show history buttons in embedded help, but not in Infocenter mode
+        if (responseText.indexOf('e_bookmarks_view.') > 0) {
+            var ids = ['h-history-back-icon', 'h-history-back-btn', 'h-history-forward-icon', 'h-history-forward-btn'];
+            for (var i = 0; i < buttonIds.length; i++) document.getElementById(ids[i]).style.display = 'inline-block';
         }
+
         loadTocChildren(item, toc, path);
-        //showHistoryButtons(); /* Enable browser history buttons if run as embedded help viewer */
     }
     var request = new XMLHttpRequest();
     request.onreadystatechange = function() {
         if (request.readyState == 4 && request.status == 200)
             callbackFn(request.responseText);
     }
-    request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/contentToolbar.jsp');
+    request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/tabs.jsp');
     request.send();
 }
 
@@ -753,16 +757,6 @@ function closeToc() {
 // Sets cursor in search field
 function focusSearch() {
     document.getElementById('focusByDefault').focus();
-}
-
-// Show browsing buttons when run as embedded help viewer
-function showHistoryButtons() {
-    if ( isEmbeddedHelp ) {
-        document.getElementById('h-history-back-icon').style.display = 'inline-block';
-        document.getElementById('h-history-back-btn').style.display = 'inline-block';
-        document.getElementById('h-history-forward-icon').style.display = 'inline-block';
-        document.getElementById('h-history-forward-btn').style.display = 'inline-block';
-    }
 }
 
 // Go one page back in browser history
