@@ -536,7 +536,7 @@ function loadTocChildrenInit(item, toc, path) {
         // show history buttons in embedded help, but not in Infocenter mode
         if (responseText.indexOf('e_bookmarks_view.') > 0) {
             var ids = ['h-history-back-icon', 'h-history-back-btn', 'h-history-forward-icon', 'h-history-forward-btn'];
-            for (var i = 0; i < buttonIds.length; i++) document.getElementById(ids[i]).style.display = 'inline-block';
+            for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).style.display = 'inline-block';
         }
 
         loadTocChildren(item, toc, path);
