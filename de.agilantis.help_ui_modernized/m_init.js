@@ -39,6 +39,32 @@ function addEvent(o, type, fn) {
         o.attachEvent('on' + type, o[type + fn]);
     }
 }
+var openRequest;
+function remoteRequest(url, callbackFn, cancelable) {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function() {
+        if (request.readyState == 4 && request.status == 200) callbackFn(request.responseText);
+    }
+    request.open('GET', url);
+    request.send();
+    if (openRequest && openRequest.abort) openRequest.abort();
+    if (cancelable) openRequest = request;
+}
+var parseXml;
+if (typeof window.DOMParser != "undefined") {
+    parseXml = function(xmlStr) {
+        return (new window.DOMParser()).parseFromString(xmlStr, "text/xml");
+    };
+} else if (typeof window.ActiveXObject != "undefined"
+        && new window.ActiveXObject("Microsoft.XMLDOM")) {
+    parseXml = function(xmlStr) {
+        var xmlDoc = new window.ActiveXObject("Microsoft.XMLDOM");
+        xmlDoc.async = "false";
+        xmlDoc.loadXML(xmlStr);
+        return xmlDoc;
+    };
+}
+
 function toggleToc(initToc) {
     var tocSidebar = document.getElementById('m-aside');
     var currentClass = tocSidebar.getAttribute('class');
@@ -154,7 +180,7 @@ function updateDeepLink() {
     }
 }
 function initSearchField() {
-    var callbackFn = function(responseText) {
+    remoteRequest((window.INTEGRATED ? '' : '../../') + 'advanced/tocfragment', function(responseText) {
         var nodes = getNodes(parseXml(responseText));
         var firstId;
         var tocs = [];
@@ -177,44 +203,8 @@ function initSearchField() {
                             /\s+(Documentation\s*)?(\-\s+([0-9,\-]+\s+)?Preview(\s+[0-9,\-]+)?\s*)?$/i,
                             '')
                 });
-    }
-    var request = new XMLHttpRequest();
-    request.onreadystatechange = function() {
-        if (request.readyState == 4 && request.status == 200)
-            callbackFn(request.responseText);
-    }
-    request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/tocfragment');
-    request.send();
+    });
 };
-
-function remoteRequest(url, callbackFn) {
-    var request = new XMLHttpRequest();
-    request.onreadystatechange = function() {
-        if (request.readyState == 4 && request.status == 200)
-            callbackFn(request.responseText);
-    }
-    request.open('GET', url);
-    request.send();
-    if (openRequest && openRequest.abort)
-        openRequest.abort();
-    if (!uncancelable)
-        openRequest = request;
-}
-
-var parseXml;
-if (typeof window.DOMParser != "undefined") {
-    parseXml = function(xmlStr) {
-        return (new window.DOMParser()).parseFromString(xmlStr, "text/xml");
-    };
-} else if (typeof window.ActiveXObject != "undefined"
-        && new window.ActiveXObject("Microsoft.XMLDOM")) {
-    parseXml = function(xmlStr) {
-        var xmlDoc = new window.ActiveXObject("Microsoft.XMLDOM");
-        xmlDoc.async = "false";
-        xmlDoc.loadXML(xmlStr);
-        return xmlDoc;
-    };
-}
 
 var scrollPageMode = false;
 function init() {
@@ -334,7 +324,7 @@ function setContentPageAndLoadToc() {
     }
 
     // default start/cover page
-    var callbackFn = function(responseText) {
+    remoteRequest((window.INTEGRATED ? '' : '../../') + 'advanced/content.jsp', function(responseText) {
         var start = responseText.indexOf('title="Topic View" src=\'');
         if (start > 0) {
             var end = responseText.indexOf("'", start + 24);
@@ -344,13 +334,7 @@ function setContentPageAndLoadToc() {
                                                        + (element.textContent ? element.textContent : element.innerText);
             loadTocChildrenInit(document.getElementById('m-toc'));
         }
-    }
-    var request = new XMLHttpRequest();
-    request.onreadystatechange = function() {
-        if (request.readyState == 4 && request.status == 200) callbackFn(request.responseText);
-    }
-    request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/content.jsp');
-    request.send();
+    });
 
 }
 
@@ -398,15 +382,12 @@ function syncToc() {
             }
         }
     }
-    var callbackFn = function(responseText) {
+    remoteRequest(
+      (window.INTEGRATED ? '' : '../../') + 'advanced/tocfragment?errorSuppress=true&topic=' + currentLocation,
+      function(responseText) {
         syncTocByLocation(currentLocation, parseXml(responseText), isTocClick);
-    }
-    var request = new XMLHttpRequest();
-    request.onreadystatechange = function() {
-        if (request.readyState == 4 && request.status == 200) callbackFn(request.responseText);
-    }
-    request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/tocfragment?errorSuppress=true&topic=' + currentLocation);
-    request.send();
+      }
+    );
 }
 function normalizeHref(href) {
     if (!href) return href;
@@ -425,15 +406,12 @@ function syncTocByLocation(location, xml, isTocClick) {
         }
     }
     if (!numericPath) return;
-    var callbackFn = function(responseText) {
+    remoteRequest(
+      (window.INTEGRATED ? '' : '../../') + 'advanced/tocfragment?errorSuppress=true&expandPath=' + numericPath,
+      function(responseText) {
         syncTocByPath(location, numericPath, parseXml(responseText), isTocClick);
-    }
-    var request = new XMLHttpRequest();
-    request.onreadystatechange = function() {
-        if (request.readyState == 4 && request.status == 200) callbackFn(request.responseText);
-    }
-    request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/tocfragment?errorSuppress=true&expandPath=' + numericPath);
-    request.send();
+      }
+    );
 }
 function syncTocByPath(location, numericPath, xml, isTocClick) {
     var path = numericPath.split('_');
@@ -530,7 +508,7 @@ function getLiNr(ul, nr) {
 var iconExtension = '.svg';
 
 function loadTocChildrenInit(item, toc, path) {
-    var callbackFn = function(responseText) {
+    remoteRequest((window.INTEGRATED ? '' : '../../') + 'advanced/tabs.jsp', function(responseText) {
         if (responseText.indexOf('e_contents_view.gif') > 0) iconExtension = '.gif';
 
         // show history buttons in embedded help, but not in Infocenter mode
@@ -540,27 +518,17 @@ function loadTocChildrenInit(item, toc, path) {
         }
 
         loadTocChildren(item, toc, path);
-    }
-    var request = new XMLHttpRequest();
-    request.onreadystatechange = function() {
-        if (request.readyState == 4 && request.status == 200)
-            callbackFn(request.responseText);
-    }
-    request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/tabs.jsp');
-    request.send();
+    });
 }
 
 function loadTocChildren(item, toc, path) {
-    var callbackFn = function(responseText) {
-        showLoadedTocChildren(item, getNodes(parseXml(responseText), toc, path), toc);
-    }
-    var request = new XMLHttpRequest();
-    request.onreadystatechange = function() {
-        if (request.readyState == 4 && request.status == 200)
-            callbackFn(request.responseText);
-    }
-    request.open('GET', (window.INTEGRATED ? '' : '../../') + 'advanced/tocfragment' + (toc ? '?toc=' + toc : '') + (path ? '&path=' + path : ''));
-    request.send();
+    remoteRequest(  (window.INTEGRATED ? '' : '../../') + 'advanced/tocfragment'
+                  + (toc ? '?toc=' + toc : '')
+                  + (path ? '&path=' + path : ''),
+                  function(responseText) {
+                      showLoadedTocChildren(item, getNodes(parseXml(responseText), toc, path), toc);
+                  }
+    );
 }
 
 function createElement(parent, name, clazz, text) {
