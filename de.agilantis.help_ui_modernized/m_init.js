@@ -139,6 +139,14 @@ function updateContentFrameSize() {
 function initContentFrame() {
     updateDeepLink();
 
+    // title
+    try {
+        var topicTitle = document.getElementById('m-content').contentDocument.title;
+        document.title = topicTitle ? (topicTitle + ' - ' + title) : title;
+    } catch(e) {
+        document.title = title;
+    }
+
     // scroll mode
     var scroll = 'scroll-areas';
     if ('scroll-areas' == scroll) {
@@ -506,8 +514,21 @@ function getLiNr(ul, nr) {
 // TODO remove when integrated into Eclipse
 // (the following function is only required to support older Eclipse versions having GIF instead of SVG icons)
 var iconExtension = '.svg';
+var title = 'Help';
 
 function loadTocChildrenInit(item, toc, path) {
+
+    // title
+    remoteRequest((window.INTEGRATED ? '' : '../../') + 'index.jsp?legacy', function(responseText) {
+        var match = new RegExp('<title>([^<]*)</title>').exec(responseText);
+        if (!match) return;
+        var element = createElement(null, 'div');
+        element.innerHTML = match[1];
+        title = element.textContent || element.innerText;
+        document.title = title;
+    });
+
+    // .svg or .gif? + embedded?
     remoteRequest((window.INTEGRATED ? '' : '../../') + 'advanced/tabs.jsp', function(responseText) {
         if (responseText.indexOf('e_contents_view.gif') > 0) iconExtension = '.gif';
 
