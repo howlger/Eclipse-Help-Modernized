@@ -349,24 +349,14 @@ function setContentPageAndLoadToc() {
 var syncedTocItem;
 var syncedTocItemPath = [];
 var syncedTocItemLocation;
-var syncedTocItemLocationByTocClick;
 function syncToc() {
-    var isTocClick = syncedTocItemLocationByTocClick;
     syncedTocItemLocationByTocClick = false;
     var currentLocation;
     try {
         currentLocation = normalizeHref(document.getElementById('m-content').contentWindow.location.href);
     } catch(e) {}
     if (syncedTocItemLocation && syncedTocItemLocation == currentLocation) return;
-    if (syncedTocItem) {
-        syncedTocItem.setAttribute('class', syncedTocItem.getAttribute('class').replace(' selected', ''));
-    }
-    syncedTocItem = false;
-    for (var i = 0; i < syncedTocItemPath.length; i++) {
-        syncedTocItemPath[i].setAttribute('class', syncedTocItemPath[i].getAttribute('class').replace(' selected-p', ''));
-    }
-    syncedTocItemPath = [];
-    syncedTocItemLocation = currentLocation;
+    syncTocUnsetSelected(currentLocation);
     if (!currentLocation) return;
     var todo = [[], document.getElementById('m-toc').childNodes];
     findTocItem: while (todo.length > 1) {
@@ -384,7 +374,7 @@ function syncToc() {
             for (var j = 0; j < n.childNodes.length; j++) {
                 var m = n.childNodes[j];
                 if (m.tagName == 'A' && currentLocation == normalizeHref(m.href)) {
-                    setAsSynced(n, isTocClick);
+                    setAsSynced(n);
                     return;
                 }
             }
@@ -393,9 +383,20 @@ function syncToc() {
     remoteRequest(
       (window.INTEGRATED ? '' : '../../') + 'advanced/tocfragment?errorSuppress=true&topic=' + currentLocation,
       function(responseText) {
-        syncTocByLocation(currentLocation, parseXml(responseText), isTocClick);
+        syncTocByLocation(currentLocation, parseXml(responseText));
       }
     );
+}
+function syncTocUnsetSelected(newLocation) {
+    if (syncedTocItem) {
+        syncedTocItem.setAttribute('class', syncedTocItem.getAttribute('class').replace(' selected', ''));
+    }
+    syncedTocItem = false;
+    for (var i = 0; i < syncedTocItemPath.length; i++) {
+        syncedTocItemPath[i].setAttribute('class', syncedTocItemPath[i].getAttribute('class').replace(' selected-p', ''));
+    }
+    syncedTocItemPath = [];
+    syncedTocItemLocation = newLocation;
 }
 function normalizeHref(href) {
     if (!href) return href;
@@ -403,7 +404,7 @@ function normalizeHref(href) {
     var queryStart = result.indexOf('?');
     return queryStart > 0 ? result.substring(0, queryStart) : result;
 }
-function syncTocByLocation(location, xml, isTocClick) {
+function syncTocByLocation(location, xml) {
     var children = xml.documentElement.childNodes;
     var numericPath;
     for (var i = 0; i < children.length; i++) {
@@ -417,11 +418,11 @@ function syncTocByLocation(location, xml, isTocClick) {
     remoteRequest(
       (window.INTEGRATED ? '' : '../../') + 'advanced/tocfragment?errorSuppress=true&expandPath=' + numericPath,
       function(responseText) {
-        syncTocByPath(location, numericPath, parseXml(responseText), isTocClick);
+        syncTocByPath(location, numericPath, parseXml(responseText));
       }
     );
 }
-function syncTocByPath(location, numericPath, xml, isTocClick) {
+function syncTocByPath(location, numericPath, xml) {
     var path = numericPath.split('_');
     var nodes = xml.documentElement.childNodes;
     var item = document.getElementById('m-toc');
@@ -440,7 +441,7 @@ function syncTocByPath(location, numericPath, xml, isTocClick) {
         nodes = node.childNodes;
         var item = getLiNr(ul, nr);
         if (i < path.length-1) continue;
-        setAsSynced(item, isTocClick);
+        setAsSynced(item);
     }
 }
 function setAsSynced(item, isTocClick) {
@@ -618,11 +619,12 @@ function showLoadedTocChildren(item, nodes, toc) {
         var a = createElement(li, 'a');
         a.setAttribute('href', (window.INTEGRATED ? '' : '../../') + n.getAttribute('href').substring(3));
         a.setAttribute('target', 'm-content');
-        addEvent(a, 'click', function() {
+        addEvent(a, 'click', (function(item, location) { return function() {
             var clientWidth = document.documentElement.clientWidth || document.body.clientWidth;
             if (clientWidth < SMALL_SCREEN_WIDTH) toggleToc();
-            syncedTocItemLocationByTocClick = true;
-        });
+            syncTocUnsetSelected(location);
+            setAsSynced(item, true);
+        };})(li, normalizeHref(a.href)));
         var icon = n.getAttribute('image');
         if (icon) {
             var iconImg = createElement(a, 'img');
