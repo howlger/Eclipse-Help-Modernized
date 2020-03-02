@@ -52,8 +52,8 @@ body.scroll-areas main .m-content iframe {
 }
 footer {
     flex-shrink: 0;
-    height: 50px;
-    min-height: 50px;
+    height: 25px;
+    min-height: 25px;
     background-color: #eee;
     text-align: center;
     font-size: 0.8em;
@@ -94,7 +94,7 @@ main {
 body.scroll-page main {
     display: table;
     table-layout: fixed;
-    height: calc(100vh - 135px); /* viewport-percentage lengths 100vh - height header 85 + footer 50 = 135 */
+    height: calc(100vh - 110px); /* viewport-percentage lengths 100vh - height header 85 + footer 25 = 110 */
 }
 body.scroll-areas main {
     display: flex;
@@ -446,29 +446,23 @@ html, body {
 .content {
     z-index: 2;
 }
-
 .footer p {
     font-size: 1em;
-    padding: 0 0.5em 0 1.5em;
-    line-height: 2em;
 }
 
 .footer {
-    padding: 0 0 0 1.5em;
-    border: 0;
-    margin: 0;
-}
-.footer p {
-    display: inline-block;
     padding: 0;
     border: 0;
-    margin: 0 1.5em 0 0;
+    margin: 0;
 }
 .footer, .footer a {
     color: #999999;
 }
 .footer a:hover {
     color: #000000;
+}
+#f-copyright {
+    margin: 0;
 }
 
 /* search */
