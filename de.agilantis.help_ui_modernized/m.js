@@ -108,6 +108,19 @@
         }
     });
 
+    function unencodeHtmlContent(escapedHtml) {
+        var elem = document.createElement('div');
+        elem.innerHTML = escapedHtml;
+        var result = '';
+        // Chrome splits innerHTML into many child nodes,
+        // each one at most 65536.
+        // Whereas FF creates just one single huge child node.
+        for (var i = 0; i < elem.childNodes.length; ++i) {
+          result = result + elem.childNodes[i].nodeValue;
+        }
+        return result;
+    }
+
     function searchSearchWord(searchWord, toc, href, path, isSearchWordDecoded) {
         try {
 
@@ -900,7 +913,7 @@
                     var titleDiv = createElement(btDiv, 'div', 't');
                     addHighlightedText(titleDiv, lines[i], searchWord);
                     var descDiv = createElement(li, 'div', 'c', null);
-                    addHighlightedText(descDiv, lines[i+1], searchWord);
+                    addHighlightedText(descDiv, unencodeHtmlContent(lines[i+1]), searchWord);
 
                     // preview on hovering
                     li.ontouchmove = function(a) { return function() {

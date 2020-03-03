@@ -31,6 +31,18 @@
         }
         return element;
     }
+    function unencodeHtmlContent(escapedHtml) {
+        var elem = document.createElement('div');
+        elem.innerHTML = escapedHtml;
+        var result = '';
+        // Chrome splits innerHTML into many child nodes,
+        // each one at most 65536.
+        // Whereas FF creates just one single huge child node.
+        for (var i = 0; i < elem.childNodes.length; ++i) {
+          result = result + elem.childNodes[i].nodeValue;
+        }
+        return result;
+    }
     var openRequest;
     function remoteRequest(url, callbackFn, uncancelable) {
         var request = new XMLHttpRequest();
@@ -614,7 +626,7 @@ if (showAsTree) ra.appendChild(document.createTextNode(' [' + node.pos + ']'));
         }
 
         // description
-        addHighlightedText(createElement(r, 'p'), node.desc, query.searchWord);
+        addHighlightedText(createElement(r, 'p'), unencodeHtmlContent(node.desc), query.searchWord);
 
     }
 
