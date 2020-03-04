@@ -157,8 +157,6 @@ function initContentFrame() {
         updateContentFrameSize();
     }
     addEvent(window, 'resize', updateContentFrameSize);
-    // Set cursor in search field
-    document.getElementById('focusByDefault').focus();
 }
 function updateDeepLink() {
     function removeHash() {
@@ -211,6 +209,8 @@ function initSearchField() {
                             /\s+(Documentation\s*)?(\-\s+([0-9,\-]+\s+)?Preview(\s+[0-9,\-]+)?\s*)?$/i,
                             '')
                 });
+        // Set cursor in search field
+        document.getElementById('focusByDefault').focus();
     });
 };
 
@@ -743,11 +743,6 @@ function closeToc() {
         tocWidth = -tocWidth;
     }
     updateContentFrameSize();
-}
-
-// Sets cursor in search field
-function focusSearch() {
-    document.getElementById('focusByDefault').focus();
 }
 
 // Go one page back in browser history
