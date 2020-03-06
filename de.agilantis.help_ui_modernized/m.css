@@ -232,7 +232,7 @@ body.scroll-areas #m-aside.m {
     font-weight: bold;
 }
 #m-toc li.selected > a {
-    background-color: #fff;
+    background-color: #e8f2fe;
 }
 #m-toc span, #m-slider {
     /* prevent text selection */
@@ -1338,6 +1338,7 @@ a:hover {
 @media (prefers-color-scheme: dark) {
 
     html, body,
+    body.scroll-areas #m-aside,
     #h-menu-ovrl-content,
     #h-menu-ovrl-content a,
     #h-menu-settings-font,
@@ -1350,6 +1351,9 @@ a:hover {
     }
     header, footer, div#m-slider, div#results li:hover {
       background-color: #343a40;
+    }
+    #m-toc li.selected > a, #m-toc li.selected-p > a {
+      color: #000;
     }
  }
 
