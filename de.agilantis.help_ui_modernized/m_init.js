@@ -11,7 +11,7 @@
 
 var menuWidth = 280; // Right side menu width
 var SMALL_SCREEN_WIDTH = 768;
-var TOC_DEFAULT_WIDTH = 360;
+var TOC_DEFAULT_WIDTH = 480;
 var TOC_MIN_WIDTH = 64;
 var TOC_SLIDER_WIDTH = 12;
 var tocWidth = TOC_DEFAULT_WIDTH;

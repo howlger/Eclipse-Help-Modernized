@@ -135,7 +135,7 @@ body.scroll-areas #m-aside {
     -ms-overflow-style: scrollbar;
 }
 body.scroll-areas #m-aside {
-    background-color: #eee;
+/*     background-color: #eee; */
     height: 1px;
     max-height: 100%;
     min-height: 100%;
@@ -223,6 +223,9 @@ body.scroll-areas #m-aside.m {
     max-height: 500em;
 }
 /*/
+#m-toc li > a {
+    font-size: 90%;
+}
 #m-toc li, #results li {
     padding: 2px 0 2px 10px; /* indent TOC subitems: 10px => #m-toc a padding-left: 42px - 10px = 32px */
     list-style: none;
