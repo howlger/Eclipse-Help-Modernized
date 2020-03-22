@@ -139,9 +139,13 @@
         for (var i = 0; i < results.length; i++) {
             var r = results[i];
             r.p = i;
+            r.q = slice(r.path, r.path.length);
+            var resultofStart = r.href.indexOf('?resultof=');
+            r.q.push('../topic' + (resultofStart < 0 ? r.href : r.href.substring(0, resultofStart)));
+            r.q.push(r.title);
 
             // child?
-            if (!r.path || r.path.length < path.length + 2) {
+            if (!r.path || r.path.length <= path.length) {
                 tree.push(r);
                 continue;
             }
@@ -163,15 +167,18 @@
             var r = tree[i];
             if (r.isNode) {
                 r.count = r.children.length + (r.root ? 1 : 0);
-            } else if (!raw) {
-                var resultofStart = r.href.indexOf('?resultof=');
-                var rootOfGroup = grouped['../topic' + (resultofStart < 0 ? r.href : r.href.substring(0, resultofStart))  + '\n' + r.title];
-                if (rootOfGroup) {
+                continue;
+            }
+            var rootOfGroup = grouped[r.q[r.q.length-2] + '\n' + r.title];
+            if (rootOfGroup) {
+                if (raw) {
+                    rootOfGroup.children.push(r);
+                } else {
                     rootOfGroup.root = r;
-                    rootOfGroup.count++;
-                    tree.splice(i,1);
-                    i--;
                 }
+                rootOfGroup.count++;
+                tree.splice(i,1);
+                i--;
             }
         }
 
@@ -179,21 +186,25 @@
         for (var i = 0; i < tree.length; i++) {
             var r = tree[i];
             if (!r.isNode) continue;
-            compact(path, r);
-            r.children = asTree(r.children, slice(r.children[0].path, path.length + r.name.length), depth - 1);
+            compact(path, r, raw);
+            r.children = asTree(r.children, slice(r.children[0].path, path.length + r.name.length), depth - 1, raw);
         }
 
         return tree;
     }
     function compact(path, r) {
         for (var i = path.length+2; r.children.length > 0 && !r.root; i+=2) {
+            if (r.children.length == 1 && r.children[0].path.length == i) return;
             for (var j = 0; j < r.children.length; j++) {
-                if (   r.children[j].path.length < i + 2
-                    || r.children[j].path[i] != r.children[0].path[i]
-                    || r.children[j].path[i+1] != r.children[0].path[i+1]) return;
+                var p0 = r.children[0].q;
+                var p = r.children[j].q;
+                if (   p.length < i+1
+                    || p[i] != p0[i]
+                    || p[i+1] != p0[i+1]) return;
             }
-            r.name.push(r.children[0].path[i]);
-            r.name.push(r.children[0].path[i+1]);
+            var p0 = r.children[0].q;
+            r.name.push(p0[i]);
+            r.name.push(p0[i+1]);
         }
     }
     var queryDefaults = {
