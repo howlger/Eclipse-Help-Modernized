@@ -187,7 +187,7 @@
             var r = tree[i];
             if (!r.isNode) continue;
             compact(path, r, raw);
-            r.children = asTree(r.children, slice(r.children[0].path, path.length + r.name.length), depth - 1, raw);
+            r.children = asTree(r.children, slice(r.children[0].q, path.length + r.name.length), depth - 1, raw);
         }
 
         return tree;
