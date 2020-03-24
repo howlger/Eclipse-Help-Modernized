@@ -290,16 +290,21 @@
     var resultsValues = [];
     function applyFilters(e) {
         var includeFilters = [];
+        var excludeFilters = [];
         query.filtersDeselected = {};
         query.filtersIndeterminate = {};
         for (var i = 0; i < filters.length; i++) {
             var f = filters[i];
             if (f.checked && !f.indeterminate) includeFilters.push(filterValues[i]);
+            if (!f.checked && !f.indeterminate) excludeFilters.push(filterValues[i]);
             else (f.indeterminate ? query.filtersIndeterminate : query.filtersDeselected)[filterValues[i]] = true;
         }
         for (var i = 0; i < resultsToFilter.length; i++) {
             resultsToFilter[i].style.display =
-                arrayContains(includeFilters, resultsValues[i]) ? 'block' : 'none';
+                   arrayContains(includeFilters, resultsValues[i])
+                && !arrayContains(excludeFilters, resultsValues[i])
+                ? 'block'
+                : 'none';
         }
         stopPropagation(e);
         recalculatePageSize();
@@ -424,6 +429,7 @@
                                     }
                                 }
                                 liCheck.parentCheckbox = parentCheckbox;
+                                liCheck.numberOfResults = n.count;
                                 filters.push(liCheck);
                                 filterValues.push(value);
                                 var name = '';
@@ -440,6 +446,7 @@
                                         } else if ('INPUT' == n.tagName) {
                                             n.indeterminate = false;
                                             n.checked = checkStatus;
+                                            n.notAllChecked = false;
                                         }
                                     }
                                 }
@@ -466,30 +473,47 @@
                                 }
                                 function updateParentsChecks(checkbox) {
                                     for (var parentCheckbox = checkbox.parentCheckbox; parentCheckbox; parentCheckbox = parentCheckbox.parentCheckbox) {
-                                        var allChildrenChecked = true;
-                                        var allChildrenUnchecked = true;
+                                        var checkedNumberOfResults = 0;
+                                        var uncheckedNumberOfResults = 0;
+                                        var uncheckedAll = true;
+                                        var notAllChecked = false;
+                                        var totalNumberOfResults = 0;
+                                        var indeterminateChildren = 0;
                                         var children = getChildrenChecks(parentCheckbox);
                                         for (var i = 0; i < children.length; i++) {
                                             var n = children[i];
+                                            if (n.notAllChecked) notAllChecked = true;
                                             if (n.indeterminate) {
-                                                allChildrenUnchecked = false;
-                                                allChildrenChecked = false;
+                                                indeterminateChildren++;
+                                                uncheckedAll = false;
+                                                notAllChecked = true;
                                             } else if (n.checked) {
-                                                allChildrenUnchecked = false;
+                                                checkedNumberOfResults += n.numberOfResults;
+                                                totalNumberOfResults += n.numberOfResults;
+                                                uncheckedAll = false;
                                             } else {
-                                                allChildrenChecked = false;
+                                                uncheckedNumberOfResults += n.numberOfResults;
+                                                totalNumberOfResults += n.numberOfResults;
+                                                notAllChecked = true;
                                             }
                                         }
-                                        if (allChildrenChecked) {
+                                        if (checkedNumberOfResults == parentCheckbox.numberOfResults && !notAllChecked) {
                                             parentCheckbox.indeterminate = false;
                                             parentCheckbox.checked = true;
-                                        } else if (allChildrenUnchecked) {
+                                            parentCheckbox.notAllChecked = false;
+                                        } else if (   uncheckedNumberOfResults == parentCheckbox.numberOfResults
+                                                   || (parentCheckbox.indeterminate && uncheckedAll)) {
                                             parentCheckbox.indeterminate = false;
                                             parentCheckbox.checked = false;
-                                        } else {
+                                        } else if (   totalNumberOfResults == parentCheckbox.numberOfResults
+                                                   || (   !parentCheckbox.indeterminate
+                                                       && !parentCheckbox.checked
+                                                       && (indeterminateChildren || checkedNumberOfResults || notAllChecked))){
                                             parentCheckbox.indeterminate = true;
+                                        } else {
+                                            parentCheckbox.notAllChecked = notAllChecked;
+                                        }
                                     }
-                                }
                                 }
                                 addEvent(liInner, 'click', (function(root, liCheck, li) {
                                     return function() {
