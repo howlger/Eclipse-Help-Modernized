@@ -215,7 +215,8 @@
         scopeName: '',
         filtersExpanded: {},
         filtersDeselected: {},
-        filtersIndeterminate: {}
+        filtersIndeterminate: {},
+        filterNotAllChecked: {}
     };
     if (parent && !parent.query) parent.query = queryDefaults;
     var query = parent ? parent.query : queryDefaults;
@@ -293,11 +294,13 @@
         var excludeFilters = [];
         query.filtersDeselected = {};
         query.filtersIndeterminate = {};
+        query.filterNotAllChecked = {};
         for (var i = 0; i < filters.length; i++) {
             var f = filters[i];
-            if (f.checked && !f.indeterminate) includeFilters.push(filterValues[i]);
             if (!f.checked && !f.indeterminate) excludeFilters.push(filterValues[i]);
+            if (f.checked && !f.indeterminate) includeFilters.push(filterValues[i]);
             else (f.indeterminate ? query.filtersIndeterminate : query.filtersDeselected)[filterValues[i]] = true;
+            if (f.notAllChecked) query.filterNotAllChecked[filterValues[i]] = true;
         }
         for (var i = 0; i < resultsToFilter.length; i++) {
             resultsToFilter[i].style.display =
@@ -426,6 +429,9 @@
                                     liCheck.setAttribute('checked', true);
                                     if (query.filtersIndeterminate[value]) {
                                         liCheck.indeterminate = true;
+                                    }
+                                    if (query.filterNotAllChecked[value]) {
+                                        liCheck.notAllChecked = true;
                                     }
                                 }
                                 liCheck.parentCheckbox = parentCheckbox;
