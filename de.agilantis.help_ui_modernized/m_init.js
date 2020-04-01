@@ -64,6 +64,10 @@ if (typeof window.DOMParser != "undefined") {
         return xmlDoc;
     };
 }
+function preventDefault(e) {
+    e = e || window.event;
+    e.returnValue = false; if (e.preventDefault) e.preventDefault();
+}
 
 function toggleToc(initToc) {
     var tocSidebar = document.getElementById('m-aside');
@@ -604,15 +608,15 @@ function showLoadedTocChildren(item, nodes, toc) {
     var ul = createElement(item, 'ul');
     for (var i = 0; i < nodes.length; i++) {
         var n = nodes[i];
-        if (n.tagName != 'node')
-            continue;
+        if (n.tagName != 'node') continue;
         var li = createElement(ul, 'li', 'closed');
-        if (n.getAttribute('is_leaf') != 'true') {
+        var hasChildren = n.getAttribute('is_leaf') != 'true';
+        if (hasChildren) {
             var handle = createElement(li, 'span');
             handle.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor" fill-rule="evenodd"></path></svg>';
             addEvent(handle, 'click', (function(li, toc, path) {
                 return function() {
-                    toggleTocItem(li, toc, path)
+                    toggleTocItem(li, toc, path);
                 };
             })(li, toc ? toc : n.getAttribute('id'), toc ? n.getAttribute('id') : undefined));
         }
@@ -625,6 +629,11 @@ function showLoadedTocChildren(item, nodes, toc) {
             syncTocUnsetSelected(location);
             setAsSynced(item, true);
         };})(li, normalizeHref(a.href)));
+        addEvent(a, 'keydown', (function(li, hasChildren, toc, path) {
+            return function(e) {
+                handleKeyDown(li, hasChildren, toc, path, e);
+            };
+        })(li, hasChildren, toc ? toc : n.getAttribute('id'), toc ? n.getAttribute('id') : undefined));
         var icon = n.getAttribute('image');
         if (icon) {
             var iconImg = createElement(a, 'img');
@@ -635,12 +644,130 @@ function showLoadedTocChildren(item, nodes, toc) {
     }
     updateContentFrameSize();
 }
+function handleKeyDown(li, hasChildren, toc, path, e) {
+    var keyCode = getKeycode(e);
+
+    // left/right
+    if (keyCode == 37 || keyCode == 39) {
+        if (keyCode == 37 ^ li.className.indexOf('open') < 0) {
+            if (hasChildren) toggleTocItem(li, toc, path);
+        } else if (keyCode == 37) {
+            focusTreeNode(li.parentElement.parentElement);
+        } else {
+            focusFirstChildNode(li);
+        }
+        preventDefault(e);
+
+    // down
+    } else if(keyCode == 40) {
+
+        // expanded? -> focus first child, ...
+        if (hasChildren && li.className.indexOf('open') >= 0) {
+            focusFirstChildNode(li);
+            preventDefault(e);
+            return;
+        }
+
+        // ...otherwise -> focus next sibling at this or higher level
+        for (var level = li; level.tagName == 'LI'; level = level.parentElement.parentElement) {
+            for (var next = level.nextSibling; next !== null; next = next.nextSibling) {
+                if (next.tagName != 'LI') continue;
+                focusTreeNode(next);
+                preventDefault(e);
+                return;
+            }
+        }
+
+    // up
+    } else if(keyCode == 38) {
+
+        // If there is a previous sibling, visit it's last child
+        // otherwise focus on the parent
+
+        // previous sibling? -> focus previous sibling, ...
+        for (var prev = li.previousSibling; prev !== null; prev = prev.previousSibling) {
+            if (prev.tagName != 'LI') continue;
+            focusDeepestVisibleChild(prev);
+            preventDefault(e);
+            return;
+        }
+
+        // ...otherwise -> focus parent
+        focusTreeNode(li.parentElement.parentElement);
+        preventDefault(e);
+
+    // home/end
+    } else if(keyCode == 36 || keyCode == 35) {
+        var level = li;
+        do {
+            level = level.parentElement.parentElement
+        } while (level.tagName == 'LI');
+        if (keyCode == 36) {
+            focusFirstChildNode(level);
+        } else {
+            focusDeepestVisibleChild(level);
+        }
+        preventDefault(e);
+
+    }
+
+}
 function toggleTocItem(li, toc, path) {
     var isOpen = li.getAttribute('class').indexOf('open') > -1;
     li.setAttribute('class', li.getAttribute('class').replace(isOpen ? 'open' : 'closed', isOpen ? 'closed' : 'open'));
     var nodes = li.childNodes;
     for (var i = 0; i < nodes.length; i++) if (nodes[i].tagName == 'UL') return;
     loadTocChildren(li, toc, path);
+}
+function getKeycode(e) {
+    return e.keyCode || window.event.keyCode;
+}
+function focusFirstChildNode(li) {
+    for (var i = 0; i < li.childNodes.length; i++) {
+        var n = li.childNodes[i];
+        if (n.tagName != 'UL') continue;
+        for (var j = 0; j < n.childNodes.length; j++) {
+            var m = n.childNodes[j];
+            if (m.tagName != 'LI') continue;
+            focusTreeNode(m);
+            return;
+        }
+    }
+}
+function focusDeepestVisibleChild(li) {
+    for (var i = 0; i < li.childNodes.length; i++) {
+        var n = li.childNodes[i];
+        if (n.tagName != 'UL') continue;
+        for (var j = n.childNodes.length - 1; j >= 0; j--) {
+            var m = n.childNodes[j];
+            if (m.tagName != 'LI') continue;
+            focusDeepestVisibleChild(m);
+            return;
+        }
+    }
+    focusTreeNode(li);
+}
+function findLastChild(li) {
+    if (node === null) {
+        return null;
+    }
+    var children = node.childNodes;
+    for (var i = children.length - 1; i >= 0; i--) {
+        if (tag == children[i].tagName ) {
+            return children[i];
+        }
+    }
+    return null;
+}
+function focusTreeNode(li) {
+    for (var i = 0; i < li.childNodes.length; i++) {
+        var n = li.childNodes[i];
+        if (n.tagName != 'A') continue;
+        try {
+            n.focus();
+        } catch(e) {}
+        return;
+    }
 }
 
 // Prints current loaded topic

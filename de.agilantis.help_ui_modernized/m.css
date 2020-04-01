@@ -237,6 +237,14 @@ body.scroll-areas #m-aside.m {
 #m-toc li.selected > a {
     background-color: #e8f2fe;
 }
+#m-toc li > a:focus {
+    border: 1px dashed #333;
+    margin: -1px -1px -1px 11px;
+}
+#m-toc li.selected > a:focus {
+    border: 0;
+    margin: 0 0 0 12px;
+}
 #m-toc span, #m-slider {
     /* prevent text selection */
     user-select: none;
