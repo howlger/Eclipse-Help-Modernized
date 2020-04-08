@@ -1,0 +1,82 @@
+/*******************************************************************************
+ * Copyright (c) 2020 Holger Voormann and others.
+ *
+ * This program and the accompanying materials are made
+ * available under the terms of the Eclipse Public License 2.0
+ * which is available at https://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ ******************************************************************************/
+/*
+  Structure:
+  ____________________________________________
+ | #h(eader)                                  |
+ |--------------------------------------------|
+ | #m(ain area)                               |
+ |  ________________________________________  |
+ | |        |           |                   | |
+ | | #t(oc) | #s(lider) | #c(ontent iframe) | |
+ | |________|___________|___________________| |
+ |--------------------------------------------|
+ | #f(ooter)                                  |
+ |____________________________________________|
+*/
+html, body, #m, #t, #c {
+    border: 0;
+    margin: 0;
+    padding: 0;
+}
+html, body, #m {
+    height: 100%;
+}
+body {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-flow: column;
+    flex-flow: column;
+    background: #eef0f3;
+}
+#h {
+    padding: 8px 12px;
+}
+#m {
+    width: 100%;
+    height: 100%;
+    -webkit-flex: 0 1 auto;
+    flex: 0 1 auto;
+    display: -webkit-flex;
+    display: flex;
+}
+#t {
+    width: 400px;
+}
+#t.hide {
+    display: none;
+}
+#s {
+    width: 12px;
+    z-index: 2;
+    cursor: e-resize;
+}
+#c {
+    -webkit-flex: auto;
+    flex: auto;
+}
+#t, #c {
+    background: #fff;
+    box-shadow:0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+
+
+/* Mobile */
+@media screen and (max-width: 768px) {
+
+    #t, #s {
+        display: none;
+    }
+    #t.show {
+      display: block;
+      min-width: 100%;
+    }
+
+}
