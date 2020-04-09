@@ -15,6 +15,7 @@
     var TOC_SIDEBAR_MINIMUM_WIDTH = 64;
     var TOC_SIDEBAR_WIDTH_COOKIE_NAME = 'toc_width';
     var TOC_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><g fill="#54595d"><path fill-rule="evenodd" d="M19 5H1V3h18v2zm0 10H1v2h18v-2zm-4-6H1v2h14V9z" clip-rule="evenodd"/></g></svg>';
+    var TOC_ICON_DESCRIPTION = 'Toggle table of content';
 
     window.onload = function() {
 
@@ -23,7 +24,10 @@
         createElement(getElementById('f'), 'p', false, 'footer');
 
         // TOC sidebar button
-        var tocSidebarToggleButton = createElement(getElementById('h'), 'a', false, 'TOC');
+        var tocSidebarToggleButton = createElement(getElementById('h'), 'a', 'b', 'TOC');
+        tocSidebarToggleButton.href = '#';
+        tocSidebarToggleButton.alt = TOC_ICON_DESCRIPTION;
+        tocSidebarToggleButton.title = TOC_ICON_DESCRIPTION;
         setInnerHtml(tocSidebarToggleButton, TOC_ICON);
 
         // make TOC sidebar resizeable
@@ -55,57 +59,88 @@
         var tocSidebarStyle = tocSidebar.style;
 
         // slider movement
-        var documentElement = document.documentElement;
-        function sliderDrag(e) {
-            if (e.which != 1) {
-                slider.stopDrag(e);
-                return;
-            }
-            tocWidth = e.pageX - TOC_SLIDER_HALF_WIDTH;
+        function move(e) {
+            tocWidth = (e.touches ? e.touches[0].clientX : e.pageX) - TOC_SLIDER_HALF_WIDTH;
             if (tocWidth < 0) {
                 tocWidth = 0;
             }
             tocSidebarStyle.width = tocWidth + 'px';
+            preventDefault(e);
         }
-        function sliderStopDrag(e) {
-            documentElement.removeEventListener('mousemove', sliderDrag, false);
-            documentElement.removeEventListener('mouseup', sliderStopDrag, false);
+        function moveEnd(e) {
+            if (e.touches) {
+                addOrRemoveEventListener(0, 'touchmove', move, 1);
+                addOrRemoveEventListener(0, 'touchcancel', moveEnd);
+                addOrRemoveEventListener(0, 'touchend', moveEnd);
+            } else {
+                addOrRemoveEventListener(0, 'mousemove', move);
+                addOrRemoveEventListener(0, 'mouseup', moveEnd);
+            }
             overlayStyle.display = 'none';
-            if (tocWidth >= 0 && tocWidth < TOC_SIDEBAR_MINIMUM_WIDTH) {
+            tocSidebarStyle.userSelect = '';
+            if (tocWidth < TOC_SIDEBAR_MINIMUM_WIDTH) {
                 var oldWidth = getCookie('toc-width');
                 tocWidth = oldWidth ? oldWidth : TOC_SIDEBAR_DEFAULT_WIDTH;
                 toggleTocSidebar();
             }
             setCookie(TOC_SIDEBAR_WIDTH_COOKIE_NAME, tocWidth);
+            preventDefault(e);
+            stopPropagation(e);
         }
-        addEvent(slider, 'mousedown', function(e) {
-            documentElement.addEventListener('mousemove', sliderDrag, false);
-            documentElement.addEventListener('mouseup', sliderStopDrag, false);
+        function moveStart(e) {
+            if (e.which && e.which != 1) return;
+            if (e.touches) {
+                addOrRemoveEventListener(1, 'touchend', moveEnd);
+                addOrRemoveEventListener(1, 'touchcancel', moveEnd);
+                addOrRemoveEventListener(1, 'touchmove', move, 1);
+            } else {
+                addOrRemoveEventListener(1, 'mouseup', moveEnd);
+                addOrRemoveEventListener(1, 'mousemove', move);
+            }
             overlayStyle.display = 'block';
             setClassName(tocSidebar, '');
             tocSidebarStyle.transition = '';
-        });
+            preventDefault(e);
+            stopPropagation(e);
+        }
+        var documentElement = document.documentElement;
+        function addOrRemoveEventListener(add, event, fn, passive) {
+            if (add) {
+                documentElement.addEventListener(event, fn, passive ? { passive: false } : false);
+            } else {
+                documentElement.removeEventListener(event, fn, passive ? { passive: false } : false);
+            }
+        }
+
+        addEvent(slider, 'mousedown', moveStart);
+        addEvent(slider, 'touchstart', moveStart);
 
         // TOC sidebar toggling
-        function toggleTocSidebar(unusedEvent, initialize) {
+        function toggleTocSidebar(e, initialize) {
+            preventDefault(e);
             var isSmall = isSmallScreen();
             var currentClass = getClassName(tocSidebar);
             var hideToc = isSmall ? currentClass == 'show' : tocWidth > 0;
             if (initialize) {
                 tocWidth = -getCookie(TOC_SIDEBAR_WIDTH_COOKIE_NAME, TOC_SIDEBAR_DEFAULT_WIDTH);
                 hideToc = isSmall || tocWidth > 0;
+            } else {
+                tocSidebarStyle.transition = 'width .25s ease-in';
             }
             setClassName(tocSidebar, isSmall ? (hideToc ? '' : 'show') : (hideToc ? 'hide' : ''));
             if (initialize || !isSmall) {
                 tocWidth = -tocWidth;
                 if (!initialize) {
                     setCookie(TOC_SIDEBAR_WIDTH_COOKIE_NAME, tocWidth);
-                    tocSidebarStyle.transition = 'width .25s ease-in';
                 }
             }
-            if (initialize || !isSmall) tocSidebarStyle.width = (hideToc ? 0 : tocWidth > TOC_SIDEBAR_MINIMUM_WIDTH
-                                                                               ? tocWidth
-                                                                               : TOC_SIDEBAR_DEFAULT_WIDTH) + 'px';
+            if (initialize || !isSmall) {
+                tocSidebarStyle.width =   (hideToc ? 0 : tocWidth > TOC_SIDEBAR_MINIMUM_WIDTH
+                                                         ? tocWidth
+                                                         : TOC_SIDEBAR_DEFAULT_WIDTH)
+                                        + 'px';
+            }
+            tocSidebarStyle.userSelect = hideToc ? 'none' : '';
         }
         toggleTocSidebar(0, 1);
         addEvent(slider, 'dblclick', toggleTocSidebar);
@@ -152,6 +187,20 @@
 
     function setInnerHtml(element, innerHtml) {
         element.innerHTML = innerHtml;
+    }
+
+    function preventDefault(e) {
+        e = e || window.event;
+        try {
+            if (e.preventDefault) e.preventDefault();
+            e.returnValue = false;
+        } catch(e) {}
+    }
+
+    function stopPropagation(e) {
+        e = e || window.event;
+        e.cancelBubble = true;
+        if (e.stopPropagation) e.stopPropagation();
     }
 
     function getCookie(cookieName, defaultValue) {
