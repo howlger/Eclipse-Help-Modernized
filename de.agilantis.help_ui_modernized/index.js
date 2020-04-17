@@ -312,6 +312,12 @@
                                 };
                             })(li, child.n));
                         }
+                        addEvent(label, 'dblclick', (function(li) {
+                            return function(e) {
+                                toggleLi(li);
+                                stopPropagation(e);
+                            }
+                        })(li));
                     }
                 }
             }(parent, node, open));

@@ -107,6 +107,7 @@ a {
     font-size: 90%;
     padding: 2px 6px;
     border-radius: 4px;
+    color: #222;
 
     /* TODO with icons */
     margin-left: 32px;
@@ -133,9 +134,19 @@ a {
     font-weight: bold;
 }
 .tree li.xx > .l {
+    color: #333;
+}
+.tree li.x > .l {
+    color: #444;
+}
+.tree li.xx > .l {
     background-color: #eef0f3;
 }
+.tree .l, .tree li.xx > .l, .tree li.x > .l, .tree li.xx > .l:hover, .tree li.x > .l:hover {
+    transition: all 0.1s ease;
+}
 .tree li > .l:hover {
+    transition: all 0.1s 0.1s ease;
     background-color: #f4f9ff;
 }
 .tree li > .l:focus {
@@ -154,7 +165,7 @@ a {
     cursor: pointer;
     animation: fly-left 3s ease-in forwards;
     color: #999;
-    transition: transform .25s, color .25s, -webkit-transform .25s, -moz-transform .25s, -o-transform .25s;
+    transition: transform .25s, color .25s;
 }
 .tree .open > .h {
     color: #091e42;
