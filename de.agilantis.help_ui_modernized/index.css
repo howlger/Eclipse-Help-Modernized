@@ -22,18 +22,24 @@
  |____________________________________________|
 
  *******************************************************************************/
-
-html, body, #m, #t, #c {
+* {
     border: 0;
     margin: 0;
     padding: 0;
 }
+input:focus {
+    outline: none;
+}
 html, body, #m {
     height: 100%;
+    overflow: hidden;
 }
-body {
+body, input {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Lucida Grande", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     font-size: 1rem;
+    color: #222;
+}
+body {
     display: -webkit-flex;
     display: flex;
     -webkit-flex-flow: column;
@@ -44,11 +50,13 @@ a {
     text-decoration: none;
 }
 #h {
-    padding: 4px;
+    padding: 6px 6px 4px;
+    display: flex;
 }
 #m {
     width: 100%;
     height: 100%;
+    padding: 2px 0 0;
     -webkit-flex: 0 1 auto;
     flex: 0 1 auto;
     display: -webkit-flex;
@@ -78,20 +86,229 @@ a {
     height: 1px;
     min-height: 100%;
     max-height: 100%;
-    background: #fff;
-    box-shadow:0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
 }
+#t, #c, .qf {
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+#f { display: none; }
 
 /*** button ***/
 .b {
     display: inline-block;
     padding: 8px;
     font-size: 0;
+    color: #555;
+    height: 20px;
+    width: 20px;
 }
 .b:hover {
     background: #d7d9db;
-    border-radius: 4px;
+    border-radius: 5px;
 }
+
+/*** search field (area) ***/
+.q0 {
+    position: relative;
+    flex: auto;
+    max-width: 640px;
+    z-index: 2;
+}
+.q, .qf, .qm {
+    display: flex;
+    border-radius: 8px;
+    background: #fff;
+}
+.q {
+    border: 1px solid #fff;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+}
+.qf, .qm {
+    border: 1px solid #37e;
+    box-shadow: 0 1px 3px rgba(119,153,238,0.4);
+}
+.qm {
+    border-radius: 8px 8px 2px 0;
+    border-bottom-color: rgba(255,255,255,0);
+}
+.q0 .b:hover {
+    background: none;
+}
+.qf.qa .b, .qm.qa .b, .q.qa .b:hover  {
+    color: #fff;
+    background: #37e;
+    margin-right: -0.5px; /* workaround for Microsoft Edge to avoid white between blue button and blue border */
+}
+.qf.qa .b  {
+    border-radius: 0 7px 7px 0;
+}
+.qm.qa .b  {
+    border-radius: 0 7px 0 0;
+}
+.q .b:hover {
+    background: #fff;
+    cursor: default;
+}
+.q.qa .b:hover {
+    border-radius: 7px;
+    margin: 1px;
+    padding: 7px;
+}
+.q1 {
+    display: flex;
+    flex: auto;
+}
+#q, .qh {
+    flex: auto;
+    border: 0;
+    margin: 2px 0;
+    font-size: 1rem;
+    background: #fff;
+}
+.qh {
+    margin: 0;
+    color: #ddd;
+}
+#q::placeholder {
+    color: #999;
+    opacity: 1;
+    font-style: italic;
+}
+.r {
+    position: relative;
+}
+
+
+/*** search proposals (.p) and scopes button (.s) with drop-down (.r) ***/
+.p, .r {
+    position: absolute;
+    float: left;
+    left: 0;
+    margin-top: -1px;
+    top: 100%;
+    width: 100%;
+    padding: 0;
+    z-index: 7;
+    background: rgba(0, 0, 0, 0);
+}
+.r {
+    margin: -4px 0 0 3px;
+    width: auto;
+    z-index: 8;
+}
+.s0 {
+    position: relative;
+}
+.s {
+    background: #f2f4f7;
+    box-sizing: content-box;
+    display: flex;
+    margin: 3px 6px 3px 3px;
+    padding: 0 0 0 8px;
+    align-items: center;
+    border-radius: 5px;
+    font-size: 1rem;
+    white-space: nowrap;
+}
+.s span {
+    max-width: 240px;
+    overflow: hidden;
+}
+.s, .d, .de {
+    color: #999;
+}
+.qf .s, .qm .s, .s:hover .d, .s:hover .de {
+    color: #222;
+}
+.s .d, .s .de {
+    display: inline-block;
+    transform: rotate(90deg);
+    margin-left: -6px;
+    margin-right: 6px;
+    margin: 0 2px 0 -4px;
+}
+.s .de {
+    margin: 0 6px 0 -6px;
+}
+.p ul, .r ul {
+    display: block;
+    padding: 0;
+    margin: 0;
+    background: #fff;
+    border: 1px solid #37e;
+    border-top: none;
+    border-radius: 0 0 7px 7px;
+    box-shadow: 0 3px 4px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+.s, .r ul {
+    border: 1px solid #edeff2; /* -2 V of background */
+}
+.p li, .r li {
+    list-style: none outside none;
+    display: block;
+    text-align: left;
+    padding: 0.5em 9px;
+    white-space: normal;
+}
+.r li {
+    white-space: nowrap;
+}
+.p .b {
+    height: 15px;
+    background-image: url(data:image/gif;base64,R0lGODlhEAAQAIQcAEtuomSEtYiVro2Zq5WdpZ+jnqiomJ6pvbGukbmyjL+2iLrH39HKqc/t++Hq9+Hq+ODr9+Dr+OHr+Ofv+ejv+evx+e7z++70+/D0+/X4/PX4/fX5/AAAAAAAAAAAAAAAACH5BAEKAB8ALAAAAAAQABAAAAVg4CeOZCkCwRIAZsu2LkwqNEDfuMJ8SdMAvqDQ90E0HACH5MGEQCIRieRjaEwAlKx2W/kUGheAZUwuYz6Exgagabvfms+gkQFk7vh85iPoA/qAgQIHJC8yhYcjKCqGiY4hADs=);
+    background-repeat: no-repeat;
+    background-position: 1px 0;
+}
+.p .z, .r .z {
+    color: #333333 !important;
+    background: #e8f2fe !important;
+}
+.p .f {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin-left: -1px;
+    height: 100%;
+    min-height: 42em;
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #999999;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    z-index: 9;
+}
+.p .z .f {
+    display: block;
+    z-index: 9;
+}
+.p .t {
+/*     color: #1122cc; */
+    display: inline-block;
+    padding-left: 21px;
+    cursor: pointer;
+    background-image: url(data:image/gif;base64,R0lGODlhCQALAKUxAPT2/PH0++rv+fn6/Iaavoyfwt/o+OLq+OXs+env+pOmxpqsy6Kzz9/o9+bt+Onv+e3y+t/p+OLr+PH1+/D0+vf5/N/p9+3y+fT3+/D1+/f5+/b5+3t0T392ToV5TIx8SYx8SoV4TJyERJSAR5OASKqLQKOIQ5yEReDIj7SQPbCOPrCOP6uLQNSyaNSyadq9fNWyaf///////////////////////////////////////////////////////////yH5BAEKAD8ALAAAAAAJAAsAAAZLwJRw+CumBsiBK1VcVTYVzQum+pUwCwUA9WqxTIEJJUOhBEyiCyNbIEBOo4fgQU88SB/EWtF2gEIHBxKBgh4dBg2JERYGHRyPkJBBADs=);
+    background-repeat: no-repeat;
+    background-position: 3px 7px;
+    word-wrap: break-word;
+    -ms-word-wrap: break-word;
+    overflow-wrap: anywhere;
+}
+.p strong {
+    color: #444;
+}
+.p .w {
+    color: #062;
+    float: right;
+    cursor: default;
+}
+.p .c {
+    display: block;
+    font-size: 85%;
+    padding-left: 21px;
+}
+
 
 /*** tree ***/
 .tree ul {
@@ -104,7 +321,6 @@ a {
 }
 .tree .l {
     display: inline-block;
-    font-size: 90%;
     padding: 2px 6px;
     border-radius: 4px;
     color: #222;
@@ -168,7 +384,7 @@ a {
     transition: transform .25s, color .25s;
 }
 .tree .open > .h {
-    color: #091e42;
+    color: #333;
     transform: rotate(90deg);
 }
 .tree a {
@@ -181,7 +397,7 @@ a {
 
 @media screen and (max-width: 768px) {
 
-    #t, #s {
+    #t, #s, .i {
         display: none;
     }
     #m {
@@ -190,6 +406,10 @@ a {
     #t.show {
         display: block;
         min-width: 100%;
+    }
+    .s span {
+        max-width: 60px;
+        overflow: hidden;
     }
 
 }
