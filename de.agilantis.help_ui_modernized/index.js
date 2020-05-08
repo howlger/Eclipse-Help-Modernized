@@ -19,7 +19,11 @@
     var SEARCH_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><g fill="#fff"><path fill-rule="evenodd" fill="currentColor" d="M 7.5 0 C 3.3578644 0 0 3.3578644 0 7.5 C 0 11.642136 3.3578644 15 7.5 15 C 8.8853834 14.997 10.242857 14.610283 11.421875 13.882812 L 17.185547 19.662109 C 17.632478 20.113489 18.36112 20.112183 18.8125 19.660156 L 19.623047 18.845703 C 20.072507 18.398153 20.072507 17.665594 19.623047 17.214844 L 13.871094 11.447266 C 14.607206 10.26212 14.998156 8.8951443 15 7.5 C 15 3.3578644 11.642136 0 7.5 0 z M 7.5 2 A 5.5 5.5 0 0 1 13 7.5 A 5.5 5.5 0 0 1 7.5 13 A 5.5 5.5 0 0 1 2 7.5 A 5.5 5.5 0 0 1 7.5 2 z" clip-rule="evenodd"/></g></svg>';
     var SEARCH_FIELD_DESCRIPTION = '* = any string\n? = any character\n"" = phrase\nAND, OR & NOT = boolean operators';
     var SEARCH_FIELD_PLACEHOLDER = 'Search';
+    var SEARCH_HITS_MAX = 500;
     var SEARCH_INSTANT_PROPOSAL_MAX = 7;
+    var SEARCH_RESULTS_PATTERN = new RegExp('<tr[^<]*<td[^<]*<img[^<]*</td[^<]*<td[^<]*<a\\s+(?:(?:class|id|title|onmouseover|onmouseout)\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*href="([^"]*)"(?:\\s+o\\w+="[^"]*")*\\s+title="([^"]*)"[^>]*>([^<]*)</a>(?:(?:(?!<[/]?tr)[\\s\\S])*</tr\\s*>\\s*<tr(?:(?!</tr)(?!class="location">)[\\s\\S])*class="location">((?:(?!</div)[\\s\\S])*))?(?:(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*</tr){1,2}(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*\\sclass=["\']description["\'][^>]*>([^<]*)', 'g');
+    var SEARCH_RESULTS_BREADCRUMB_SNIPPET_PATTERN = new RegExp('<a\\s+href="([^"]+)">([^<]+)</a>', 'g');
+
     var TREE_HANDLE = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor" fill-rule="evenodd"/></svg>';
     var BOOK_NAME_SHORTENER = function shortenBookName(bookName) { return bookName.replace(/\s+(Documentation\s*)?(\-\s+([0-9,\-]+\s+)?Preview(\s+[0-9,\-]+)?\s*)?$/i, ''); };
 
@@ -27,6 +31,8 @@
     //                   only "init()" should be called instead
     var iconExtension = '.svg';
     var title = 'Help';
+
+    var dynamicContent;
 
     addEvent(window, 'load', function() {
 
@@ -56,6 +62,14 @@
     });
 
     function init() {
+
+        // dynamic content area
+        dynamicContent = createElement(getElementById('m'), 0, 'c', 'Loading...');
+        dynamicContent.s = function(show) {
+            dynamicContent.style.display = show ? 'block' : 'none';
+            getElementById('c').style.display = show ? 'none' : 'block';
+        }
+        dynamicContent.s(0);
 
         // TOC sidebar button
         var header = getElementById('h');
@@ -296,7 +310,7 @@
         // to align real pixels on high-DPI to CSS px), otherwise proposals drop-down might not correctly aligned with
         // search field area
         var searchFieldAreaWrapper = createElement(getElementById('h'), 0, 'q0');
-        var searchFieldArea = createElement(searchFieldAreaWrapper, 0, 'q');
+        var searchFieldArea = createElement(searchFieldAreaWrapper, 'form', 'q');
         var searchFieldAreaHasFocus;
         var searchFieldAreaContainsQuery;
         var proposals;
@@ -372,14 +386,10 @@
         searchField.placeholder = SEARCH_FIELD_PLACEHOLDER;
         addEvent(searchField, 'input', updateProposals); // for IE 8 do also on 'propertychange'
 
-        var searchButton = createElement(searchFieldArea, 'a', 'b');
-        searchButton.href = '#';
+        var searchButton = createElement(searchFieldArea, 'button', 'b');
         setInnerHtml(searchButton, SEARCH_ICON);
-        addEvent(searchButton, 'click', function(e) {
-            // TODO
-            console.log('search not yet implemented');
-            preventDefault(e);
-        });
+        addEvent(searchFieldArea, 'submit', fullSearch);
+addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
 
         // hint
         var hintField = createElement(wrap, 'input', 'qh');
@@ -392,6 +402,7 @@
         hintField.style.top = 0;
         hintField.style.height = '100%';
         hintField.style.width = '100%';
+        hintField.style.background = 'transparent';
         hintField.style.borderColor = 'transparent';
         hintField.setAttribute('disabled', 'disabled');
         wrap.appendChild(searchField);
@@ -427,7 +438,10 @@
 //        bgOnClickFns.push(hideProposals); // workaround for ie instead of simple: addEvent(document.documentElement, 'click', ...)
         addEvent(document.documentElement, 'click', hideProposals);
 
-        // TODO remov dummies
+        // focus search field
+        searchField.focus();
+
+        // TODO remove dummies
         var baseUrl = window.INTEGRATED ? '' : '../../';
         var callbackUrl = 'advanced/searchView.jsp?';
 
@@ -507,7 +521,7 @@
                 + '&maxHits='
                 + SEARCH_INSTANT_PROPOSAL_MAX
                 + (query.indexOf('&toc=') < 0 ? '' : '&quickSearch=true&quickSearchType=QuickSearchToc');
-            remoteRequest(url, callback);
+            remoteRequest(url, callback, 'i');
 
         }
 
@@ -517,15 +531,14 @@
             if (match == null) return;
             element.innerHTML = match[1].replace(/\\u([0-9A-F]{4})/g,'&#x$1;');
             var lines = [(element.textContent ? element.textContent : element.innerText).replace(/\*(?=\&)|(^searchWord=)|(\&maxHits=.+$)/g,'')];
-            var pattern = new RegExp('<tr[^<]*<td[^<]*<img[^<]*</td[^<]*<td[^<]*<a\\s+(?:(?:class|id|title|onmouseover|onmouseout)\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*href="([^"]*)"(?:\\s+o\\w+="[^"]*")*\\s+title="([^"]*)"[^>]*>([^<]*)</a>(?:(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*</tr){1,2}(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*\\sclass=["\']description["\'][^>]*>([^<]*)', 'g');
-            for (; (match = pattern.exec(data)) != null;) {
+            for (; (match = SEARCH_RESULTS_PATTERN.exec(data)) != null;) {
                 var items = [];
                 for (var i = 1; i < 5; i++) {
                     element.innerHTML = match[i];
                     items.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
                 }
                 lines.push(items[2]);
-                lines.push(items[3]);
+                lines.push(items[4] ? items[4] : items[3]);
                 lines.push(items[0].substring(8));
                 lines.push(items[1]);
             }
@@ -639,7 +652,7 @@
 
                 var titleDiv = createElement(btDiv, 'div', 't');
                 addHighlightedText(titleDiv, lines[i], searchWord);
-                var descDiv = createElement(li, 'div', 'c', null);
+                var descDiv = createElement(li, 'div', 'l', null);
                 addHighlightedText(descDiv, unencodeHtmlContent(lines[i+1]), searchWord);
 
                 // preview on hovering
@@ -706,6 +719,392 @@
             proposals.removeChild(proposals.firstChild);
             if (lines.length > 1) showProposals(); else hideProposals();
             proposals.appendChild(newUl);
+        }
+
+        function fullSearch(e) {
+            preventDefault(e);
+            dynamicContent.s(1);
+            search(1);
+        }
+
+        function search(fullSearch) {
+            var query = getQuery();
+
+            var searchWord =  searchField.value
+
+                                  // trim
+                                  .replace(/(^\s+|\s+$)/ig, '')
+
+                                  // TODO if Eclipse bug 351077 (https://bugs.eclipse.org/351077), remove following line
+                                  .replace(/\-([^\-\s]*$)/ig, ' $1');
+
+            if (!searchWord.length) return;
+            var isScoped = !!scope.n.toc;
+            var query =   encodeURIComponent(searchWord.toLowerCase()).replace(/(%20){1,}/g, '+')
+                        + (isScoped ? '&toc=' + encodeURIComponent(scope.n.toc).replace(/%20/g, '+') : '');
+            var url =   baseUrl
+                      + callbackUrl
+                      + 'searchWord='
+                      + query.replace(/(\&|$)/, (fullSearch ? '' : '*') + '$1')
+                      + '&maxHits='
+                      + (fullSearch ? SEARCH_HITS_MAX : SEARCH_INSTANT_PROPOSAL_MAX)
+                      + (query.indexOf('&toc=') < 0 ? '' : '&quickSearch=true&quickSearchType=QuickSearchToc');
+            var callback = function(data) {
+
+                // progress bar (not yet indexed)?
+                if (!new RegExp('window.location.replace[^\\?]*\\?([^"]*)').exec(data)) return;
+
+                // parse HTML for results
+                var element = createElement();
+                var hasBreadcrumbs = 0;
+                var results = [];
+                for (; (match = SEARCH_RESULTS_PATTERN.exec(data)) != null;) {
+                    var items = [];
+                    for (var i = 1; i < 6; i++) {
+                        element.innerHTML = match[i];
+                        items.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
+                    }
+                    var breadcrumb = [];
+                    if (match[4]) {
+                        for (; (breadcrumbMatch = SEARCH_RESULTS_BREADCRUMB_SNIPPET_PATTERN.exec(match[4])) != null;) {
+                            for (var i = 1; i < 3; i++) {
+                                element.innerHTML = breadcrumbMatch[i];
+                                breadcrumb.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
+                            }
+                        }
+                        hasBreadcrumbs = 1;
+                    }
+                    results.push({
+//                        t/*itle*/: items[2],
+//                        d/*esc*/:  (items[4] ? items[4] : items[3]),
+//                        h/*ref*/:  items[0].substring(8),
+//                        p/*ath*/:  breadcrumb
+                        title: items[2],
+                        desc:  (items[4] ? items[4] : items[3]),
+                        href:  items[0].substring(8),
+                        path:  breadcrumb
+                    });
+                }
+
+                // show results
+                dynamicContent.innerHTML = '';
+                dynamicContent.scrollTop = 0;
+
+                // no results?
+                if (!results.length) {
+                    var noResults = createElement(dynamicContent, 0, 'nn', 'No results found for ');
+                    createElement(noResults, 'strong', 0, searchWord);
+                    return;
+                }
+
+                var resultsPage = createElement(dynamicContent, 0, 'n');
+                var filterTree = asTree(results, scope.n.toc ? [scope.n.t, scope.n.toc] : [], 9, true);
+                var filters = [];
+                var filterValues = [];
+                var resultsToFilter = [];
+                var resultsValues = [];
+                function toValue(path) {
+                    var result = '';
+                    for (var i = 0; i < path.length; i++) result += (i > 0 ? '\n' : '') + path[i];
+                    return result;
+                }
+                function applyFilters(e) {
+                    var includeFilters = [];
+                    var excludeFilters = [];
+                    for (var i = 0; i < filters.length; i++) {
+                        var f = filters[i];
+                        if (!f.checked && !f.indeterminate) excludeFilters.push(filterValues[i]);
+                        if (f.checked && !f.indeterminate) includeFilters.push(filterValues[i]);
+                    }
+                    for (var i = 0; i < resultsToFilter.length; i++) {
+                        resultsToFilter[i].style.display =    arrayContains(includeFilters, resultsValues[i])
+                                                           && !arrayContains(excludeFilters, resultsValues[i])
+                                                           ? 'block'
+                                                           : 'none';
+                    }
+                    stopPropagation(e);
+                }
+
+                // filter tree
+                function selectSubtree(element, checkStatus) {
+                    for (var i = 0; i < element.children.length; i++) {
+                        var n = element.children[i];
+                        if ('UL' == n.tagName || 'LI' == n.tagName || 'DIV' == n.tagName) {
+                            selectSubtree(n, checkStatus);
+                        } else if ('INPUT' == n.tagName) {
+                            n.indeterminate = false;
+                            n.checked = checkStatus;
+                            n.notAllChecked = false;
+                        }
+                    }
+                }
+                function getChildrenChecks(checkbox) {
+                    if (!checkbox || !checkbox.parentElement || !checkbox.parentElement.parentElement || 'LI' != checkbox.parentElement.parentElement.tagName) return [];
+                    var li = checkbox.parentElement.parentElement;
+                    var children = [];
+                    for (var i = 0; i < li.children.length; i++) {
+                        var n1 = li.children[i];
+                        if ('UL' != n1.tagName) continue;
+                        for (var j = 0; j < n1.children.length; j++) {
+                            var n2 = n1.children[j];
+                            if ('LI' != n2.tagName) continue;
+                            for (var k = 0; k < n2.children.length; k++) {
+                                var n3 = n2.children[k];
+                                for (var l = 0; l < n3.children.length; l++) {
+                                    var n4 = n3.children[l];
+                                    if ('INPUT' == n4.tagName) children.push(n4);
+                                }
+                            }
+                        }
+                    }
+                    return children;
+                }
+                function updateParentsChecks(checkbox) {
+                    for (var parentCheckbox = checkbox.parentCheckbox; parentCheckbox; parentCheckbox = parentCheckbox.parentCheckbox) {
+                        var checkedNumberOfResults = 0;
+                        var uncheckedNumberOfResults = 0;
+                        var uncheckedAll = true;
+                        var notAllChecked = false;
+                        var totalNumberOfResults = 0;
+                        var indeterminateChildren = 0;
+                        var children = getChildrenChecks(parentCheckbox);
+                        for (var i = 0; i < children.length; i++) {
+                            var n = children[i];
+                            if (n.notAllChecked) notAllChecked = true;
+                            if (n.indeterminate) {
+                                indeterminateChildren++;
+                                uncheckedAll = false;
+                                notAllChecked = true;
+                            } else if (n.checked) {
+                                checkedNumberOfResults += n.numberOfResults;
+                                totalNumberOfResults += n.numberOfResults;
+                                uncheckedAll = false;
+                            } else {
+                                uncheckedNumberOfResults += n.numberOfResults;
+                                totalNumberOfResults += n.numberOfResults;
+                                notAllChecked = true;
+                            }
+                        }
+                        if (checkedNumberOfResults == parentCheckbox.numberOfResults && !notAllChecked) {
+                            parentCheckbox.indeterminate = false;
+                            parentCheckbox.checked = true;
+                            parentCheckbox.notAllChecked = false;
+                        } else if (   uncheckedNumberOfResults == parentCheckbox.numberOfResults
+                                   || (parentCheckbox.indeterminate && uncheckedAll)) {
+                            parentCheckbox.indeterminate = false;
+                            parentCheckbox.checked = false;
+                        } else if (   totalNumberOfResults == parentCheckbox.numberOfResults
+                                   || (   !parentCheckbox.indeterminate
+                                       && !parentCheckbox.checked
+                                       && (indeterminateChildren || checkedNumberOfResults || notAllChecked))){
+                            parentCheckbox.indeterminate = true;
+                        } else {
+                            parentCheckbox.notAllChecked = notAllChecked;
+                        }
+                    }
+                }
+
+                var root;
+                createTree(resultsPage,
+                           function(node, processChildrenFn) {
+                               if (!node) {
+                                   processChildrenFn([{ n/*ode*/: {children: filterTree}, l/*eaf*/: 0 }], 1);
+                                   return;
+                               }
+                               var children = [];
+                               for (var i = 0; i < (node.isNode ? node.children.length : filterTree.length); i++) {
+                                   var childNode = node ? node.children[i] : filterTree[i];
+                                   if (childNode.isNode) {
+                                       var isLeaf = 1;
+                                       for (var j = 0; j < childNode.children.length; j++) {
+                                           if (childNode.children[j].isNode) {
+                                               isLeaf = 0;
+                                               break;
+                                           }
+                                       }
+                                       children.push({ n/*ode*/: childNode, l/*eaf*/: isLeaf });
+                                       if (node.isNode) {
+                                           childNode.p/*arent*/ = node;
+                                       }
+                                   }
+                               }
+                               processChildrenFn(children);
+                           },
+                           function(li, node) {
+
+                               // root
+                               if (!node.isNode) {
+                                   var headingWithCount = createElement(li);
+                                   var text = 'Results ' + (scope.n.toc ? 'in ' : '');
+                                   var root = createElement(headingWithCount, 'span', 'n0', text);
+                                   if (scope.n.toc) {
+                                       createElement(root, 'span', 'n1', scope.n.t + ' ');
+                                   }
+                                   createElement(headingWithCount, 'span', 'count', results.length);
+                                   return headingWithCount;
+                               }
+                               if (!root) {
+                                   root = getParentElement(li);
+                               }
+
+                               // checkbox
+                               var checkboxWithLabel = createElement(li);
+                               var checkbox = createElement(checkboxWithLabel, 'input', 0);
+                               checkbox.type = 'checkbox';
+                               checkbox.checked = true;
+                               addEvent(checkbox, 'click', (function(liCheck, li) {
+                                   return function() {
+                                       selectSubtree(li, liCheck.checked);
+                                       updateParentsChecks(liCheck);
+                                       applyFilters();
+                                   };
+                               })(checkbox, li));
+                               node.x = checkbox;
+                               if (node.p) {
+                                   checkbox.parentCheckbox = node.p.x;
+                               }
+                               checkbox.numberOfResults = node.count;
+                               filters.push(checkbox);
+                               filterValues.push(toValue(node.l.concat(node.name)));
+
+                               // label
+                               var name = '';
+                               for (var i = 0; i < node.name.length; i+=2) {
+                                   name += (i == 0 ? '' : ' > ') + node.name[i+1];
+                               }
+                               var label = createElement(checkboxWithLabel, 'span', 0, name + ' ');
+                               createElement(label, 'span', 'count', node.count);
+                               addEvent(label, 'click', (function(root, liCheck, li) {
+                                   return function() {
+                                       selectSubtree(root, false);
+                                       selectSubtree(li, true);
+                                       updateParentsChecks(liCheck);
+                                       applyFilters();
+                                   };
+                               })(root, checkbox, li));
+
+                               return checkboxWithLabel;
+                           },
+                           0);
+
+                // results listed
+                var resultListArea = createElement(resultsPage);
+                for (var i = 0; i < results.length; i++) {
+
+                    // showing
+                    var node = results[i];
+                    var resultSection = createElement(resultListArea, 'section');
+                    addHighlightedText(createElement(resultSection, 'h4'), node.title, searchWord);
+                    if (hasBreadcrumbs && node.path) {
+                        var location = createElement(resultSection, 0, 'w');
+                        for (var j = isScoped ? 2 : 0; j < node.path.length; j+=2) {
+                            var rbi = createElement(location, 'span');
+                            addHighlightedText(rbi, node.path[j+1], searchWord);
+                            if (j < node.path.length-2) {
+                                createElement(location, 'span', false, ' > ');
+                            }
+                        }
+                    }
+                    addHighlightedText(createElement(resultSection, 'p'), node.desc, searchWord);
+
+                    // filtering
+                    resultsToFilter.push(resultSection);
+                    var resultofStart = node.href.indexOf('?resultof=');
+                    var hrefNormed = '../topic' + (resultofStart < 0 ? node.href : node.href.substring(0, resultofStart));
+                    resultsValues.push(toValue(node.path.slice(0, n.path.length).concat(hrefNormed).concat(node.title)));
+
+                }
+                toMenu(searchField, resultsToFilter, results, function(d) {
+                        getElementById('c').src = baseUrl + 'topic' + d.href;
+                    },
+                    0,
+                    0,
+                    function(item, data, viaMouse) {
+                        if (!viaMouse) {
+                            scrollIntoViewIfNeeded(dynamicContent, item);
+                        }
+                    },
+                    1);
+            }
+
+            remoteRequest(url, callback, fullSearch ? 'f' : 'p');
+        }
+
+        function asTree(results, path, depth) {
+            if (depth < 1) return results;
+            var tree = [];
+            var grouped = {};
+            for (var i = 0; i < results.length; i++) {
+                var r = results[i];
+                r.p = i;
+                r.q = r.path.slice(0, r.path.length);
+                var resultofStart = r.href.indexOf('?resultof=');
+                r.q.push('../topic' + (resultofStart < 0 ? r.href : r.href.substring(0, resultofStart)));
+                r.q.push(r.title);
+
+                // child?
+                if (!r.path || r.path.length <= path.length) {
+                    tree.push(r);
+                    continue;
+                }
+
+                // not child -> contained in a subtree
+                var key = r.path[path.length] + '\n' + r.path[path.length+1];
+                if (!grouped[key]) {
+                    var node = {
+                        isNode: true,
+                        name: [r.path[path.length], r.path[path.length+1]],
+                        l/*ocation*/: path.slice(0, path.length),
+                        children: [r]
+                    };
+                    grouped[key] = node;
+                    tree.push(node);
+                } else {
+                    grouped[key].children.push(r);
+                }
+
+            }
+
+            // calculate count and set the root (if it exists)
+            for (var i = 0; i < tree.length; i++) {
+                var r = tree[i];
+                if (r.isNode) {
+                    r.count = r.children.length + (r.root ? 1 : 0);
+                    continue;
+                }
+                var rootOfGroup = grouped[r.q[r.q.length-2] + '\n' + r.title];
+                if (rootOfGroup) {
+                    rootOfGroup.children.push(r);
+                    rootOfGroup.count++;
+                    tree.splice(i,1);
+                    i--;
+                }
+            }
+
+            // compact and recursion
+            for (var i = 0; i < tree.length; i++) {
+                var r = tree[i];
+                if (!r.isNode) continue;
+                compact(path, r);
+                r.children = asTree(r.children, r.children[0].q.slice(0, path.length + r.name.length), depth - 1);
+            }
+
+            return tree;
+        }
+        function compact(path, r) {
+            for (var i = path.length+2; r.children.length > 0 && !r.root; i+=2) {
+                if (r.children.length == 1 && r.children[0].path.length == i) return;
+                for (var j = 0; j < r.children.length; j++) {
+                    var p0 = r.children[0].q;
+                    var p = r.children[j].q;
+                    if (   p.length < i+1
+                        || p[i] != p0[i]
+                        || p[i+1] != p0[i+1]) return;
+                }
+                var p0 = r.children[0].q;
+                r.name.push(p0[i]);
+                r.name.push(p0[i+1]);
+            }
         }
 
         function getQuery() {
@@ -780,6 +1179,7 @@
                 var isNotInputField = master.nodeName != 'INPUT';
                 var isKeySelectionMode = isNotInputField;
                 var cursorIndex = 0;
+                var isInit = 0;
                 master.onkeydown = function(e) {
                     e = e || window.event;
                     var key = e.keyCode || e.charCode;
@@ -827,16 +1227,17 @@
                                   : (cursorIndex + (isDown ? 1 : -1)) % (items.length + 1);
                     if (cursorIndex > 0) {
                         items[cursorIndex-1].setAttribute('class', 'z');
-                        if (armFn) armFn(items[cursorIndex-1], data[cursorIndex-1]);
+                        if (armFn) armFn(items[cursorIndex-1], data[cursorIndex-1], 0);
                     }
                 }
 
                 for (var i = 0; i < items.length; i++) {
-                    items[i].onmousedown = function(a) {setTimeout(function() {if (!master.hasFocus) master.focus()}, 42)};
+                    items[i].onmousedown = function(a) {setTimeout(function() {if (master && !master.hasFocus) master.focus()}, 42)};
                     items[i].onmouseup = items[i].ontouchend = function(a, b) {return function(e) {preventDefault(e); if (!a.canceled) {chooseFn(b); a.setAttribute('class', ''); cursorIndex = 0}}}(items[i], data[i]);
-                    items[i].onmouseover = items[i].ontouchstart = function(a, b, c) {return function() {if (cursorIndex > 0) items[cursorIndex-1].setAttribute('class', ''); a.setAttribute('class', 'z'); cursorIndex = b; a.canceled = ''; if (armFn && b > 0) armFn(a, c)}}(items[i], i+1, data[i]);
+                    items[i].onmouseover = items[i].ontouchstart = function(a, b, c) {return function() {if (!isInit) return; if (cursorIndex > 0) items[cursorIndex-1].setAttribute('class', ''); a.setAttribute('class', 'z'); cursorIndex = b; a.canceled = ''; if (armFn && b > 0) armFn(a, c, 1)}}(items[i], i+1, data[i]);
                     items[i].onmouseout = function(a) {return function() {a.setAttribute('class', '')}}(items[i]);
                 }
+                setTimeout(function() {isInit = 1; }, 142);
             }
             var x = function(a,b,c,d,e,f) {return inner(a,b,c,d,e,f)}(master, items, data, chooseFn, applyFn, cancelFn, armFn);
         }
@@ -889,11 +1290,11 @@
     function createTree(element, contentProvider, labelProvider, selectable) {
         var root = createElement(element, 0, 'tree');
         function createNode(parent, node, open) {
-            contentProvider(node, function(parent, node, open) {
-                return function(children) {
+            contentProvider(node, function(parent, node) {
+                return function(children, open) {
                     var ul = createElement(parent, 'ul');
                     for (var i = 0; i < children.length; i++) {
-                        var li = createElement(ul, 'li', 'closed');
+                        var li = createElement(ul, 'li', open ? 'open' : 'closed');
                         li.p = parent;
                         var child = children[i];
                         if (!child.l) {
@@ -955,9 +1356,10 @@
                                 stopPropagation(e);
                             }
                         })(li));
+                        if (open) toggleLi(li);
                     }
                 }
-            }(parent, node, open));
+            }(parent, node));
         }
         createNode(root);
 
@@ -1203,16 +1605,18 @@
         document.cookie = cookieName + '=' + value + ';' + expires + ';path=/;samesite=strict';
     }
 
-    var openRequest;
-    function remoteRequest(url, callbackFn, cancelable) {
+    var openRequests = {};
+    function remoteRequest(url, callbackFn, cancelId) {
         var request = new XMLHttpRequest();
         request.onreadystatechange = function() {
             if (request.readyState == 4 && request.status == 200) callbackFn(request.responseText);
         }
         request.open('GET', url);
         request.send();
-        if (openRequest && openRequest.abort) openRequest.abort();
-        if (cancelable) openRequest = request;
+        if (cancelId) {
+            if (openRequests[cancelId] && openRequests[cancelId].abort) openRequests[cancelId].abort();
+            openRequests[cancelId] = request;
+        }
     }
 
     var parseXml;
@@ -1230,6 +1634,26 @@
         };
     }
 
+    function scrollIntoViewIfNeeded(scrollArea, element) {
+        try {
+            var scrollAreaBoundaries = scrollArea.getBoundingClientRect();
+            var elementBoundaries = element.getBoundingClientRect();
+            if (   elementBoundaries.top >= scrollAreaBoundaries.top
+                && elementBoundaries.bottom <= scrollAreaBoundaries.bottom) return;
+            scrollArea.scrollTop += elementBoundaries.bottom <= scrollAreaBoundaries.bottom
+                                    ? elementBoundaries.top - scrollAreaBoundaries.top
+                                    : elementBoundaries.bottom - scrollAreaBoundaries.bottom;
+        } catch (e) {}
+    }
+
+    function arrayContains(array, value) {
+        for (var i = 0; i < array.length; i++) {
+            if (   array[i].length > 0
+                && array[i].length <= value.length
+                && value.substring(0, array[i].length) == array[i]) return true;
+        }
+        return false;
+    }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
