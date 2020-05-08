@@ -739,9 +739,8 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
                                   .replace(/\-([^\-\s]*$)/ig, ' $1');
 
             if (!searchWord.length) return;
-            var isScoped = !!scope.n.toc;
             var query =   encodeURIComponent(searchWord.toLowerCase()).replace(/(%20){1,}/g, '+')
-                        + (isScoped ? '&toc=' + encodeURIComponent(scope.n.toc).replace(/%20/g, '+') : '');
+                        + (scope.n.toc ? '&toc=' + encodeURIComponent(scope.n.toc).replace(/%20/g, '+') : '');
             var url =   baseUrl
                       + callbackUrl
                       + 'searchWord='
@@ -749,45 +748,51 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
                       + '&maxHits='
                       + (fullSearch ? SEARCH_HITS_MAX : SEARCH_INSTANT_PROPOSAL_MAX)
                       + (query.indexOf('&toc=') < 0 ? '' : '&quickSearch=true&quickSearchType=QuickSearchToc');
-            var callback = function(data) {
 
-                // progress bar (not yet indexed)?
-                if (!new RegExp('window.location.replace[^\\?]*\\?([^"]*)').exec(data)) return;
+            remoteRequest(url, callbackFor(fullSearch, query, scope, searchWord), fullSearch ? 'f' : 'p');
 
-                // parse HTML for results
-                var element = createElement();
-                var hasBreadcrumbs = 0;
-                var results = [];
-                for (; (match = SEARCH_RESULTS_PATTERN.exec(data)) != null;) {
-                    var items = [];
-                    for (var i = 1; i < 6; i++) {
-                        element.innerHTML = match[i];
-                        items.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
-                    }
-                    var breadcrumb = [];
-                    if (match[4]) {
-                        for (; (breadcrumbMatch = SEARCH_RESULTS_BREADCRUMB_SNIPPET_PATTERN.exec(match[4])) != null;) {
-                            for (var i = 1; i < 3; i++) {
-                                element.innerHTML = breadcrumbMatch[i];
-                                breadcrumb.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
-                            }
+            function callbackFor(fullSearch, query, scope, searchWord) {
+                return function (data) {
+
+                    // progress bar (not yet indexed)?
+                    if (!new RegExp('window.location.replace[^\\?]*\\?([^"]*)').exec(data)) return;
+
+                    // parse HTML for results
+                    var element = createElement();
+                    var hasBreadcrumbs = 0;
+                    var results = [];
+                    for (; (match = SEARCH_RESULTS_PATTERN.exec(data)) != null;) {
+                        var items = [];
+                        for (var i = 1; i < 6; i++) {
+                            element.innerHTML = match[i];
+                            items.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
                         }
-                        hasBreadcrumbs = 1;
+                        var breadcrumb = [];
+                        if (match[4]) {
+                            for (; (breadcrumbMatch = SEARCH_RESULTS_BREADCRUMB_SNIPPET_PATTERN.exec(match[4])) != null;) {
+                                for (var i = 1; i < 3; i++) {
+                                    element.innerHTML = breadcrumbMatch[i];
+                                    breadcrumb.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
+                                }
+                            }
+                            hasBreadcrumbs = 1;
+                        }
+                        results.push({
+                            t/*title*/: items[2],
+                            d/*description*/:  (items[4] ? items[4] : items[3]),
+                            h/*href*/:  items[0].substring(8),
+                            b/*breadcrumb*/:  items[4] ? breadcrumb : [0, items[1]]
+                        });
                     }
-                    results.push({
-//                        t/*itle*/: items[2],
-//                        d/*esc*/:  (items[4] ? items[4] : items[3]),
-//                        h/*ref*/:  items[0].substring(8),
-//                        p/*ath*/:  breadcrumb
-                        title: items[2],
-                        desc:  (items[4] ? items[4] : items[3]),
-                        href:  items[0].substring(8),
-                        path:  breadcrumb
-                    });
+
+                    showSearchResults(results, hasBreadcrumbs, query, scope, fullSearch, searchWord);
                 }
+            }
+
+            function showSearchResults(results, hasBreadcrumbs, query, scope, fullSearch, searchWord) {
 
                 // show results
-                dynamicContent.innerHTML = '';
+                setInnerHtml(dynamicContent, '');
                 dynamicContent.scrollTop = 0;
 
                 // no results?
@@ -798,7 +803,7 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
                 }
 
                 var resultsPage = createElement(dynamicContent, 0, 'n');
-                var filterTree = asTree(results, scope.n.toc ? [scope.n.t, scope.n.toc] : [], 9, true);
+                var filterTree = asTree(results, scope.n.toc ? results[0].b/*breadcrumb*/.slice(0, 2) : [], 9, true);
                 var filters = [];
                 var filterValues = [];
                 var resultsToFilter = [];
@@ -817,8 +822,8 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
                         if (f.checked && !f.indeterminate) includeFilters.push(filterValues[i]);
                     }
                     for (var i = 0; i < resultsToFilter.length; i++) {
-                        resultsToFilter[i].style.display =    arrayContains(includeFilters, resultsValues[i])
-                                                           && !arrayContains(excludeFilters, resultsValues[i])
+                        resultsToFilter[i].style.display =    arrayContainsPrefix(includeFilters, resultsValues[i])
+                                                           && !arrayContainsPrefix(excludeFilters, resultsValues[i])
                                                            ? 'block'
                                                            : 'none';
                     }
@@ -904,8 +909,9 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
                     }
                 }
 
-                var root;
                 createTree(resultsPage,
+
+                           // filter tree content provider
                            function(node, processChildrenFn) {
                                if (!node) {
                                    processChildrenFn([{ n/*ode*/: {children: filterTree}, l/*eaf*/: 0 }], 1);
@@ -923,65 +929,65 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
                                            }
                                        }
                                        children.push({ n/*ode*/: childNode, l/*eaf*/: isLeaf });
-                                       if (node.isNode) {
-                                           childNode.p/*arent*/ = node;
-                                       }
+                                       childNode.p/*arent*/ = node;
                                    }
                                }
                                processChildrenFn(children);
                            },
-                           function(li, node) {
 
-                               // root
-                               if (!node.isNode) {
-                                   var headingWithCount = createElement(li);
-                                   var text = 'Results ' + (scope.n.toc ? 'in ' : '');
-                                   var root = createElement(headingWithCount, 'span', 'n0', text);
-                                   if (scope.n.toc) {
-                                       createElement(root, 'span', 'n1', scope.n.t + ' ');
-                                   }
-                                   createElement(headingWithCount, 'span', 'count', results.length);
-                                   return headingWithCount;
-                               }
-                               if (!root) {
-                                   root = getParentElement(li);
-                               }
+                           // filter tree label provider
+                           function(li, node) {
+                               var isRoot = !node.isNode;
 
                                // checkbox
                                var checkboxWithLabel = createElement(li);
                                var checkbox = createElement(checkboxWithLabel, 'input', 0);
                                checkbox.type = 'checkbox';
-                               checkbox.checked = true;
-                               addEvent(checkbox, 'click', (function(liCheck, li) {
-                                   return function() {
-                                       selectSubtree(li, liCheck.checked);
-                                       updateParentsChecks(liCheck);
-                                       applyFilters();
-                                   };
-                               })(checkbox, li));
+                               checkbox.checked = node.p ? node.p.x.checked : true;
                                node.x = checkbox;
                                if (node.p) {
                                    checkbox.parentCheckbox = node.p.x;
                                }
-                               checkbox.numberOfResults = node.count;
+                               checkbox.numberOfResults = isRoot ? results.length : node.count;
                                filters.push(checkbox);
-                               filterValues.push(toValue(node.l.concat(node.name)));
+                               filterValues.push(isRoot ? '' : toValue(node.l.concat(node.name)));
 
                                // label
-                               var name = '';
-                               for (var i = 0; i < node.name.length; i+=2) {
-                                   name += (i == 0 ? '' : ' > ') + node.name[i+1];
+                               var labelText = '';
+                               if (isRoot) {
+                                   checkbox.style.display = 'none';
+                                   labelText = 'Results ' + (scope.n.toc ? 'in ' : '');
+                               } else {
+                                   addEvent(checkbox, 'click', (function(liCheck, li) {
+                                       return function() {
+                                           selectSubtree(li, liCheck.checked);
+                                           updateParentsChecks(liCheck);
+                                           applyFilters();
+                                       };
+                                   })(checkbox, li));
+                                   for (var i = 0; i < node.name.length; i+=2) {
+                                       labelText += (i == 0 ? '' : ' > ') + node.name[i+1];
+                                   }
                                }
-                               var label = createElement(checkboxWithLabel, 'span', 0, name + ' ');
-                               createElement(label, 'span', 'count', node.count);
-                               addEvent(label, 'click', (function(root, liCheck, li) {
+                               var label = createElement(checkboxWithLabel, 'span', node.isNode ? 0 : 'n0', labelText + ' ');
+                               if (isRoot && scope.n.toc) {
+                                   createElement(label, 'span', 'n1', scope.n.t + ' ');
+                               }
+                               createElement(label, 'span', 'count', checkbox.numberOfResults);
+                               addEvent(label, 'click', (function(checkbox, li) {
                                    return function() {
+                                       var root;
+                                       for (root = checkbox; root.parentCheckbox; root = root.parentCheckbox);
+                                       for (var i = 0;  i < 5; i++) {
+                                           root = getParentElement(root);
+                                           if (root.tagName == 'UL') break;
+                                       }
                                        selectSubtree(root, false);
                                        selectSubtree(li, true);
-                                       updateParentsChecks(liCheck);
+                                       updateParentsChecks(checkbox);
                                        applyFilters();
                                    };
-                               })(root, checkbox, li));
+                               })(checkbox, li));
 
                                return checkboxWithLabel;
                            },
@@ -994,28 +1000,28 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
                     // showing
                     var node = results[i];
                     var resultSection = createElement(resultListArea, 'section');
-                    addHighlightedText(createElement(resultSection, 'h4'), node.title, searchWord);
-                    if (hasBreadcrumbs && node.path) {
+                    addHighlightedText(createElement(resultSection, 'h4'), node.t/*title*/, searchWord);
+                    if (hasBreadcrumbs && node.b/*breadcrumb*/) {
                         var location = createElement(resultSection, 0, 'w');
-                        for (var j = isScoped ? 2 : 0; j < node.path.length; j+=2) {
+                        for (var j = scope.n.toc ? 2 : 0; j < node.b/*breadcrumb*/.length; j+=2) {
                             var rbi = createElement(location, 'span');
-                            addHighlightedText(rbi, node.path[j+1], searchWord);
-                            if (j < node.path.length-2) {
+                            addHighlightedText(rbi, node.b/*breadcrumb*/[j+1], searchWord);
+                            if (j < node.b/*breadcrumb*/.length-2) {
                                 createElement(location, 'span', false, ' > ');
                             }
                         }
                     }
-                    addHighlightedText(createElement(resultSection, 'p'), node.desc, searchWord);
+                    addHighlightedText(createElement(resultSection, 'p'), node.d/*description*/, searchWord);
 
                     // filtering
                     resultsToFilter.push(resultSection);
-                    var resultofStart = node.href.indexOf('?resultof=');
-                    var hrefNormed = '../topic' + (resultofStart < 0 ? node.href : node.href.substring(0, resultofStart));
-                    resultsValues.push(toValue(node.path.slice(0, n.path.length).concat(hrefNormed).concat(node.title)));
+                    var resultofStart = node.h/*href*/.indexOf('?resultof=');
+                    var hrefNormed = '../topic' + (resultofStart < 0 ? node.h/*href*/ : node.h/*href*/.substring(0, resultofStart));
+                    resultsValues.push(toValue(node.b/*breadcrumb*/.slice(0, n.path.length).concat(hrefNormed).concat(node.t/*title*/)));
 
                 }
                 toMenu(searchField, resultsToFilter, results, function(d) {
-                        getElementById('c').src = baseUrl + 'topic' + d.href;
+                        getElementById('c').src = baseUrl + 'topic' + d.h/*href*/;
                     },
                     0,
                     0,
@@ -1027,7 +1033,6 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
                     1);
             }
 
-            remoteRequest(url, callback, fullSearch ? 'f' : 'p');
         }
 
         function asTree(results, path, depth) {
@@ -1037,23 +1042,23 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
             for (var i = 0; i < results.length; i++) {
                 var r = results[i];
                 r.p = i;
-                r.q = r.path.slice(0, r.path.length);
-                var resultofStart = r.href.indexOf('?resultof=');
-                r.q.push('../topic' + (resultofStart < 0 ? r.href : r.href.substring(0, resultofStart)));
-                r.q.push(r.title);
+                r.q = r.b/*breadcrumb*/.slice(0, r.b/*breadcrumb*/.length);
+                var resultofStart = r.h/*href*/.indexOf('?resultof=');
+                r.q.push('../topic' + (resultofStart < 0 ? r.h/*href*/ : r.h/*href*/.substring(0, resultofStart)));
+                r.q.push(r.t/*title*/);
 
                 // child?
-                if (!r.path || r.path.length <= path.length) {
+                if (!r.b/*breadcrumb*/ || r.b/*breadcrumb*/.length <= path.length) {
                     tree.push(r);
                     continue;
                 }
 
                 // not child -> contained in a subtree
-                var key = r.path[path.length] + '\n' + r.path[path.length+1];
+                var key = r.b/*breadcrumb*/[path.length] + '\n' + r.b/*breadcrumb*/[path.length+1];
                 if (!grouped[key]) {
                     var node = {
                         isNode: true,
-                        name: [r.path[path.length], r.path[path.length+1]],
+                        name: [r.b/*breadcrumb*/[path.length], r.b/*breadcrumb*/[path.length+1]],
                         l/*ocation*/: path.slice(0, path.length),
                         children: [r]
                     };
@@ -1072,7 +1077,7 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
                     r.count = r.children.length + (r.root ? 1 : 0);
                     continue;
                 }
-                var rootOfGroup = grouped[r.q[r.q.length-2] + '\n' + r.title];
+                var rootOfGroup = grouped[r.q[r.q.length-2] + '\n' + r.t/*title*/];
                 if (rootOfGroup) {
                     rootOfGroup.children.push(r);
                     rootOfGroup.count++;
@@ -1093,7 +1098,7 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
         }
         function compact(path, r) {
             for (var i = path.length+2; r.children.length > 0 && !r.root; i+=2) {
-                if (r.children.length == 1 && r.children[0].path.length == i) return;
+                if (r.children.length == 1 && r.children[0].b/*breadcrumb*/.length == i) return;
                 for (var j = 0; j < r.children.length; j++) {
                     var p0 = r.children[0].q;
                     var p = r.children[j].q;
@@ -1164,8 +1169,9 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
 
                 // topic (use 'setTimeout()' otherwise in Internet Explorer
                 //        'Go Back' does not work sometimes)
-                if (href)
+                if (href) {
                     setTimeout(function(){window.location.href = baseUrl + 'topic' + href}, 9);
+                }
 
                 return true;
             } catch(e) {
@@ -1646,11 +1652,9 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
         } catch (e) {}
     }
 
-    function arrayContains(array, value) {
+    function arrayContainsPrefix(array, value) {
         for (var i = 0; i < array.length; i++) {
-            if (   array[i].length > 0
-                && array[i].length <= value.length
-                && value.substring(0, array[i].length) == array[i]) return true;
+            if (array[i].length <= value.length && value.substring(0, array[i].length) == array[i]) return true;
         }
         return false;
     }
