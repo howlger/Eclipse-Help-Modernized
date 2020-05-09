@@ -723,12 +723,17 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
 
         function fullSearch(e) {
             preventDefault(e);
-            dynamicContent.s(1);
             search(1);
         }
 
         function search(fullSearch) {
             var query = getQuery();
+            if (fullSearch) {
+                dynamicContent.s(1);
+                if (query == dynamicContent.q) return;
+                setInnerHtml(dynamicContent, 'Searching...');
+                dynamicContent.scrollTop = 0;
+            }
 
             var searchWord =  searchField.value
 
@@ -792,8 +797,10 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
             function showSearchResults(results, hasBreadcrumbs, query, scope, fullSearch, searchWord) {
 
                 // show results
-                setInnerHtml(dynamicContent, '');
-                dynamicContent.scrollTop = 0;
+                if (fullSearch) {
+                    dynamicContent.q = query;
+                    setInnerHtml(dynamicContent, '');
+                }
 
                 // no results?
                 if (!results.length) {
