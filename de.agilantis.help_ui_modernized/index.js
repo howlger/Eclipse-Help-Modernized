@@ -16,23 +16,27 @@
     var TOC_SIDEBAR_WIDTH_COOKIE_NAME = 'toc_width';
     var TOC_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill-rule="evenodd" fill="currentColor" d="M19 5H1V3h18v2zm0 10H1v2h18v-2zm-4-6H1v2h14V9z" clip-rule="evenodd"/></svg>';
     var TOC_ICON_DESCRIPTION = 'Toggle table of content';
+    var TREE_HANDLE = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor" fill-rule="evenodd"/></svg>';
+    var BOOK_NAME_SHORTENER = function shortenBookName(bookName) { return bookName.replace(/\s+(Documentation\s*)?(\-\s+([0-9,\-]+\s+)?Preview(\s+[0-9,\-]+)?\s*)?$/i, ''); };
     var SEARCH_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><g fill="#fff"><path fill-rule="evenodd" fill="currentColor" d="M 7.5 0 C 3.3578644 0 0 3.3578644 0 7.5 C 0 11.642136 3.3578644 15 7.5 15 C 8.8853834 14.997 10.242857 14.610283 11.421875 13.882812 L 17.185547 19.662109 C 17.632478 20.113489 18.36112 20.112183 18.8125 19.660156 L 19.623047 18.845703 C 20.072507 18.398153 20.072507 17.665594 19.623047 17.214844 L 13.871094 11.447266 C 14.607206 10.26212 14.998156 8.8951443 15 7.5 C 15 3.3578644 11.642136 0 7.5 0 z M 7.5 2 A 5.5 5.5 0 0 1 13 7.5 A 5.5 5.5 0 0 1 7.5 13 A 5.5 5.5 0 0 1 2 7.5 A 5.5 5.5 0 0 1 7.5 2 z" clip-rule="evenodd"/></g></svg>';
     var SEARCH_FIELD_DESCRIPTION = '* = any string\n? = any character\n"" = phrase\nAND, OR & NOT = boolean operators';
     var SEARCH_FIELD_PLACEHOLDER = 'Search';
     var SEARCH_HITS_MAX = 500;
-    var SEARCH_INSTANT_PROPOSAL_MAX = 7;
+    var SEARCH_AS_YOU_TYPE_PROPOSAL_MAX = 7;
     var SEARCH_RESULTS_PATTERN = new RegExp('<tr[^<]*<td[^<]*<img[^<]*</td[^<]*<td[^<]*<a\\s+(?:(?:class|id|title|onmouseover|onmouseout)\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*href="([^"]*)"(?:\\s+o\\w+="[^"]*")*\\s+title="([^"]*)"[^>]*>([^<]*)</a>(?:(?:(?!<[/]?tr)[\\s\\S])*</tr\\s*>\\s*<tr(?:(?!</tr)(?!class="location">)[\\s\\S])*class="location">((?:(?!</div)[\\s\\S])*))?(?:(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*</tr){1,2}(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*\\sclass=["\']description["\'][^>]*>([^<]*)', 'g');
     var SEARCH_RESULTS_BREADCRUMB_SNIPPET_PATTERN = new RegExp('<a\\s+href="([^"]+)">([^<]+)</a>', 'g');
-
-    var TREE_HANDLE = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor" fill-rule="evenodd"/></svg>';
-    var BOOK_NAME_SHORTENER = function shortenBookName(bookName) { return bookName.replace(/\s+(Documentation\s*)?(\-\s+([0-9,\-]+\s+)?Preview(\s+[0-9,\-]+)?\s*)?$/i, ''); };
+    var SEARCH_AS_YOU_TYPE_CACHE_SIZE = 7;
+    var SEARCH_FULL_SEARCH_CACHE_SIZE = 3;
+    var SEARCH_DELAY_IN_MILLISECOND = 99;
+    var SEARCH_CACHE = {fi: -1, f: [], ti: -1, t: [] };
 
     // TODO integration: the browser should not have to calculate the following variables itself;
     //                   only "init()" should be called instead
     var iconExtension = '.svg';
     var title = 'Help';
 
-    var dynamicContent;
+    var searchPage;
+    var currentSearch = {};
 
     addEvent(window, 'load', function() {
 
@@ -64,12 +68,12 @@
     function init() {
 
         // dynamic content area
-        dynamicContent = createElement(getElementById('m'), 0, 'c', 'Loading...');
-        dynamicContent.s = function(show) {
-            dynamicContent.style.display = show ? 'block' : 'none';
+        searchPage = createElement(getElementById('m'), 0, 'c', 'Loading...');
+        searchPage.s = function(show) {
+            searchPage.style.display = show ? 'block' : 'none';
             getElementById('c').style.display = show ? 'none' : 'block';
         }
-        dynamicContent.s(0);
+        searchPage.s(0);
 
         // TOC sidebar button
         var header = getElementById('h');
@@ -297,7 +301,7 @@
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
-    // Instant search
+    // Search: search-as-you-type ('t') and full search ('f')
 
     function createSearchField(bookNodes, defaultBook, showMore) {
         var scope = {n: {}};
@@ -368,7 +372,7 @@
             scope = bookNode;
             if (scope.n.toc) booksButtonText.appendChild(document.createTextNode(BOOK_NAME_SHORTENER(bookNode.n.t)));
             setClassName(dropDownHandle, scope.n.toc ? 'd' : 'de');
-            updateProposals();
+            search();
         }
 
         toMenu(booksButton, menuItems, bookNodesIncludingAll, setBook);
@@ -384,12 +388,12 @@
         searchField.title = SEARCH_FIELD_DESCRIPTION;
         searchField.autocomplete = 'off';
         searchField.placeholder = SEARCH_FIELD_PLACEHOLDER;
-        addEvent(searchField, 'input', updateProposals); // for IE 8 do also on 'propertychange'
+        addEvent(searchField, 'input', search); // for IE 8 do also on 'propertychange'
 
         var searchButton = createElement(searchFieldArea, 'button', 'b');
         setInnerHtml(searchButton, SEARCH_ICON);
-        addEvent(searchFieldArea, 'submit', fullSearch);
-addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
+        addEvent(searchFieldArea, 'submit', function(e) {preventDefault(e); search(e, 1);});
+addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
 
         // hint
         var hintField = createElement(wrap, 'input', 'qh');
@@ -441,300 +445,16 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
         // focus search field
         searchField.focus();
 
-        // TODO remove dummies
         var baseUrl = window.INTEGRATED ? '' : '../../';
-        var callbackUrl = 'advanced/searchView.jsp?';
 
-        var cache = {};
-        var currentQuery = '';
         var isKeySelectionMode = false;
 
-        function updateProposals() {
+        function search(e, fullSearch) {
+            var noPendingQueries = !currentSearch[getSearchTypeId(fullSearch)];
 
-//            // remember query to restor on page reload
-//            document.getElementById('b').value = document.getElementById('ehs-q').value;
-
-            // callback required?
+            // get query and remember it to detect stale responses
             var query = getQuery();
-            searchFieldAreaContainsQuery = query.length;
-            if (query == currentQuery) {
-                if (cache[query]) renderProposals(cache[query], true, true);
-                return;
-            }
-            currentQuery = query;
-
-            // hide hint
-            hintField.value = '';
-
-            // query empty?
-            if (query.length == 0) {
-                hideProposals();
-                return;
-            }
-
-            // cached?
-            var cached = cache[query];
-            if (cached) {
-                renderProposals(cached, true);
-                return;
-            }
-
-            // interim results: cached elements with matching title
-            var interimResults = [currentQuery];
-            var interimResultsHrefs = {};
-            var wordBeginRegEx = queryToRegEx(currentQuery);
-            var queryPart = currentQuery.indexOf('&') < 0
-                            ? currentQuery
-                            : currentQuery.substr(0, currentQuery.indexOf('&'));
-            // TODO first search in cached results of part of query
-            loop: for(var key in cache) {
-                var lines = cache[key];
-                for (var i = 1; i < lines.length-2; i+=4) {
-                    var match = wordBeginRegEx.exec(lines[i]);
-                    if (match) {
-                        var hrefEnd = lines[i+2].lastIndexOf('?resultof=');
-                        var href = hrefEnd < 0
-                                   ? lines[i+2]
-                                   : lines[i+2].substring(0, hrefEnd);
-                        if (interimResultsHrefs[href]) continue;
-                        interimResultsHrefs[href] = true;
-                        interimResults.push(lines[i]);
-                        interimResults.push(lines[i+1]);
-                        interimResults.push(href); // TODO add ?resultof=...
-                        interimResults.push(lines[i+3]);
-
-                        // enough results?
-                        if (interimResults.length > SEARCH_INSTANT_PROPOSAL_MAX * 4) break loop;
-                    }
-                }
-            }
-            if (interimResults.length > 1) {
-                renderProposals(interimResults, false);
-            }
-
-            // remote callback
-            var url =
-                  baseUrl
-                + callbackUrl
-                + 'searchWord='
-                + query.replace(/(\&|$)/, '*$1')
-                + '&maxHits='
-                + SEARCH_INSTANT_PROPOSAL_MAX
-                + (query.indexOf('&toc=') < 0 ? '' : '&quickSearch=true&quickSearchType=QuickSearchToc');
-            remoteRequest(url, callback, 'i');
-
-        }
-
-        function callback(data) {
-            var element = createElement(null, 'div');
-            var match = new RegExp('window.location.replace[^\\?]*\\?([^"]*)').exec(data);
-            if (match == null) return;
-            element.innerHTML = match[1].replace(/\\u([0-9A-F]{4})/g,'&#x$1;');
-            var lines = [(element.textContent ? element.textContent : element.innerText).replace(/\*(?=\&)|(^searchWord=)|(\&maxHits=.+$)/g,'')];
-            for (; (match = SEARCH_RESULTS_PATTERN.exec(data)) != null;) {
-                var items = [];
-                for (var i = 1; i < 5; i++) {
-                    element.innerHTML = match[i];
-                    items.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
-                }
-                lines.push(items[2]);
-                lines.push(items[4] ? items[4] : items[3]);
-                lines.push(items[0].substring(8));
-                lines.push(items[1]);
-            }
-            if (lines.length < 1) return;
-
-            renderProposals(lines, true);
-
-            // update cache
-            cache[lines[0]] = lines;
-        }
-
-//        function prefetch(data) {
-//            var blocks = data.split('\n');
-//            for (var i = 0; i < blocks.length; i++) {
-//                var lines = blocks[i].split('\t');
-//                if (lines.length < 1) continue;
-//                cache[lines[0]] = lines;
-//            }
-//        }
-
-        function renderProposals(lines, done, hintOnly) {
-
-            // actual callback?
-            if (lines[0] != currentQuery) return;
-
-            // hint
-            var wordBeginRegEx = queryToRegEx(lines[0]);
-            var newHints = {};
-            var rankingUnit = 1 / lines.length;
-            var queryLength = lines[0].indexOf('&') < 0
-                              ? lines[0].length
-                              : lines[0].indexOf('&');
-            for (var i = 1; i < lines.length-2 && queryLength < 36; i+=4) {
-                var match = wordBeginRegEx.exec(lines[i]);
-                if (match) {
-                    var pHint = match[0].toLowerCase();
-                    newHints[pHint] =   (newHints[pHint] ? newHints[pHint] : 0)
-                                      + (1 + (lines.length - i) / lines.length) / lines.length;
-                }
-                match = wordBeginRegEx.exec(lines[i+1]);
-                if (match) {
-                    var pHint = match[0].toLowerCase();
-                    newHints[pHint] =   (newHints[pHint] ? newHints[pHint] : 0)
-                                      + (0.7 + (lines.length - i) / lines.length) / lines.length;
-                }
-            }
-            var allHints = [];
-            for (var i in newHints) {
-                if (newHints[i] < 1.8 / lines.length) continue;
-                allHints.push(newHints[i].toFixed(7) + i);
-            }
-            allHints.sort().reverse();
-            hintField.value = allHints.length > 0
-                              ? searchField.value + wordBeginRegEx.exec(allHints[0].substring(9))[1]
-                              : '';
-            if (hintOnly) return;
-
-            // search word(s)
-            var searchWord = lines[0].indexOf('&') < 0
-                             ? lines[0]
-                             : lines[0].substr(0, lines[0].indexOf('&'));
-            searchWord = decodeURIComponent(searchWord.replace(/\+/g, '%20'));
-
-            // proposals
-            var newUl = createElement(null, 'ul');
-            if (!done) newUl.setAttribute('style', 'opacity:0.5;');
-            var items = [];
-            var data = [];
-            var searchWordLength = lines[0].indexOf('&toc=') > 0
-                                   ? decodeURIComponent(lines[0].substring(0, lines[0].indexOf('&toc='))).length
-                                   : decodeURIComponent(lines[0]).length;
-            for (var i = 0; i < allHints.length && i < 3; i++) {
-                var hintText = allHints[i].substring(9);
-                var li = createElement(newUl, 'li')
-                var spacerElementStyle = createElement(li, 'span').style;
-                spacerElementStyle.display = 'inline-block';
-                spacerElementStyle.width = booksButton.offsetWidth + 'px';
-                createElement(li, 'span', null, hintText.substring(0, searchWordLength));
-                createElement(li, 'strong', null, hintText.substring(searchWordLength));
-                items.push(li);
-                data.push([hintText]);
-            }
-            for (var i = 1; i < lines.length-2; i+=4) {
-                var nr = (i - 1) / 4;
-                var li = createElement(newUl, 'li');
-                items.push(li);
-                data.push([lines[0], lines[i+2]]);
-                var btDiv = createElement(li, 'div', 'v');
-
-                // show book title only if no book scope
-                if (!scope.n.toc) {
-                    var bookDiv = createElement(btDiv, 'div', 'w', lines[i+3]);
-//                    bookDiv.onmouseup = (function(tocName) {
-//                        return function(e) {
-//                            stopPropagation(e);
-//                            if (!books) return;
-//                            for (var i = 0; i < books.length; i+=3) {
-//                                if (tocName == books[i]) {
-//                                    var bookName = books[i];
-//                                    if (bookNameShortener) {
-//                                        bookName = bookNameShortener(bookName);
-//                                    }
-//                                    setBook(bookName, books[i+1], books[i+2]);
-//                                    return;
-//                                }
-//                            }
-//                        }
-//                    })(lines[i+3]);
-                    bookDiv.ontouchend = function(e) {stopPropagation(e)};
-                }
-
-                var titleDiv = createElement(btDiv, 'div', 't');
-                addHighlightedText(titleDiv, lines[i], searchWord);
-                var descDiv = createElement(li, 'div', 'l', null);
-                addHighlightedText(descDiv, unencodeHtmlContent(lines[i+1]), searchWord);
-
-                // preview on hovering
-                li.ontouchmove = function(a) { return function() {
-                    a.canceled = 'x';
-                }}(li);
-            }
-
-            searchField.hasFocus = true;
-            toMenu(searchField, items, data, function(d) {
-
-                // apply hint
-                if (d.length < 2) {
-                    hintField.value = '';
-                    searchField.value = d;
-                    updateProposals();
-                    return;
-                }
-
-                // show search result
-                var searchWord = d[0];
-                var toc;
-                var tocStart = searchWord.indexOf('&toc=');
-                if (tocStart > 0) {
-                    toc = decodeURIComponent(searchWord.substring(tocStart + 5));
-                    searchWord = searchWord.substring(0, tocStart);
-                }
-                if (searchSearchWord(searchWord + '*', toc, d[1], false, true)) return;
-                getElementById('c').src = baseUrl + 'topic' + d[1];
-                hideProposals();
-
-            },
-            function(d, key) {
-
-                // empty search field?
-                if (!searchField.value) return false;
-
-                // ignore RIGHT (key: 39) if cursor not at the end
-                if (   key == 39
-                    && searchField
-                    && searchField.selectionStart
-                    && searchField.value
-                    && searchField.value.length != searchField.selectionStart)
-                    return false;
-
-                if (d && d.length > 0 && d[0].length < 2) {
-                    searchField.value = d[0][0];
-                    updateProposals();
-                    return true;
-                }
-                return false;
-            },
-            hideProposals,
-            function(a, b) {
-                if (b.length < 2 || a.armed) return;
-                a.armed = true;
-                var iFrame = createElement(a, 'iframe', 'f');
-                iFrame.frameBorder = 0;
-
-                // TODO handle absolute paths
-                iFrame.src = baseUrl + 'topic' + b[1];
-            });
-
-            proposals.removeChild(proposals.firstChild);
-            if (lines.length > 1) showProposals(); else hideProposals();
-            proposals.appendChild(newUl);
-        }
-
-        function fullSearch(e) {
-            preventDefault(e);
-            search(1);
-        }
-
-        function search(fullSearch) {
-            var query = getQuery();
-            if (fullSearch) {
-                dynamicContent.s(1);
-                if (query == dynamicContent.q) return;
-                setInnerHtml(dynamicContent, 'Searching...');
-                dynamicContent.scrollTop = 0;
-            }
-
+            currentSearch[getSearchTypeId(fullSearch)] = query;
             var searchWord =  searchField.value
 
                                   // trim
@@ -743,21 +463,67 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
                                   // TODO if Eclipse bug 351077 (https://bugs.eclipse.org/351077), remove following line
                                   .replace(/\-([^\-\s]*$)/ig, ' $1');
 
-            if (!searchWord.length) return;
+            if (fullSearch) {
+                currentSearch['t'] = 0;
+                hideProposals();
+            } else {
+
+                // hide hint
+                hintField.value = '';
+
+            }
+
+            // empty search?
+            searchFieldAreaContainsQuery = searchWord.length;
+            updateSearchFieldAreaClass();
+            if (!searchWord.length) {
+                if (!fullSearch) {
+                    hideProposals();
+                }
+                return;
+            }
+
+            // init UI
+            if (fullSearch) {
+                searchPage.s(1);
+                if (query == searchPage.q) return;
+                setInnerHtml(searchPage, 'Searching...');
+                searchPage.scrollTop = 0;
+            }
+
+            // cached?
+            var cache = SEARCH_CACHE[getSearchTypeId(fullSearch)];
+            for (var i = 0; i < cache.length; i++) {
+                var r = cache[i];
+                if (query == r.q) {
+                    renderResults(fullSearch, r.r, r.b, query, scope, searchWord);
+                    return;
+                }
+            }
+
+            // submit query to server
             var query =   encodeURIComponent(searchWord.toLowerCase()).replace(/(%20){1,}/g, '+')
                         + (scope.n.toc ? '&toc=' + encodeURIComponent(scope.n.toc).replace(/%20/g, '+') : '');
             var url =   baseUrl
-                      + callbackUrl
-                      + 'searchWord='
+                      + 'advanced/searchView.jsp?searchWord='
                       + query.replace(/(\&|$)/, (fullSearch ? '' : '*') + '$1')
                       + '&maxHits='
-                      + (fullSearch ? SEARCH_HITS_MAX : SEARCH_INSTANT_PROPOSAL_MAX)
+                      + (fullSearch ? SEARCH_HITS_MAX : SEARCH_AS_YOU_TYPE_PROPOSAL_MAX)
                       + (query.indexOf('&toc=') < 0 ? '' : '&quickSearch=true&quickSearchType=QuickSearchToc');
+            if (noPendingQueries) {
+                remoteRequest(url, callbackFor(fullSearch, query, scope, searchWord), getSearchTypeId(fullSearch));
+            } else {
+                setTimeout(function() {
 
-            remoteRequest(url, callbackFor(fullSearch, query, scope, searchWord), fullSearch ? 'f' : 'p');
+                    // remote request if and only if not staled/outdated
+                    if (query == currentSearch[getSearchTypeId(fullSearch)])
+                        remoteRequest(url, callbackFor(fullSearch, query, scope, searchWord), getSearchTypeId(fullSearch));
+
+                }, SEARCH_DELAY_IN_MILLISECOND);
+            }
 
             function callbackFor(fullSearch, query, scope, searchWord) {
-                return function (data) {
+                return function(data) {
 
                     // progress bar (not yet indexed)?
                     if (!new RegExp('window.location.replace[^\\?]*\\?([^"]*)').exec(data)) return;
@@ -790,31 +556,190 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
                         });
                     }
 
-                    showSearchResults(results, hasBreadcrumbs, query, scope, fullSearch, searchWord);
+                    // cache parsed results
+                    var queryResult = {
+                        r/*results*/: results,
+                        b/*has breadcrumbs*/: hasBreadcrumbs,
+                        q/*query*/: query
+                    }
+                    var cache = SEARCH_CACHE[getSearchTypeId(fullSearch)];
+                    var cacheIndexId = getSearchTypeId(fullSearch) + 'i';
+                    var cacheSize = fullSearch ? SEARCH_FULL_SEARCH_CACHE_SIZE : SEARCH_AS_YOU_TYPE_CACHE_SIZE;
+                    SEARCH_CACHE[cacheIndexId] = (SEARCH_CACHE[cacheIndexId] + 1) % cacheSize;
+                    if (cache.length < cacheSize) {
+                        cache.push(queryResult);
+                    } else {
+                        cache[SEARCH_CACHE[cacheIndexId]] = queryResult;
+                    }
+
+                    renderResults(fullSearch, results, hasBreadcrumbs, query, scope, searchWord);
                 }
+
             }
 
-            function showSearchResults(results, hasBreadcrumbs, query, scope, fullSearch, searchWord) {
+            function renderResults(fullSearch, results, hasBreadcrumbs, query, scope, searchWord) {
+
+                // staled?
+                if (query != currentSearch[getSearchTypeId(fullSearch)]) return;
 
                 // show results
-                if (fullSearch) {
-                    dynamicContent.q = query;
-                    setInnerHtml(dynamicContent, '');
-                }
-
-                // no results?
-                if (!results.length) {
-                    var noResults = createElement(dynamicContent, 0, 'nn', 'No results found for ');
-                    createElement(noResults, 'strong', 0, searchWord);
-                    return;
-                }
-
-                var resultsPage = createElement(dynamicContent, 0, 'n');
-                var filterTree = asTree(results, scope.n.toc ? results[0].b/*breadcrumb*/.slice(0, 2) : [], 9, true);
+                var resultList;
+                var items = []; // TODO replace with resultList.childNodes
+                var data = [];  // TODO add to item
                 var filters = [];
                 var filterValues = [];
                 var resultsToFilter = [];
                 var resultsValues = [];
+                if (fullSearch) {
+                    searchPage.q = query;
+                    setInnerHtml(searchPage, '');
+
+                    // no results?
+                    if (!results.length) {
+                        var noResults = createElement(searchPage, 0, 'nn', 'No results found for ');
+                        createElement(noResults, 'strong', 0, searchWord);
+                        return;
+                    }
+
+                    // filter tree
+                    var resultsPage = createElement(searchPage, 0, 'n');
+                    var filterTree = asTree(results, scope.n.toc ? results[0].b/*breadcrumb*/.slice(0, 2) : [], 9, true);
+                    createTree(resultsPage,
+
+                        // content provider
+                        function(node, processChildrenFn) {
+                            if (!node) {
+                                processChildrenFn([{ n/*ode*/: {children: filterTree}, l/*eaf*/: 0 }], 1);
+                                return;
+                            }
+                            var children = [];
+                            for (var i = 0; i < (node.isNode ? node.children.length : filterTree.length); i++) {
+                                var childNode = node ? node.children[i] : filterTree[i];
+                                if (childNode.isNode) {
+                                    var isLeaf = 1;
+                                    for (var j = 0; j < childNode.children.length; j++) {
+                                        if (childNode.children[j].isNode) {
+                                            isLeaf = 0;
+                                            break;
+                                        }
+                                    }
+                                    children.push({ n/*ode*/: childNode, l/*eaf*/: isLeaf });
+                                    childNode.p/*arent*/ = node;
+                                }
+                            }
+                            processChildrenFn(children);
+                        },
+
+                        // label provider
+                        function(li, node) {
+                            var isRoot = !node.isNode;
+
+                            // checkbox
+                            var checkboxWithLabel = createElement(li);
+                            var checkbox = createElement(checkboxWithLabel, 'input', 0);
+                            checkbox.type = 'checkbox';
+                            checkbox.checked = node.p ? node.p.x.checked : true;
+                            node.x = checkbox;
+                            if (node.p) {
+                                checkbox.parentCheckbox = node.p.x;
+                            }
+                            checkbox.numberOfResults = isRoot ? results.length : node.count;
+                            filters.push(checkbox);
+                            filterValues.push(isRoot ? '' : toValue(node.l.concat(node.name)));
+
+                            // label
+                            var labelText = '';
+                            if (isRoot) {
+                                checkbox.style.display = 'none';
+                                labelText = 'Results ' + (scope.n.toc ? 'in ' : '');
+                            } else {
+                                addEvent(checkbox, 'click', (function(liCheck, li) {
+                                    return function() {
+                                        selectSubtree(li, liCheck.checked);
+                                        updateParentsChecks(liCheck);
+                                        applyFilters();
+                                    };
+                                })(checkbox, li));
+                                for (var i = 0; i < node.name.length; i+=2) {
+                                    labelText += (i == 0 ? '' : ' > ') + node.name[i+1];
+                                }
+                            }
+                            var label = createElement(checkboxWithLabel, 'span', node.isNode ? 0 : 'n0', labelText + ' ');
+                            if (isRoot && scope.n.toc) {
+                                createElement(label, 'span', 'n1', scope.n.t + ' ');
+                            }
+                            createElement(label, 'span', 'count', checkbox.numberOfResults);
+                            addEvent(label, 'click', (function(checkbox, li) {
+                                return function() {
+                                    var root;
+                                    for (root = checkbox; root.parentCheckbox; root = root.parentCheckbox);
+                                    for (var i = 0;  i < 5; i++) {
+                                        root = getParentElement(root);
+                                        if (root.tagName == 'UL') break;
+                                    }
+                                    selectSubtree(root, false);
+                                    selectSubtree(li, true);
+                                    updateParentsChecks(checkbox);
+                                    applyFilters();
+                                };
+                            })(checkbox, li));
+
+                            return checkboxWithLabel;
+                        },
+                        0);
+
+                    // where the results to be shown
+                    resultList = createElement(resultsPage);
+
+                } else {
+
+                    // no results?
+                    if (!results.length) return;
+
+                    // hint
+                    var wordBeginRegEx = queryToRegEx(query);
+                    var newHints = {};
+                    var rankingUnit = 1 / results.length;
+                    for (var i = 0; i < results.length && searchWord.length < 36; i++) {
+                        var match = wordBeginRegEx.exec(results[i].t/*title*/);
+                        if (match) {
+                            var pHint = match[0].toLowerCase();
+                            newHints[pHint] =   (newHints[pHint] ? newHints[pHint] : 0)
+                                              + (1 + (results.length - i) / results.length) / results.length;
+                        }
+                        match = wordBeginRegEx.exec(results[i].d/*description*/);
+                        if (match) {
+                            var pHint = match[0].toLowerCase();
+                            newHints[pHint] =   (newHints[pHint] ? newHints[pHint] : 0)
+                                              + (0.7 + (results.length - i) / results.length) / results.length;
+                        }
+                    }
+                    var allHints = [];
+                    for (var i in newHints) {
+                        if (newHints[i] < 1.8 / results.length) continue;
+                        allHints.push(newHints[i].toFixed(7) + i);
+                    }
+                    allHints.sort().reverse();
+                    hintField.value = allHints.length > 0
+                                      ? searchField.value + wordBeginRegEx.exec(allHints[0].substring(9))[1]
+                                      : '';
+
+                    // query proposals
+                    resultList = createElement(0, 'ul');
+                    for (var i = 0; i < allHints.length && i < 3; i++) {
+                        var hintText = allHints[i].substring(9);
+                        var li = createElement(resultList, 'li')
+                        var spacerElementStyle = createElement(li, 'span').style;
+                        spacerElementStyle.display = 'inline-block';
+                        spacerElementStyle.width = booksButton.offsetWidth + 'px';
+                        createElement(li, 'span', null, hintText.substring(0, searchWord.length));
+                        createElement(li, 'strong', null, hintText.substring(searchWord.length));
+                        items.push(li);
+                        data.push([hintText]);
+                    }
+
+                }
+
                 function toValue(path) {
                     var result = '';
                     for (var i = 0; i < path.length; i++) result += (i > 0 ? '\n' : '') + path[i];
@@ -916,130 +841,145 @@ addEvent(getElementById('c'), 'load', function() {dynamicContent.s(0);});
                     }
                 }
 
-                createTree(resultsPage,
-
-                           // filter tree content provider
-                           function(node, processChildrenFn) {
-                               if (!node) {
-                                   processChildrenFn([{ n/*ode*/: {children: filterTree}, l/*eaf*/: 0 }], 1);
-                                   return;
-                               }
-                               var children = [];
-                               for (var i = 0; i < (node.isNode ? node.children.length : filterTree.length); i++) {
-                                   var childNode = node ? node.children[i] : filterTree[i];
-                                   if (childNode.isNode) {
-                                       var isLeaf = 1;
-                                       for (var j = 0; j < childNode.children.length; j++) {
-                                           if (childNode.children[j].isNode) {
-                                               isLeaf = 0;
-                                               break;
-                                           }
-                                       }
-                                       children.push({ n/*ode*/: childNode, l/*eaf*/: isLeaf });
-                                       childNode.p/*arent*/ = node;
-                                   }
-                               }
-                               processChildrenFn(children);
-                           },
-
-                           // filter tree label provider
-                           function(li, node) {
-                               var isRoot = !node.isNode;
-
-                               // checkbox
-                               var checkboxWithLabel = createElement(li);
-                               var checkbox = createElement(checkboxWithLabel, 'input', 0);
-                               checkbox.type = 'checkbox';
-                               checkbox.checked = node.p ? node.p.x.checked : true;
-                               node.x = checkbox;
-                               if (node.p) {
-                                   checkbox.parentCheckbox = node.p.x;
-                               }
-                               checkbox.numberOfResults = isRoot ? results.length : node.count;
-                               filters.push(checkbox);
-                               filterValues.push(isRoot ? '' : toValue(node.l.concat(node.name)));
-
-                               // label
-                               var labelText = '';
-                               if (isRoot) {
-                                   checkbox.style.display = 'none';
-                                   labelText = 'Results ' + (scope.n.toc ? 'in ' : '');
-                               } else {
-                                   addEvent(checkbox, 'click', (function(liCheck, li) {
-                                       return function() {
-                                           selectSubtree(li, liCheck.checked);
-                                           updateParentsChecks(liCheck);
-                                           applyFilters();
-                                       };
-                                   })(checkbox, li));
-                                   for (var i = 0; i < node.name.length; i+=2) {
-                                       labelText += (i == 0 ? '' : ' > ') + node.name[i+1];
-                                   }
-                               }
-                               var label = createElement(checkboxWithLabel, 'span', node.isNode ? 0 : 'n0', labelText + ' ');
-                               if (isRoot && scope.n.toc) {
-                                   createElement(label, 'span', 'n1', scope.n.t + ' ');
-                               }
-                               createElement(label, 'span', 'count', checkbox.numberOfResults);
-                               addEvent(label, 'click', (function(checkbox, li) {
-                                   return function() {
-                                       var root;
-                                       for (root = checkbox; root.parentCheckbox; root = root.parentCheckbox);
-                                       for (var i = 0;  i < 5; i++) {
-                                           root = getParentElement(root);
-                                           if (root.tagName == 'UL') break;
-                                       }
-                                       selectSubtree(root, false);
-                                       selectSubtree(li, true);
-                                       updateParentsChecks(checkbox);
-                                       applyFilters();
-                                   };
-                               })(checkbox, li));
-
-                               return checkboxWithLabel;
-                           },
-                           0);
-
-                // results listed
-                var resultListArea = createElement(resultsPage);
+                // list results
                 for (var i = 0; i < results.length; i++) {
 
-                    // showing
                     var node = results[i];
-                    var resultSection = createElement(resultListArea, 'section');
-                    addHighlightedText(createElement(resultSection, 'h4'), node.t/*title*/, searchWord);
-                    if (hasBreadcrumbs && node.b/*breadcrumb*/) {
-                        var location = createElement(resultSection, 0, 'w');
-                        for (var j = scope.n.toc ? 2 : 0; j < node.b/*breadcrumb*/.length; j+=2) {
-                            var rbi = createElement(location, 'span');
-                            addHighlightedText(rbi, node.b/*breadcrumb*/[j+1], searchWord);
-                            if (j < node.b/*breadcrumb*/.length-2) {
-                                createElement(location, 'span', false, ' > ');
+                    if (fullSearch) {
+                        // result
+                        var resultSection = createElement(resultList, 'section');
+                        addHighlightedText(createElement(resultSection, 'h4'), node.t/*title*/, searchWord);
+                        if (hasBreadcrumbs && node.b/*breadcrumb*/) {
+                            var location = createElement(resultSection, 0, 'w');
+                            for (var j = scope.n.toc ? 2 : 0; j < node.b/*breadcrumb*/.length; j+=2) {
+                                var rbi = createElement(location, 'span');
+                                addHighlightedText(rbi, node.b/*breadcrumb*/[j+1], searchWord);
+                                if (j < node.b/*breadcrumb*/.length-2) {
+                                    createElement(location, 'span', false, ' > ');
+                                }
                             }
                         }
-                    }
-                    addHighlightedText(createElement(resultSection, 'p'), node.d/*description*/, searchWord);
+                        addHighlightedText(createElement(resultSection, 'p'), node.d/*description*/, searchWord);
 
-                    // filtering
-                    resultsToFilter.push(resultSection);
-                    var resultofStart = node.h/*href*/.indexOf('?resultof=');
-                    var hrefNormed = '../topic' + (resultofStart < 0 ? node.h/*href*/ : node.h/*href*/.substring(0, resultofStart));
-                    resultsValues.push(toValue(node.b/*breadcrumb*/.slice(0, n.path.length).concat(hrefNormed).concat(node.t/*title*/)));
+                        // filtering
+                        resultsToFilter.push(resultSection);
+                        var resultofStart = node.h/*href*/.indexOf('?resultof=');
+                        var hrefNormed = '../topic' + (resultofStart < 0 ? node.h/*href*/ : node.h/*href*/.substring(0, resultofStart));
+                        resultsValues.push(toValue(node.b/*breadcrumb*/.slice(0, n.path.length).concat(hrefNormed).concat(node.t/*title*/)));
+
+                    } else {
+
+                        var li = createElement(resultList, 'li');
+                        items.push(li);
+                        data.push([node.t/*title*/, node.h/*href*/]);
+                        var btDiv = createElement(li, 'div', 'v');
+
+                        // show book title only if no book scope
+                        if (!scope.n.toc) {
+                            createElement(btDiv, 'div', 'w', node.b/*breadcrumb*/[1]);
+                        }
+                        var titleDiv = createElement(btDiv, 'div', 't');
+                        addHighlightedText(titleDiv, node.t/*title*/, searchWord);
+                        var descDiv = createElement(li, 'div', 'l', null);
+                        addHighlightedText(descDiv, unencodeHtmlContent(node.d/*description*/), searchWord);
+
+                        // preview on hovering
+                        li.ontouchmove = function(a) { return function() {
+                            a.canceled = 'x';
+                        }}(li);
+
+                    }
 
                 }
-                toMenu(searchField, resultsToFilter, results, function(d) {
-                        getElementById('c').src = baseUrl + 'topic' + d.h/*href*/;
-                    },
-                    0,
-                    0,
-                    function(item, data, viaMouse) {
-                        if (!viaMouse) {
-                            scrollIntoViewIfNeeded(dynamicContent, item);
-                        }
-                    },
-                    1);
+
+                // add key support (and show proposals)
+                if (fullSearch) {
+                    toMenu(searchField, resultsToFilter, results, function(d) {
+                            getElementById('c').src = baseUrl + 'topic' + d.h/*href*/;
+                        },
+                        0,
+                        0,
+                        function(item, data, viaMouse) {
+                            if (!viaMouse) {
+                                scrollIntoViewIfNeeded(searchPage, item);
+                            }
+                        },
+                        1);
+                } else {
+
+                    // key support
+                    toMenu(searchField, items, data, function(d) {
+
+                            // apply hint
+                            if (d.length < 2) {
+                                hintField.value = '';
+                                searchField.value = d;
+                                search();
+                                return;
+                            }
+
+                            // show search result
+                            var searchWord = d[0];
+                            var toc;
+                            var tocStart = searchWord.indexOf('&toc=');
+                            if (tocStart > 0) {
+                                toc = decodeURIComponent(searchWord.substring(tocStart + 5));
+                                searchWord = searchWord.substring(0, tocStart);
+                            }
+                            if (searchSearchWord(searchWord + '*', toc, d[1], false, true)) return;
+                            getElementById('c').src = baseUrl + 'topic' + d[1];
+                            hideProposals();
+
+                        },
+                        function(d, key) {
+
+                            // empty search field?
+                            if (!searchField.value) return false;
+
+                            // ignore RIGHT (key: 39) if cursor not at the end
+                            if (   key == 39
+                                && searchField
+                                && searchField.selectionStart
+                                && searchField.value
+                                && searchField.value.length != searchField.selectionStart)
+                                return false;
+
+                            if (d && d.length > 0 && d[0].length < 2) {
+                                searchField.value = d[0][0];
+                                search();
+                                return true;
+                            }
+                            return false;
+                        },
+                        hideProposals,
+                        function(a, b) {
+                            if (b.length < 2 || a.armed) return;
+                            a.armed = true;
+                            var iFrame = createElement(a, 'iframe', 'f');
+                            iFrame.frameBorder = 0;
+
+                            // TODO handle absolute paths
+                            iFrame.src = baseUrl + 'topic' + b[1];
+                        });
+
+                    // show proposals
+                    proposals.removeChild(proposals.firstChild);
+                    proposals.appendChild(resultList);
+                    showProposals();
+
+                }
+
+                // done (no pending queries)
+                if (query == currentSearch[getSearchTypeId(fullSearch)]) {
+                    currentSearch[getSearchTypeId(fullSearch)] = 0;
+                }
+
             }
 
+        }
+
+        function getSearchTypeId(fullSearch) {
+            return fullSearch ? 'f' : 't';
         }
 
         function asTree(results, path, depth) {
