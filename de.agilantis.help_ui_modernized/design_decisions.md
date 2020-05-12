@@ -29,3 +29,12 @@ setTimeout(function(data) { return function() {processData(data)}}(data), 1000);
 };
 function processData(data) {
 ```
+## Issues caused by `<iframe>`
+
+To catch mouse and click events (for slider and drop-down menues) add an overlay element covering the whole page (see `createOverlay()`).
+
+Debug overlay by adding the following line after the line `overlayStyle.width = '100%';`:
+
+```
+overlayStyle.background = 'rgba(200, 100, 100, .2)';
+```

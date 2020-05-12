@@ -309,6 +309,7 @@
 
         // create overlay required for closing proposals drop-down even when clicking into the content iframe
         var overlay = createOverlay();
+        addEvent(overlay, 'click', hideProposals);
 
         // area (containing scope drop-down, search field and button)
         // "searchFieldAreaWrapper" as workaround for sub-pixel problem in Firefox (1px border might become 0.8px border
@@ -390,6 +391,7 @@
         searchField.autocomplete = 'off';
         searchField.placeholder = SEARCH_FIELD_PLACEHOLDER;
         addEvent(searchField, 'input', search); // for IE 8 do also on 'propertychange'
+        addEvent(searchField, 'focus', search);
 
         var searchButton = createElement(searchFieldArea, 'button', 'b');
         setInnerHtml(searchButton, SEARCH_ICON);
@@ -439,8 +441,6 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
             updateSearchFieldAreaClass();
         }
         hideProposals();
-//        bgOnClickFns.push(hideProposals); // workaround for ie instead of simple: addEvent(document.documentElement, 'click', ...)
-        addEvent(document.documentElement, 'click', hideProposals);
 
         // focus search field
         searchField.focus();
@@ -489,6 +489,10 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
                 if (query == searchPage.q) return;
                 setInnerHtml(searchPage, 'Searching...');
                 searchPage.scrollTop = 0;
+            } else if (query == proposals.q) {
+                preventDefault(e);
+                showProposals();
+                return;
             }
 
             // cached?
@@ -1448,7 +1452,6 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
         overlayStyle.position = 'absolute';
         overlayStyle.height = '100%';
         overlayStyle.width = '100%';
-//overlayStyle.background = 'rgba(200, 100, 100, .2)';
         overlay.a = function() { overlayStyle.display = 'block'; }
         overlay.o = function() { overlayStyle.display = 'none'; }
         return overlay;
