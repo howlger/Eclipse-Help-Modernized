@@ -69,6 +69,7 @@
 
         // dynamic content area
         searchPage = createElement(getElementById('m'), 0, 'c', 'Loading...');
+        searchPage.id = 'r';
         searchPage.s = function(show) {
             searchPage.style.display = show ? 'block' : 'none';
             getElementById('c').style.display = show ? 'none' : 'block';
@@ -332,7 +333,7 @@
         booksButtonText = createElement(booksButton, 'span');
         var dropDownHandle = createElement(booksButton, 'span', 'de');
         setInnerHtml(dropDownHandle, TREE_HANDLE);
-        var booksDropDown = createElement(scopeButtonWrapper, 0, 'r');
+        var booksDropDown = createElement(scopeButtonWrapper, 0, 'u');
         booksDropDown.style.display = 'none';
         addEvent(booksButton, 'mousedown', function(e) {
             var isOpen = booksDropDown.style.display == 'block';
@@ -427,7 +428,6 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
         // proposals drop-down
         proposals = createElement(searchFieldArea, 0, 'p');
         addEvent(proposals, 'click', function(e) {stopPropagation(e)});
-        createElement(proposals, 'ul');
         function showProposals() {
             proposals.style.display = 'block';
             overlay.a();
@@ -583,28 +583,42 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
                 if (query != currentSearch[getSearchTypeId(fullSearch)]) return;
 
                 // show results
-                var resultList;
-                var items = []; // TODO replace with resultList.childNodes
-                var data = [];  // TODO add to item
+                var items = [];
+                var data = [];
                 var filters = [];
                 var filterValues = [];
-                var resultsToFilter = [];
-                var resultsValues = [];
+                function applyFilters(e) {
+                    var includeFilters = [];
+                    var excludeFilters = [];
+                    for (var i = 0; i < filters.length; i++) {
+                        var f = filters[i];
+                        if (!f.checked && !f.indeterminate) excludeFilters.push(filterValues[i]);
+                        if (f.checked && !f.indeterminate) includeFilters.push(filterValues[i]);
+                    }
+                    for (var i = 0; i < items.length; i++) {
+                        items[i].style.display =    arrayContainsPrefix(includeFilters, data[i])
+                                                 && !arrayContainsPrefix(excludeFilters, data[i])
+                                                 ? 'block'
+                                                 : 'none';
+                    }
+                    stopPropagation(e);
+                }
+
+                var parentElement = fullSearch ? searchPage : proposals;
+                setInnerHtml(parentElement, '');
+                parentElement.q = query;
                 if (fullSearch) {
-                    searchPage.q = query;
-                    setInnerHtml(searchPage, '');
 
                     // no results?
                     if (!results.length) {
-                        var noResults = createElement(searchPage, 0, 'nn', 'No results found for ');
+                        var noResults = createElement(searchPage, 0, 'r0', 'No results found for ');
                         createElement(noResults, 'strong', 0, searchWord);
                         return;
                     }
 
                     // filter tree
-                    var resultsPage = createElement(searchPage, 0, 'n');
                     var filterTree = asTree(results, scope.n.toc ? results[0].b/*breadcrumb*/.slice(0, 2) : [], 9, true);
-                    createTree(resultsPage,
+                    createTree(searchPage,
 
                         // content provider
                         function(node, processChildrenFn) {
@@ -664,9 +678,9 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
                                     labelText += (i == 0 ? '' : ' > ') + node.name[i+1];
                                 }
                             }
-                            var label = createElement(checkboxWithLabel, 'span', node.isNode ? 0 : 'n0', labelText + ' ');
+                            var label = createElement(checkboxWithLabel, 'span', node.isNode ? 0 : 't', labelText + ' ');
                             if (isRoot && scope.n.toc) {
-                                createElement(label, 'span', 'n1', scope.n.t + ' ');
+                                createElement(label, 'span', 'tl', scope.n.t + ' ');
                             }
                             createElement(label, 'span', 'count', checkbox.numberOfResults);
                             addEvent(label, 'click', (function(checkbox, li) {
@@ -688,10 +702,9 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
                         },
                         0);
 
-                    // where the results to be shown
-                    resultList = createElement(resultsPage);
-
-                } else {
+                }
+                var resultList = createElement(parentElement, 'ol', 'j');
+                if (!fullSearch) {
 
                     // no results?
                     if (!results.length) return;
@@ -725,15 +738,15 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
                                       : '';
 
                     // query proposals
-                    resultList = createElement(0, 'ul');
                     for (var i = 0; i < allHints.length && i < 3; i++) {
                         var hintText = allHints[i].substring(9);
-                        var li = createElement(resultList, 'li')
-                        var spacerElementStyle = createElement(li, 'span').style;
+                        var li = createElement(resultList, 'li');
+                        var button = createElement(li, 'button');
+                        var spacerElementStyle = createElement(button, 'span').style;
                         spacerElementStyle.display = 'inline-block';
                         spacerElementStyle.width = booksButton.offsetWidth + 'px';
-                        createElement(li, 'span', null, hintText.substring(0, searchWord.length));
-                        createElement(li, 'strong', null, hintText.substring(searchWord.length));
+                        createElement(button, 'span', null, hintText.substring(0, searchWord.length));
+                        createElement(button, 'strong', null, hintText.substring(searchWord.length));
                         items.push(li);
                         data.push([hintText]);
                     }
@@ -745,156 +758,53 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
                     for (var i = 0; i < path.length; i++) result += (i > 0 ? '\n' : '') + path[i];
                     return result;
                 }
-                function applyFilters(e) {
-                    var includeFilters = [];
-                    var excludeFilters = [];
-                    for (var i = 0; i < filters.length; i++) {
-                        var f = filters[i];
-                        if (!f.checked && !f.indeterminate) excludeFilters.push(filterValues[i]);
-                        if (f.checked && !f.indeterminate) includeFilters.push(filterValues[i]);
-                    }
-                    for (var i = 0; i < resultsToFilter.length; i++) {
-                        resultsToFilter[i].style.display =    arrayContainsPrefix(includeFilters, resultsValues[i])
-                                                           && !arrayContainsPrefix(excludeFilters, resultsValues[i])
-                                                           ? 'block'
-                                                           : 'none';
-                    }
-                    stopPropagation(e);
-                }
-
-                // filter tree
-                function selectSubtree(element, checkStatus) {
-                    for (var i = 0; i < element.children.length; i++) {
-                        var n = element.children[i];
-                        if ('UL' == n.tagName || 'LI' == n.tagName || 'DIV' == n.tagName) {
-                            selectSubtree(n, checkStatus);
-                        } else if ('INPUT' == n.tagName) {
-                            n.indeterminate = false;
-                            n.checked = checkStatus;
-                            n.notAllChecked = false;
-                        }
-                    }
-                }
-                function getChildrenChecks(checkbox) {
-                    if (!checkbox || !checkbox.parentElement || !checkbox.parentElement.parentElement || 'LI' != checkbox.parentElement.parentElement.tagName) return [];
-                    var li = checkbox.parentElement.parentElement;
-                    var children = [];
-                    for (var i = 0; i < li.children.length; i++) {
-                        var n1 = li.children[i];
-                        if ('UL' != n1.tagName) continue;
-                        for (var j = 0; j < n1.children.length; j++) {
-                            var n2 = n1.children[j];
-                            if ('LI' != n2.tagName) continue;
-                            for (var k = 0; k < n2.children.length; k++) {
-                                var n3 = n2.children[k];
-                                for (var l = 0; l < n3.children.length; l++) {
-                                    var n4 = n3.children[l];
-                                    if ('INPUT' == n4.tagName) children.push(n4);
-                                }
-                            }
-                        }
-                    }
-                    return children;
-                }
-                function updateParentsChecks(checkbox) {
-                    for (var parentCheckbox = checkbox.parentCheckbox; parentCheckbox; parentCheckbox = parentCheckbox.parentCheckbox) {
-                        var checkedNumberOfResults = 0;
-                        var uncheckedNumberOfResults = 0;
-                        var uncheckedAll = true;
-                        var notAllChecked = false;
-                        var totalNumberOfResults = 0;
-                        var indeterminateChildren = 0;
-                        var children = getChildrenChecks(parentCheckbox);
-                        for (var i = 0; i < children.length; i++) {
-                            var n = children[i];
-                            if (n.notAllChecked) notAllChecked = true;
-                            if (n.indeterminate) {
-                                indeterminateChildren++;
-                                uncheckedAll = false;
-                                notAllChecked = true;
-                            } else if (n.checked) {
-                                checkedNumberOfResults += n.numberOfResults;
-                                totalNumberOfResults += n.numberOfResults;
-                                uncheckedAll = false;
-                            } else {
-                                uncheckedNumberOfResults += n.numberOfResults;
-                                totalNumberOfResults += n.numberOfResults;
-                                notAllChecked = true;
-                            }
-                        }
-                        if (checkedNumberOfResults == parentCheckbox.numberOfResults && !notAllChecked) {
-                            parentCheckbox.indeterminate = false;
-                            parentCheckbox.checked = true;
-                            parentCheckbox.notAllChecked = false;
-                        } else if (   uncheckedNumberOfResults == parentCheckbox.numberOfResults
-                                   || (parentCheckbox.indeterminate && uncheckedAll)) {
-                            parentCheckbox.indeterminate = false;
-                            parentCheckbox.checked = false;
-                        } else if (   totalNumberOfResults == parentCheckbox.numberOfResults
-                                   || (   !parentCheckbox.indeterminate
-                                       && !parentCheckbox.checked
-                                       && (indeterminateChildren || checkedNumberOfResults || notAllChecked))){
-                            parentCheckbox.indeterminate = true;
-                        } else {
-                            parentCheckbox.notAllChecked = notAllChecked;
-                        }
-                    }
-                }
 
                 // list results
                 for (var i = 0; i < results.length; i++) {
-
                     var node = results[i];
-                    if (fullSearch) {
-                        // result
-                        var resultSection = createElement(resultList, 'section');
-                        addHighlightedText(createElement(resultSection, 'h4'), node.t/*title*/, searchWord);
-                        if (hasBreadcrumbs && node.b/*breadcrumb*/) {
-                            var location = createElement(resultSection, 0, 'w');
-                            for (var j = scope.n.toc ? 2 : 0; j < node.b/*breadcrumb*/.length; j+=2) {
-                                var rbi = createElement(location, 'span');
-                                addHighlightedText(rbi, node.b/*breadcrumb*/[j+1], searchWord);
-                                if (j < node.b/*breadcrumb*/.length-2) {
-                                    createElement(location, 'span', false, ' > ');
-                                }
+                    var li = createElement(resultList, 'li');
+                    var a = createElement(li, 'a');
+                    a.href = baseUrl + 'topic' + node.h/*href*/;
+                    a.target = 'c';
+                    var titleAndLocation = createElement(a, 0, 'm');
+
+                    // title
+                    addHighlightedText(createElement(titleAndLocation, 0, 'v'), node.t/*title*/, searchWord);
+
+                    // show book title only for no book scope
+                    if (!fullSearch && !scope.n.toc) {
+                        createElement(titleAndLocation, 0, 'w', node.b/*breadcrumb*/[1]);
+                    }
+
+                    // breadcrumb
+                    if (fullSearch && hasBreadcrumbs && node.b/*breadcrumb*/) {
+                        var location = createElement(titleAndLocation, 0, 'w');
+                        for (var j = scope.n.toc ? 2 : 0; j < node.b/*breadcrumb*/.length; j+=2) {
+                            var breadcrumbItem = createElement(location, 'span', 0, node.b/*breadcrumb*/[j+1]);
+                            if (j < node.b/*breadcrumb*/.length-2) {
+                                createElement(location, 'span', 0, ' > ');
                             }
                         }
-                        addHighlightedText(createElement(resultSection, 'p'), node.d/*description*/, searchWord);
+                    }
 
-                        // filtering
-                        resultsToFilter.push(resultSection);
+                    // description
+                    addHighlightedText(createElement(a, 0, 'n'), node.d/*description*/, searchWord);
+
+                    // UI element and corresponding data
+                    items.push(li);
+                    if (fullSearch) {
                         var resultofStart = node.h/*href*/.indexOf('?resultof=');
                         var hrefNormed = '../topic' + (resultofStart < 0 ? node.h/*href*/ : node.h/*href*/.substring(0, resultofStart));
-                        resultsValues.push(toValue(node.b/*breadcrumb*/.slice(0, n.path.length).concat(hrefNormed).concat(node.t/*title*/)));
-
+                        data.push(toValue(node.b/*breadcrumb*/.slice(0, n.path.length).concat(hrefNormed).concat(node.t/*title*/)));
                     } else {
-
-                        var li = createElement(resultList, 'li');
-                        items.push(li);
                         data.push([node.t/*title*/, node.h/*href*/]);
-                        var btDiv = createElement(li, 'div', 'v');
-
-                        // show book title only if no book scope
-                        if (!scope.n.toc) {
-                            createElement(btDiv, 'div', 'w', node.b/*breadcrumb*/[1]);
-                        }
-                        var titleDiv = createElement(btDiv, 'div', 't');
-                        addHighlightedText(titleDiv, node.t/*title*/, searchWord);
-                        var descDiv = createElement(li, 'div', 'l', null);
-                        addHighlightedText(descDiv, unencodeHtmlContent(node.d/*description*/), searchWord);
-
-                        // preview on hovering
-                        li.ontouchmove = function(a) { return function() {
-                            a.canceled = 'x';
-                        }}(li);
-
                     }
 
                 }
 
                 // add key support (and show proposals)
                 if (fullSearch) {
-                    toMenu(searchField, resultsToFilter, results, function(d) {
+                    toMenu(searchField, items, results, function(d) {
                             getElementById('c').src = baseUrl + 'topic' + d.h/*href*/;
                         },
                         0,
@@ -963,8 +873,6 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
                         });
 
                     // show proposals
-                    proposals.removeChild(proposals.firstChild);
-                    proposals.appendChild(resultList);
                     showProposals();
 
                 }
@@ -1123,6 +1031,85 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
                 return true;
             } catch(e) {
                 return false;
+            }
+        }
+
+        // filter tree functions
+        function selectSubtree(element, checkStatus) {
+            for (var i = 0; i < element.children.length; i++) {
+                var n = element.children[i];
+                if ('UL' == n.tagName || 'LI' == n.tagName || 'DIV' == n.tagName) {
+                    selectSubtree(n, checkStatus);
+                } else if ('INPUT' == n.tagName) {
+                    n.indeterminate = false;
+                    n.checked = checkStatus;
+                    n.notAllChecked = false;
+                }
+            }
+        }
+        function getChildrenChecks(checkbox) {
+            if (!checkbox || !checkbox.parentElement || !checkbox.parentElement.parentElement || 'LI' != checkbox.parentElement.parentElement.tagName) return [];
+            var li = checkbox.parentElement.parentElement;
+            var children = [];
+            for (var i = 0; i < li.children.length; i++) {
+                var n1 = li.children[i];
+                if ('UL' != n1.tagName) continue;
+                for (var j = 0; j < n1.children.length; j++) {
+                    var n2 = n1.children[j];
+                    if ('LI' != n2.tagName) continue;
+                    for (var k = 0; k < n2.children.length; k++) {
+                        var n3 = n2.children[k];
+                        for (var l = 0; l < n3.children.length; l++) {
+                            var n4 = n3.children[l];
+                            if ('INPUT' == n4.tagName) children.push(n4);
+                        }
+                    }
+                }
+            }
+            return children;
+        }
+        function updateParentsChecks(checkbox) {
+            for (var parentCheckbox = checkbox.parentCheckbox; parentCheckbox; parentCheckbox = parentCheckbox.parentCheckbox) {
+                var checkedNumberOfResults = 0;
+                var uncheckedNumberOfResults = 0;
+                var uncheckedAll = true;
+                var notAllChecked = false;
+                var totalNumberOfResults = 0;
+                var indeterminateChildren = 0;
+                var children = getChildrenChecks(parentCheckbox);
+                for (var i = 0; i < children.length; i++) {
+                    var n = children[i];
+                    if (n.notAllChecked) notAllChecked = true;
+                    if (n.indeterminate) {
+                        indeterminateChildren++;
+                        uncheckedAll = false;
+                        notAllChecked = true;
+                    } else if (n.checked) {
+                        checkedNumberOfResults += n.numberOfResults;
+                        totalNumberOfResults += n.numberOfResults;
+                        uncheckedAll = false;
+                    } else {
+                        uncheckedNumberOfResults += n.numberOfResults;
+                        totalNumberOfResults += n.numberOfResults;
+                        notAllChecked = true;
+                    }
+                }
+                if (checkedNumberOfResults == parentCheckbox.numberOfResults && !notAllChecked) {
+                    parentCheckbox.indeterminate = false;
+                    parentCheckbox.checked = true;
+                    parentCheckbox.notAllChecked = false;
+                } else if (   uncheckedNumberOfResults == parentCheckbox.numberOfResults
+                           || (parentCheckbox.indeterminate && uncheckedAll)) {
+                    parentCheckbox.indeterminate = false;
+                    parentCheckbox.checked = false;
+                } else if (   totalNumberOfResults == parentCheckbox.numberOfResults
+                           || (   !parentCheckbox.indeterminate
+                               && !parentCheckbox.checked
+                               && (indeterminateChildren || checkedNumberOfResults || notAllChecked))){
+                    parentCheckbox.indeterminate = true;
+                } else {
+                    parentCheckbox.notAllChecked = notAllChecked;
+                }
             }
         }
 

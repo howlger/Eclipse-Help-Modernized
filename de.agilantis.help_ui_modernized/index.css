@@ -49,6 +49,13 @@ body {
 a {
     text-decoration: none;
 }
+strong {
+    color: #444;
+}
+button {
+    background: transparent;
+    font-size: 1em;
+}
 #h {
     padding: 6px 6px 4px;
     display: flex;
@@ -180,12 +187,68 @@ a {
     opacity: 1;
     font-style: italic;
 }
-.r {
+.u {
     position: relative;
 }
 
-/*** search proposals (.p) and scopes button (.s) with drop-down (.r) ***/
-.p, .r {
+/*** search proposals (.p) and scopes button (.s) with drop-down (.u) ***/
+#r {
+    padding: 6px;
+}
+.r0 {
+    margin: 1em;
+    padding: 6px 0;
+}
+.j, .j li, .j a, .j button {
+    list-style: none outside none;
+    display: block;
+}
+.j {
+    overflow-wrap: anywhere;
+}
+.p a, .p button, .u li {
+    padding: 0.5em 9px;
+    box-sizing: border-box;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+}
+.p .w {
+    float: right;
+}
+.p .n {
+    clear: both;
+    margin-top: 3px;
+}
+.p .v {
+    display: inline-block;
+}
+#r .j li a {
+    max-width: 640px;
+    margin: 0 0 0.25em 10px;
+    padding: 6px;
+    border-radius: 4px;
+}
+.j .z a, .j .z button, .j a:focus, .j button:focus, .u .z {
+    background: #e8f2fe;
+    outline: none;
+}
+.j, .j a, #r .t {
+    color: #222;
+}
+.j a .w, #r .tree .l, #r .t .tl {
+    color: #062;
+}
+#r .l {
+    cursor: pointer;
+}
+.w, .n {
+    font-size: 85%;
+}
+#r .w, #r .n {
+    margin-top: 3px;
+}
+.p, .u {
     position: absolute;
     float: left;
     left: 0;
@@ -196,7 +259,7 @@ a {
     z-index: 7;
     background: rgba(0, 0, 0, 0);
 }
-.r {
+.u {
     margin: -4px 0 0 3px;
     width: auto;
     z-index: 8;
@@ -235,7 +298,7 @@ a {
 .s .de {
     margin: 0 6px 0 -6px;
 }
-.p ul, .r ul {
+.p ol, .u ul {
     display: block;
     padding: 0;
     margin: 0;
@@ -246,28 +309,11 @@ a {
     box-shadow: 0 3px 4px rgba(0, 0, 0, 0.2);
     overflow: hidden;
 }
-.s, .r ul {
+.s, .u ul {
     border: 1px solid #edeff2; /* -2 V of background */
 }
-.p li, .r li {
-    list-style: none outside none;
-    display: block;
-    text-align: left;
-    padding: 0.5em 9px;
-    white-space: normal;
-}
-.r li {
+.u li {
     white-space: nowrap;
-}
-.p .b {
-    height: 15px;
-    background-image: url(data:image/gif;base64,R0lGODlhEAAQAIQcAEtuomSEtYiVro2Zq5WdpZ+jnqiomJ6pvbGukbmyjL+2iLrH39HKqc/t++Hq9+Hq+ODr9+Dr+OHr+Ofv+ejv+evx+e7z++70+/D0+/X4/PX4/fX5/AAAAAAAAAAAAAAAACH5BAEKAB8ALAAAAAAQABAAAAVg4CeOZCkCwRIAZsu2LkwqNEDfuMJ8SdMAvqDQ90E0HACH5MGEQCIRieRjaEwAlKx2W/kUGheAZUwuYz6Exgagabvfms+gkQFk7vh85iPoA/qAgQIHJC8yhYcjKCqGiY4hADs=);
-    background-repeat: no-repeat;
-    background-position: 1px 0;
-}
-.p .z, .r .z {
-    color: #333333 !important;
-    background: #e8f2fe !important;
 }
 .p .f {
     display: none;
@@ -287,40 +333,6 @@ a {
     display: block;
     z-index: 9;
 }
-.p .t {
-/*     color: #1122cc; */
-    display: inline-block;
-    padding-left: 21px;
-    cursor: pointer;
-    background-image: url(data:image/gif;base64,R0lGODlhCQALAKUxAPT2/PH0++rv+fn6/Iaavoyfwt/o+OLq+OXs+env+pOmxpqsy6Kzz9/o9+bt+Onv+e3y+t/p+OLr+PH1+/D0+vf5/N/p9+3y+fT3+/D1+/f5+/b5+3t0T392ToV5TIx8SYx8SoV4TJyERJSAR5OASKqLQKOIQ5yEReDIj7SQPbCOPrCOP6uLQNSyaNSyadq9fNWyaf///////////////////////////////////////////////////////////yH5BAEKAD8ALAAAAAAJAAsAAAZLwJRw+CumBsiBK1VcVTYVzQum+pUwCwUA9WqxTIEJJUOhBEyiCyNbIEBOo4fgQU88SB/EWtF2gEIHBxKBgh4dBg2JERYGHRyPkJBBADs=);
-    background-repeat: no-repeat;
-    background-position: 3px 7px;
-    word-wrap: break-word;
-    -ms-word-wrap: break-word;
-    overflow-wrap: anywhere;
-}
-.p strong {
-    color: #444;
-}
-.p .w {
-    color: #062;
-    float: right;
-    cursor: default;
-}
-.p .l {
-    display: block;
-    font-size: 85%;
-    padding-left: 21px;
-}
-
-/*** search results ***/
-.nn {
-    margin: 1em;
-    padding: 12px 6px;
-}
-.n {
-    padding: 6px;
-}
 .count {
     display: inline-block;
     background: #eee;
@@ -336,39 +348,11 @@ a {
     text-align: center;
     vertical-align: top;
 }
-.n .tree {
+#r .tree {
     margin-bottom: 0.75em;
 }
-.n .l {
-    cursor: pointer;
-}
-.n section {
-    max-width: 640px;
-    margin: 0 0 0.25em 10px;
-    padding: 6px;
-    border-radius: 4px;
-}
-.n .z {
-    color: #333333 !important;
-    background: #e8f2fe !important;
-}
-.n h4 {
-    font-weight: normal;
-}
-.n input {
+.tree input {
     margin-right: 0.5em;
-}
-.n .w, .n p {
-    font-size: 85%;
-}
-.n .w, .n .tree .l, .n .tree .l .n0 .n1 {
-    color: #062;
-}
-.n .tree .l .n0 {
-    color: #222;
-}
-.n .w {
-    margin: 2px 0;
 }
 
 /*** tree ***/
@@ -447,9 +431,6 @@ a {
 .tree .open > .h {
     color: #333;
     transform: rotate(90deg);
-}
-.tree a {
-    color: #000;
 }
 
 
