@@ -55,6 +55,7 @@ strong {
 button {
     background: transparent;
     font-size: 1em;
+    cursor: pointer;
 }
 #h {
     padding: 6px 6px 4px;
@@ -166,6 +167,9 @@ button {
     border-radius: 7px;
     margin: 0;
     padding: 7.8px;
+}
+.q .b, .qf .b {
+    cursor: default;
 }
 .q1 {
     display: flex;
