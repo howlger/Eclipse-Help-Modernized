@@ -14,8 +14,12 @@
     var TOC_SIDEBAR_DEFAULT_WIDTH = 380;
     var TOC_SIDEBAR_MINIMUM_WIDTH = 64;
     var TOC_SIDEBAR_WIDTH_COOKIE_NAME = 'toc_width';
-    var TOC_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill-rule="evenodd" fill="currentColor" d="M19 5H1V3h18v2zm0 10H1v2h18v-2zm-4-6H1v2h14V9z" clip-rule="evenodd"/></svg>';
     var TOC_ICON_DESCRIPTION = 'Toggle table of content';
+    var TOC_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill-rule="evenodd" fill="currentColor" d="M19 5H1V3h18v2zm0 10H1v2h18v-2zm-4-6H1v2h14V9z" clip-rule="evenodd"/></svg>';
+    var MENU_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill-rule="evenodd" fill="currentColor" d="M 10 1.5 A 2 2 0 0 0 8 3.5 A 2 2 0 0 0 10 5.5 A 2 2 0 0 0 12 3.5 A 2 2 0 0 0 10 1.5 z M 10 8 A 2 2 0 0 0 8 10 A 2 2 0 0 0 10 12 A 2 2 0 0 0 12 10 A 2 2 0 0 0 10 8 z M 10 14.5 A 2 2 0 0 0 8 16.5 A 2 2 0 0 0 10 18.5 A 2 2 0 0 0 12 16.5 A 2 2 0 0 0 10 14.5 z" clip-rule="evenodd"/></svg>';
+    var MENU_ICON_DESCRIPTION = 'Show menu';
+    var MENU_CLOSE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><path fill-rule="evenodd" fill="currentColor" d="M 4.34375 2.9296875 L 2.9296875 4.34375 L 8.5859375 10 L 2.9296875 15.65625 L 4.34375 17.070312 L 10 11.414062 L 15.65625 17.070312 L 17.070312 15.65625 L 11.414062 10 L 17.070312 4.34375 L 15.65625 2.9296875 L 10 8.5859375 L 4.34375 2.9296875 z" clip-rule="evenodd"/></svg>';
+    var MENU_CLOSE_ICON_DESCRIPTION = 'Show menu';
     var TREE_HANDLE = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor" fill-rule="evenodd"/></svg>';
     var BOOK_NAME_SHORTENER = function shortenBookName(bookName) { return bookName.replace(/\s+(Documentation\s*)?(\-\s+([0-9,\-]+\s+)?Preview(\s+[0-9,\-]+)?\s*)?$/i, ''); };
     var SEARCH_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><g fill="#fff"><path fill-rule="evenodd" fill="currentColor" d="M 7.5 0 C 3.3578644 0 0 3.3578644 0 7.5 C 0 11.642136 3.3578644 15 7.5 15 C 8.8853834 14.997 10.242857 14.610283 11.421875 13.882812 L 17.185547 19.662109 C 17.632478 20.113489 18.36112 20.112183 18.8125 19.660156 L 19.623047 18.845703 C 20.072507 18.398153 20.072507 17.665594 19.623047 17.214844 L 13.871094 11.447266 C 14.607206 10.26212 14.998156 8.8951443 15 7.5 C 15 3.3578644 11.642136 0 7.5 0 z M 7.5 2 A 5.5 5.5 0 0 1 13 7.5 A 5.5 5.5 0 0 1 7.5 13 A 5.5 5.5 0 0 1 2 7.5 A 5.5 5.5 0 0 1 7.5 2 z" clip-rule="evenodd"/></g></svg>';
@@ -78,7 +82,7 @@
 
         // TOC sidebar button
         var header = getElementById('h');
-        var tocSidebarToggleButton = createElement(header, 'a', 'b', 'TOC');
+        var tocSidebarToggleButton = createElement(header, 'a', 'b');
         tocSidebarToggleButton.href = '#';
         tocSidebarToggleButton.alt = TOC_ICON_DESCRIPTION;
         tocSidebarToggleButton.title = TOC_ICON_DESCRIPTION;
@@ -106,8 +110,6 @@
                        return a;
                    },
                    1);
-
-
 
         // TODO remove dummy code
         createElement(getElementById('f'), 'p', false, 'footer');
@@ -316,16 +318,17 @@
         // to align real pixels on high-DPI to CSS px), otherwise proposals drop-down might not correctly aligned with
         // search field area
         var searchFieldAreaWrapper = createElement(getElementById('h'), 0, 'q0');
-        var searchFieldArea = createElement(searchFieldAreaWrapper, 'form', 'q');
+        var searchFieldArea = createElement(createElement(searchFieldAreaWrapper, 0, 'q1'), 'form', 'q');
         var searchFieldAreaHasFocus;
         var searchFieldAreaContainsQuery;
         var proposals;
         function updateSearchFieldAreaClass() {
             setClassName(searchFieldArea,
-                             'q' + (searchFieldAreaHasFocus ? (proposals.style.display == 'block' ? 'm' : 'f') : '')
+                             'q' + (proposals.style.display == 'block' ? 'm' : (searchFieldAreaHasFocus ? 'f' : ''))
                            + (searchFieldAreaContainsQuery ? ' qa' : '')
                          );
         }
+        createMenu();
 
         // scopes drop-down
         var scopeButtonWrapper = createElement(searchFieldArea, 0, 's0');
@@ -381,7 +384,7 @@
         if (defaultBookData) setBook(defaultBookData[0], defaultBookData[1], defaultBookData[2]);
 
         // search field
-        var wrap = createElement(searchFieldArea, 0, 'q1');
+        var wrap = createElement(searchFieldArea, 0, 'q2');
         wrap.style.position = 'relative';
         var searchField = createElement(wrap, 'input');
         searchField.id = 'q';
@@ -1229,6 +1232,131 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
+    // Menu
+
+    function createMenu() {
+
+        // menu
+        var menu = createOverlay(9, 1);
+        var overlay = createOverlay(8);
+        menu.id = 'a';
+        menuStyle = menu.style;
+        menu.a = function(e) { preventDefault(e); overlay.a(); menuStyle.width = '270px'; };
+        menu.o = function(e) { preventDefault(e); overlay.o(); menuStyle.width = '0'; };
+        menu.o();
+        addEvent(overlay, 'click', menu.o);
+        function createMenuItem(label, description, fn, id) {
+            var item = createElement(menu, 'a', 'b', label);
+            item.href = '#';
+            item.title = description;
+            if (id) {
+                item.id = id;
+            }
+            addEvent(item, 'click', function(e) { preventDefault(e); fn(e); menu.o(); });
+            return item;
+        }
+
+        // "x" button
+        var closeMenuButton = createElement(createElement(menu, 0, 'e'), 'a', 'b');
+        closeMenuButton.href = '#';
+        addEvent(closeMenuButton, 'click', menu.o);
+        closeMenuButton.alt = MENU_CLOSE_ICON_DESCRIPTION;
+        closeMenuButton.title = MENU_CLOSE_ICON_DESCRIPTION;
+        setInnerHtml(closeMenuButton, MENU_CLOSE_ICON);
+
+        // "Highlight search terms"
+        function HighlightConnector() {};
+        HighlightConnector.prototype.setButtonState = function(name, state) {
+            // dummy for highlight() in org.eclipse.help.webapp/advanced/highlight.js
+        };
+        window.ContentToolbarFrame = new HighlightConnector();
+        var highlight = createMenuItem(0, 'Toggle search term highlighting', toggleHighlight, 'ah');
+        createElement(highlight, 'span', 'hl', 'Highlight');
+        createElement(highlight, 'span', 'hs', ' ');
+        createElement(highlight, 'span', 'ht', 'search term');
+        toggleHighlight(0, 1);
+
+        // "Print topic"
+        createMenuItem('Print topic', 'Print topic without its subtopics', function() {
+            try {
+                getElementById('c').contentWindow.print();
+            } catch (e) {
+            }
+        }, 'ap');
+
+        // "Print chapter"
+        createMenuItem('Print chapter', 'Print topic including subtopics', printChapter, 'app');
+
+        // show menu button
+        var menuButton = createElement(getElementById('h'), 'a', 'b');
+        menuButton.href = '#';
+        menuButton.alt = MENU_ICON_DESCRIPTION;
+        menuButton.title = MENU_ICON_DESCRIPTION;
+        setInnerHtml(menuButton, MENU_ICON);
+        addEvent(menuButton, 'click', menu.a);
+
+    }
+
+    function toggleHighlight(e, initalize) {
+        var enableHighlighting = 'false' == getCookie('highlight');
+        if (initalize) {
+            enableHighlighting = !enableHighlighting;
+        } else {
+            setCookie('highlight', enableHighlighting ? 'true' : 'false');
+            var contentFrameWindow = getElementById('c').contentWindow;
+            if (contentFrameWindow && contentFrameWindow.highlight && contentFrameWindow.toggleHighlight) {
+                contentFrameWindow.toggleHighlight();
+                contentFrameWindow.highlight();
+            }
+        }
+        setClassName(getElementById('ah'), enableHighlighting ? 'b x' : 'b');
+    }
+
+    function printChapter() {
+        var contentElement = getElementById('c');
+        var contentWindow = contentElement.contentWindow;
+        var topicHref = contentWindow.location.href;
+        if (!topicHref) return;
+        var dummy = document.createElement('a');
+        dummy.href = (window.INTEGRATED ? '' : '../../') + 'x';
+        var topic = topicHref.substring(dummy.href.length - 2);
+        if (topic.length > 7 && '/topic/' == topic.substring(0, 7)) topic = topic.substring(6);
+        else if (topic.length > 5 && '/nav/' == topic.substring(0, 5)) topic = '/..' + topic;
+        else if (topic.length > 8 && ('/rtopic/' == topic.substring(0, 8) || '/ntopic/' == topic.substring(0, 8))) topic = topic.substring(7);
+        var w = contentWindow.innerWidth || contentWindow.document.body.clientWidth;
+        var h = contentWindow.innerHeight || contentWindow.document.body.clientHeight;
+        var element = contentElement;
+        var x = window.screenX;
+        var y = window.screenY;
+        for (var e = contentElement; !!e; e = e.offsetParent) {
+            if (e.tagName == "BODY") {
+                var xScroll = e.scrollLeft || document.documentElement.scrollLeft;
+                var yScroll = e.scrollTop || document.documentElement.scrollTop;
+                x += (e.offsetLeft - xScroll + e.clientLeft);
+                y += (e.offsetTop  - yScroll + e.clientTop);
+            } else {
+                x += (e.offsetLeft - e.scrollLeft + e.clientLeft);
+                y += (e.offsetTop  - e.scrollTop  + e.clientTop);
+            }
+        }
+        var anchor = '';
+        var anchorStart = topic.indexOf('#');
+        if (anchorStart > 0) {
+            anchor = '&anchor=' + topic.substr(anchorStart + 1);
+            topic = topic.substr(0, anchorStart);
+        }
+        var query = '';
+        var queryStart = topic.indexOf('?');
+        if (queryStart > 0) {
+            query = '&' + topic.substr(queryStart + 1);
+            topic = topic.substr(0, queryStart);
+        }
+        window.open((window.INTEGRATED ? '' : '../../') + 'advanced/print.jsp?topic=' + topic + query + anchor, 'printWindow', 'directories=yes,location=no,menubar=yes,resizable=yes,scrollbars=yes,status=yes,titlebar=yes,toolbar=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //
     // Tree
 
     function createTree(element, contentProvider, labelProvider, selectable) {
@@ -1442,18 +1570,20 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
     //
     // Overlay
 
-    function createOverlay() {
+    function createOverlay(zIndex, withoutStyles) {
         var overlay = createElement();
         var header =  getElementById('h');
         getParentElement(header).insertBefore(overlay, header);
-        var overlayStyle = overlay.style;
-        overlayStyle.display = 'none';
-        overlayStyle.zIndex  = '1';
-        overlayStyle.position = 'absolute';
-        overlayStyle.height = '100%';
-        overlayStyle.width = '100%';
-        overlay.a = function() { overlayStyle.display = 'block'; }
-        overlay.o = function() { overlayStyle.display = 'none'; }
+        if (!withoutStyles) {
+            var overlayStyle = overlay.style;
+            overlayStyle.display = 'none';
+            overlayStyle.zIndex  = zIndex ? zIndex : 1;
+            overlayStyle.position = 'absolute';
+            overlayStyle.height = '100%';
+            overlayStyle.width = '100%';
+        }
+        overlay.a = function() { overlayStyle.display = 'block'; };
+        overlay.o = function(e) { overlayStyle.display = 'none'; preventDefault(e); };
         return overlay;
     }
 
@@ -1513,6 +1643,7 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
 
     function preventDefault(e) {
         e = e || window.event;
+        if (!e) return;
         try {
             if (e.preventDefault) e.preventDefault();
             e.returnValue = false;
@@ -1521,6 +1652,7 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
 
     function stopPropagation(e) {
         e = e || window.event;
+        if (!e) return;
         e.cancelBubble = true;
         if (e.stopPropagation) e.stopPropagation();
     }

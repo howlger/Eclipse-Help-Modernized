@@ -92,13 +92,14 @@ button {
 }
 .c {
     overflow: auto;
+    flex-basis: 0;
 }
 #t, #c, .c {
     height: 1px;
     min-height: 100%;
     max-height: 100%;
 }
-#t, #c, .c, .qf {
+#t, #c, .c, .qf, #a {
     background: #fff;
     box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
@@ -123,10 +124,12 @@ button {
 
 /*** search field (area) ***/
 .q0 {
-    position: relative;
     flex: auto;
-    max-width: 640px;
     z-index: 2;
+}
+.q1 {
+    position: relative;
+    max-width: 640px;
 }
 .q, .qf, .qm {
     display: flex;
@@ -171,7 +174,7 @@ button {
 .q .b, .qf .b {
     cursor: default;
 }
-.q1 {
+.q2 {
     display: flex;
     flex: auto;
 }
@@ -260,13 +263,13 @@ button {
     top: 100%;
     width: 100%;
     padding: 0;
-    z-index: 7;
+    z-index: 3;
     background: rgba(0, 0, 0, 0);
 }
 .u {
     margin: -4px 0 0 3px;
     width: auto;
-    z-index: 8;
+    z-index: 4;
 }
 .s0 {
     position: relative;
@@ -331,11 +334,11 @@ button {
     background: #ffffff;
     border: 1px solid #999999;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    z-index: 9;
+    z-index: 5;
 }
 .p .z .f {
     display: block;
-    z-index: 9;
+    z-index: 5;
 }
 .count {
     display: inline-block;
@@ -357,6 +360,59 @@ button {
 }
 .tree input {
     margin-right: 0.5em;
+}
+
+/*** menu ***/
+#a {
+    background: #eef0f3;
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 9;
+    top: 0;
+    right: 0;
+    overflow-x: hidden;
+    transition: all 0.2s ease;
+    border-left: #ddd solid 1px;
+    display: flex;
+    flex-direction: column;
+}
+.e {
+    text-align: right;
+    padding: 6px;
+}
+#a > .b {
+    width: auto;
+    height: auto;
+    font-size: 1em;
+    margin: 3px 6px;
+    color: #222;
+}
+#a > .b:hover {
+    color: #111;
+}
+#a > #ah {
+    padding-left: 40px;
+}
+#a > #ah.x {
+    padding-left: 6px;
+}
+#ah.x:before, #ap:before, #app:before {
+    display: inline-block;
+    vertical-align: bottom;
+    font-size: 0;
+    width: 20px;
+    height: 20px;
+    margin: 0 12px 0 0;
+}
+#ah.x:before {
+    content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' focusable='false' role='presentation'%3E%3Cpath d='M 18.720152,3.3629316 C 18.060084,2.7820531 17.056888,2.8348761 16.47601,3.4949448 L 7.7898314,13.157953 3.4335592,8.9600604 C 2.7999482,8.3528147 1.7966621,8.3791818 1.1894164,9.0128871 0.58217173,9.6465896 0.60853792,10.649785 1.2422432,11.257031 l 5.5443048,5.333102 c 0.2903944,0.290393 0.6864358,0.448864 1.1088434,0.448864 h 0.052827 c 0.4224085,-0.02636 0.8448161,-0.211204 1.1088434,-0.528055 L 18.825715,5.6334442 C 19.432961,4.9470093 19.380137,3.9438138 18.720159,3.3629353 Z' fill='%2354595d'/%3E%3C/svg%3E");
+}
+#ap:before, #app:before {
+    content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' focusable='false' role='presentation'%3E%3Cpath d='m 6.1536984,14.617279 v 1.536358 h 7.6920456 v -1.536358 z m 0,-2.564015 v 1.536357 h 7.6920456 v -1.536357 z m -4.615227,1.536357 h 1.538409 v 4.10345 c -0.0051,1.246112 0.281016,1.537384 1.538409,1.537384 H 15.384153 c 1.257393,0 1.538409,-0.231787 1.538409,-1.537384 v -4.10345 h 1.538409 c 1.307648,0.02051 1.553281,-0.270247 1.538409,-1.537383 V 6.411404 c 0,-1.2050867 -0.194865,-1.5394343 -1.538409,-1.5394343 H 16.922562 V 2.30898 C 16.937433,1.0423563 16.691801,0.76954505 15.384153,0.76954505 H 4.6152894 c -1.230727,0 -1.543537,0.29332335 -1.538409,1.53943495 v 2.5629897 h -1.538409 c -1.323032,0 -1.538409999868,0.2881953 -1.538409999868,1.5394343 v 5.640834 C -0.0050386,13.298349 0.3077434,13.610134 1.5384714,13.589621 Z M 15.384153,17.692046 H 4.6152894 v -6.66644 H 15.384153 Z m 0.96407,-9.485831 c 0,-0.461523 0.369218,-0.830228 0.830741,-0.830228 0.461522,0 0.830741,0.368705 0.830741,0.830228 0,0.461523 -0.369219,0.830741 -0.830741,0.830741 -0.461523,0 -0.830741,-0.369218 -0.830741,-0.830741 z M 4.6152894,2.3079544 H 15.384153 V 4.8740209 H 4.6152894 Z' fill='%2354595d'/%3E%3C/svg%3E");
+}
+.ht {
+    background: #ff6;
 }
 
 /*** tree ***/
