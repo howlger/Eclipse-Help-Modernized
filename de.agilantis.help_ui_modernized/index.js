@@ -9,6 +9,7 @@
  ******************************************************************************/
 (function(window, document) {
 
+    var INTEGRATED = 1;
     var SMALL_SCREEN_WIDTH = 768;
     var TOC_SLIDER_HALF_WIDTH = 12 / 2;
     var TOC_SIDEBAR_DEFAULT_WIDTH = 380;
@@ -44,8 +45,11 @@
 
     addEvent(window, 'load', function() {
 
+        // as "index.jsp"?
+        INTEGRATED = window.location.pathname.indexOf('/index.jsp') >= 0;
+
         // title
-        remoteRequest((window.INTEGRATED ? '' : '../../') + 'index.jsp?legacy', function(responseText) {
+        remoteRequest((INTEGRATED ? '' : '../../') + 'index.jsp?legacy', function(responseText) {
             var match = new RegExp('<title>([^<]*)</title>').exec(responseText);
             if (!match) return;
             var element = createElement(null, 'div');
@@ -55,7 +59,7 @@
         });
 
         // .svg or .gif? + embedded?
-        remoteRequest((window.INTEGRATED ? '' : '../../') + 'advanced/tabs.jsp', function(responseText) {
+        remoteRequest((INTEGRATED ? '' : '../../') + 'advanced/tabs.jsp', function(responseText) {
             if (responseText.indexOf('e_contents_view.gif') > 0) iconExtension = '.gif';
 
 //            // show history buttons in embedded help, but not in Infocenter mode
@@ -89,19 +93,23 @@
         setInnerHtml(tocSidebarToggleButton, TOC_ICON);
 
         // TOC slider (to change TOC sidebar width by moving the slider)
-        var smallScreenAutoCloseFn = addSlider(tocSidebarToggleButton, createElement(header, 0, 'i'));
+        var smallScreenAutoCloseFn = createSlider(tocSidebarToggleButton, createElement(header, 0, 'i'));
 
         // fill TOC and create search field
-        createTree(getElementById('t'),
+        var toc = getElementById('t');
+        createTree(toc,
                    tocContentProvider,
                    function(li, node) {
                        var a = createElement(li, 'a');
                        a.href = node.h;
                        a.target = 'c';
                        addEvent(a, 'click', smallScreenAutoCloseFn);
+                       li.h = a.href;
+                       li.a = a.hash;
+                       li.b = a.protocol + '//' + a.host + a.pathname;
                        if (node.i) {
                            var iconImg = createElement(a, 'img');
-                           iconImg.setAttribute('src', (window.INTEGRATED ? '' : '../../')
+                           iconImg.setAttribute('src', (INTEGRATED ? '' : '../../')
                                                        + 'advanced/images/'
                                                        + node.i
                                                        + iconExtension);
@@ -110,13 +118,56 @@
                        return a;
                    },
                    1);
+        var contentFrame = getElementById('c');
+        addEvent(contentFrame, 'load', function() {
+
+            // close maybe open search page
+            searchPage.s(0);
+
+            // sync with TOC
+            try {
+                syncToc();
+                addEvent(contentFrame.contentWindow, 'hashchange', syncToc);
+            } catch(e) {
+                toc.x(0);
+            }
+
+        });
 
         // TODO remove dummy code
-        createElement(getElementById('f'), 'p', false, 'footer');
+//        createElement(getElementById('f'), 'p', false, 'footer');
 
     }
 
-    function addSlider(tocSidebarToggleButton, headSpacerElement) {
+    function syncToc() {
+        var newLocation = getElementById('c').contentWindow.location;
+        var toc = getElementById('t');
+        if (toc.s && toc.s.h == newLocation.href) return;
+        var newLocationHrefWithoutQueryAndHash = newLocation.protocol + '//' + newLocation.host + newLocation.pathname;
+        var newLocationHash = newLocation.hash;
+        var liMatch;
+        var liWhithoutHashMatch;
+        toc.v(function(li) {
+            if (newLocationHrefWithoutQueryAndHash != li.b) return 1;
+            if (!newLocationHash || newLocationHash == li.a) {
+                liMatch = li;
+                return 0;
+            }
+            if (!liWhithoutHashMatch) {
+                liWhithoutHashMatch = li;
+            }
+            return 1;
+        });
+        if (liMatch) {
+            toc.x(liMatch, toc, 1);
+        } else if (liWhithoutHashMatch) {
+            toc.x(liWhithoutHashMatch, toc, 1);
+        } else {
+            toc.y(newLocation.href, toc, 1);
+        }
+    }
+
+    function createSlider(tocSidebarToggleButton, headSpacerElement) {
 
         // create slider element
         var slider = createElement();
@@ -238,62 +289,80 @@
     }
 
     function tocContentProvider(node, processChildrenFn) {
-        var callbackUrl =   (window.INTEGRATED ? '' : '../../') + 'advanced/tocfragment'
+        var callbackUrl =   (INTEGRATED ? '' : '../../') + 'advanced/tocfragment'
                           + (node
                              ?   (node.toc ? '?toc=' + node.toc : '')
                                + (node.path ? '&path=' + node.path : '')
+                               + (node.topic ? '?errorSuppress=true&topic=' + node.topic : '')
+                               + (node.expand ? '?errorSuppress=true&expandPath=' + node.expand : '')
                              : '');
-        remoteRequest(callbackUrl, (function(toc, path) {
-            return function(responseText) {
-                var nodes = getXmlNodes(parseXml(responseText), toc, path);
-                var children = [];
-                for (var i = 0; i < nodes.length; i++) {
-                    var n = nodes[i];
-                    if (n.tagName != 'node') continue;
-                    children.push({
-                        n/*ode*/: {
-                            toc: toc ? toc : getAttribute(n, 'id'),
-                            path: toc ? getAttribute(n, 'id') : 0,
-                            t: getAttribute(n, 'title'),
-                            h: (window.INTEGRATED ? '' : '../../') + getAttribute(n, 'href').substring(3),
-                            i: n.getAttribute('image')
-                        },
-                        l/*eaf*/: getAttribute(n, 'is_leaf')
-                    });
+        remoteRequest(callbackUrl, function(responseText) {
+            var nodes = tocXmlNodes(parseXml(responseText), node ? node.toc : 0, node ? node.path : 0);
+            var children;
+            for (var i = 0; i < nodes.length; i++) {
+                var n = nodes[i];
+                if (n.tagName == 'numeric_path') {
+                    tocContentProvider({expand: getAttribute(n, 'path')}, processChildrenFn);
+                    return;
                 }
-                if (!node) createSearchField(children, '', true);
-                processChildrenFn(children);
-            };
-        })(node ? node.toc : 0, node ? node.path : 0));
-        function getXmlNodes(xml, toc, path) {
-            var books = xml.documentElement.childNodes;
-            if (!toc) return books;
-            var book;
-            for (var i = 0; i < books.length; i++) {
-                book = books[i];
-                if (book.tagName == 'node' && toc == book.getAttribute('id')) {
-                    if (!path) return book.childNodes;
+                if (n.tagName == 'node') {
+                    children = tocToNodes(nodes, node ? node.toc : 0, node ? node.expand : 0);
                     break;
                 }
             }
-            var nodes = book.childNodes;
-            tocLevelLoop: while (1) {
-                for (var i = 0; i < nodes.length; i++) {
-                    n = nodes[i];
-                    if (n.tagName != 'node') continue;
-                    var id = n.getAttribute('id');
-                    if (path == id) return n.childNodes;
-                    if (   id
-                        && path.length > id.length
-                        && path.substring(0, id.length + 1) == id + '_') {
-                        nodes = n.childNodes;
-                        continue tocLevelLoop;
-                    }
-                }
+            if (!node) createSearchField(children, '', true);
+            processChildrenFn(children);
+        });
+    }
+    function tocXmlNodes(xml, toc, path) {
+        var books = xml.documentElement.childNodes;
+        if (!toc) return books;
+        var book;
+        for (var i = 0; i < books.length; i++) {
+            book = books[i];
+            if (book.tagName == 'node' && toc == book.getAttribute('id')) {
+                if (!path) return book.childNodes;
                 break;
             }
-            return [];
         }
+        var nodes = book.childNodes;
+        tocLevelLoop: while (1) {
+            for (var i = 0; i < nodes.length; i++) {
+                n = nodes[i];
+                if (n.tagName != 'node') continue;
+                var id = n.getAttribute('id');
+                if (path == id) return n.childNodes;
+                if (   id
+                    && path.length > id.length
+                    && path.substring(0, id.length + 1) == id + '_') {
+                    nodes = n.childNodes;
+                    continue tocLevelLoop;
+                }
+            }
+            break;
+        }
+        return [];
+    }
+    function tocToNodes(xmlChildren, toc, expandPath) {
+        var children = [];
+        for (var i = 0; i < xmlChildren.length; i++) {
+            var n = xmlChildren[i];
+            if (n.tagName != 'node') continue;
+            var currentToc = toc ? toc : getAttribute(n, 'id');
+            children.push({
+                n/*node*/: {
+                    toc: currentToc,
+                    path: toc ? getAttribute(n, 'id') : 0,
+                    t: getAttribute(n, 'title'),
+                    h: (INTEGRATED ? '' : '../../') + getAttribute(n, 'href').substring(3),
+                    i: n.getAttribute('image'),
+                    y: expandPath
+                },
+                l/*is leaf*/: getAttribute(n, 'is_leaf'),
+                c/*children*/: tocToNodes(n.childNodes, currentToc)
+            });
+        }
+        return children;
     }
 
     function isSmallScreen() {
@@ -399,7 +468,6 @@
         var searchButton = createElement(searchFieldArea, 'button', 'b');
         setInnerHtml(searchButton, SEARCH_ICON);
         addEvent(searchFieldArea, 'submit', function(e) {preventDefault(e); search(e, 1);});
-addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
 
         // hint
         var hintField = createElement(wrap, 'input', 'qh');
@@ -448,7 +516,7 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
         // focus search field
         searchField.focus();
 
-        var baseUrl = window.INTEGRATED ? '' : '../../';
+        var baseUrl = INTEGRATED ? '' : '../../';
 
         var isKeySelectionMode = false;
 
@@ -1318,7 +1386,7 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
         var topicHref = contentWindow.location.href;
         if (!topicHref) return;
         var dummy = document.createElement('a');
-        dummy.href = (window.INTEGRATED ? '' : '../../') + 'x';
+        dummy.href = (INTEGRATED ? '' : '../../') + 'x';
         var topic = topicHref.substring(dummy.href.length - 2);
         if (topic.length > 7 && '/topic/' == topic.substring(0, 7)) topic = topic.substring(6);
         else if (topic.length > 5 && '/nav/' == topic.substring(0, 5)) topic = '/..' + topic;
@@ -1351,7 +1419,7 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
             query = '&' + topic.substr(queryStart + 1);
             topic = topic.substr(0, queryStart);
         }
-        window.open((window.INTEGRATED ? '' : '../../') + 'advanced/print.jsp?topic=' + topic + query + anchor, 'printWindow', 'directories=yes,location=no,menubar=yes,resizable=yes,scrollbars=yes,status=yes,titlebar=yes,toolbar=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y);
+        window.open((INTEGRATED ? '' : '../../') + 'advanced/print.jsp?topic=' + topic + query + anchor, 'printWindow', 'directories=yes,location=no,menubar=yes,resizable=yes,scrollbars=yes,status=yes,titlebar=yes,toolbar=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y);
     }
 
 
@@ -1362,76 +1430,153 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
     function createTree(element, contentProvider, labelProvider, selectable) {
         var root = createElement(element, 0, 'tree');
         function createNode(parent, node, open) {
-            contentProvider(node, function(parent, node) {
-                return function(children, open) {
-                    var ul = createElement(parent, 'ul');
-                    for (var i = 0; i < children.length; i++) {
-                        var li = createElement(ul, 'li', open ? 'open' : 'closed');
-                        li.p = parent;
-                        var child = children[i];
-                        if (!child.l) {
+            contentProvider(node, createNodeChildrenFn(parent, node));
+        };
+        function createNodeChildrenFn(parent, node) {
+            return function(children, open) {
+                var ul = createElement(parent, 'ul');
+                for (var i = 0; i < children.length; i++) {
+                    var li = createElement(ul, 'li', open ? 'open' : 'closed');
+                    li.p = parent;
+                    var child = children[i];
+                    if (!child.l) {
 
-                            // c(hildren: yes)
-                            li.c = 1;
+                        // c(hildren): yes
+                        li.c = 1;
 
-                            // i(nit function to load children)
-                            li.i = (function(li, node) {
-                                return function() {
-                                    createNode(li, node);
-                                    li.i = 0;
-                                };
-                            })(li, child.n);
+                        // i(nit) function to load children
+                        li.i = (function(li, node) {
+                            return function() {
+                                createNode(li, node);
+                                li.i = 0;
+                            };
+                        })(li, child.n);
 
-                            // handle (to toggle subtree)
-                            var handle = createElement(li, 'span', 'h');
-                            handle.innerHTML = TREE_HANDLE;
-                            addEvent(handle, 'click', (function(li) {
-                                return function(e) {
-                                    toggleLi(li);
-                                    stopPropagation(e);
-
-                                    // focus next element (to avoid losing focus since the handle cannot be focused)
-                                    try {
-                                        li.childNodes[1].focus();
-                                    } catch(e) {}
-
-                                };
-                            })(li));
-
-                        }
-                        var label = labelProvider(li, child.n);
-                        setClassName(label, 'l');
-                        if (selectable) {
-                            addEvent(label, 'click', (function(li, node) {
-                                return function(e) {
-                                    if (root.s === li) return;
-                                    for (var n = root.s; isLi(n); n = n.p) {
-                                        n.xx = 0;
-                                        n.x = 0;
-                                        updateLiClasses(n);
-                                    }
-                                    root.s = li;
-                                    root.n = node;
-                                    li.xx = 1;
-                                    updateLiClasses(li);
-                                    for (var n = li.p; isLi(n); n = n.p) {
-                                        n.x = 1;
-                                        updateLiClasses(n);
-                                    }
-                                    stopPropagation(e);
-                                };
-                            })(li, child.n));
-                        }
-                        addEvent(label, 'dblclick', (function(li) {
+                        // handle (to toggle subtree)
+                        var handle = createElement(li, 'span', 'h');
+                        handle.innerHTML = TREE_HANDLE;
+                        addEvent(handle, 'click', (function(li) {
                             return function(e) {
                                 toggleLi(li);
                                 stopPropagation(e);
-                            }
+
+                                // focus next element (to avoid losing focus since the handle cannot be focused)
+                                try {
+                                    li.childNodes[1].focus();
+                                } catch(e) {}
+
+                            };
                         })(li));
-                        if (open) toggleLi(li);
+
+                    }
+                    var label = labelProvider(li, child.n);
+                    setClassName(label, 'l');
+                    if (selectable) {
+                        addEvent(label, 'click', (function(li, node) {
+                            return function(e) {
+                                if (element.s === li) return;
+                                element.x(li);
+                                stopPropagation(e);
+                            };
+                        })(li, child.n));
+                    }
+                    addEvent(label, 'dblclick', (function(li) {
+                        return function(e) {
+                            toggleLi(li);
+                            stopPropagation(e);
+                        }
+                    })(li));
+                    if (open) toggleLi(li);
+                }
+            }
+        };
+        element.x = function(li, scrollArea, closeSiblings) {
+            for (var n = element.s; isLi(n); n = n.p) {
+                n.xx = 0;
+                n.x = 0;
+                updateLiClasses(n);
+            }
+            element.s = li;
+            if (!li) return;
+            li.xx = 1;
+            updateLiClasses(li);
+            for (var n = li.p; isLi(n); n = n.p) {
+                if (!n.o) {
+                    toggleLi(n);
+                }
+                n.x = 1;
+                updateLiClasses(n);
+            }
+
+            // close siblings of the selected node and its ancestors
+            for (var current = li; closeSiblings && current.tagName == 'LI'; current = current.p) {
+                var ul = getParentElement(current);
+                for (var i = 0; i < ul.childNodes.length; i++) {
+                    var n = ul.childNodes[i];
+                    if (current !== n && n.o) {
+                        toggleLi(n);
                     }
                 }
-            }(parent, node));
+            }
+
+            // scroll label into view if needed
+            for (var i = 0; i < li.childNodes.length; i++) {
+                var n = li.childNodes[i];
+                if (n.tagName == 'A' || n.tagName == 'BUTTON') {
+                    scrollIntoViewIfNeeded(scrollArea, n);
+                    break;
+                }
+            }
+
+        };
+        element.y = function(href, scrollArea, closeSiblings) {
+            contentProvider({topic: href}, function(children, open) {
+                if (!children || children.length != 1 || !children[0].n || !children[0].n.y) {
+
+                    // deselect current selection
+                    element.x(0);
+
+                    return;
+                }
+                var expandPath = children[0].n.y.split('_');
+                var parentLi = root;
+                var parentNode = {};
+                var childNodes = children;
+                for (var i = 0; i < expandPath.length; i++) {
+                    var nr = parseInt(expandPath[i]);
+                    if (parentLi.i) {
+                        (createNodeChildrenFn(parentLi, parentNode))(childNodes);
+                        parentLi.i = 0;
+                    }
+                    var ul = 0;
+                    for (var j = 0; j < parentLi.childNodes.length; j++) {
+                        var n = parentLi.childNodes[j];
+                        if (n.tagName == 'UL') {
+                            ul = n;
+                            break;
+                        }
+                    }
+                    var li = 0;
+                    var liNr = 0;
+                    for (var j = 0; j < ul.childNodes.length; j++) {
+                        var n = ul.childNodes[j];
+                        if (n.tagName == 'LI') {
+                            if (liNr == nr) {
+                                li = n;
+                                break;
+                            }
+                            liNr++;
+                        }
+                    }
+                    if (i == expandPath.length - 1) {
+                        element.x(li, scrollArea, closeSiblings);
+                    }
+                    parentLi = li;
+                    var child = childNodes[i == 0 ? 0 : nr];
+                    parentNode = child.n;
+                    childNodes = child.c;
+                }
+            });
         }
         createNode(root);
 
@@ -1505,13 +1650,68 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
 
         });
         element.f = function() {
-            if (root.s) {
-                focusTreeNode(root.s);
-            }
+            focusTreeNode(element.s);
         };
         if (selectable) {
             addEvent(element, 'click', element.f);
         }
+
+        // visitor pattern: visit the nearby nodes first (first the selected node with its subtree deep-first, then the
+        // parent, then the siblings with their subtrees and repeating for each higher level with the parent (if any)
+        // and the siblings, without the already processed node and its subtree)
+        element.v = function(vistorFn) {
+            var todoSiblingsAndAncestorsOf = element.s;
+            var todoSubtrees = element.s ? [element.s] : toArray(root.childNodes[0].childNodes);
+            while (todoSubtrees.length || todoSiblingsAndAncestorsOf) {
+                var next;
+
+                // subtree done? -> go one level up
+                if (!todoSubtrees.length) {
+                    var sibling = todoSiblingsAndAncestorsOf;
+                    while (sibling = getNextSibling(sibling)) {
+                        todoSubtrees.unshift(sibling);
+                    }
+                    sibling = todoSiblingsAndAncestorsOf;
+                    while (sibling = getPreviousSibling(sibling)) {
+                        todoSubtrees.unshift(sibling);
+                    }
+                    if (todoSiblingsAndAncestorsOf.p && todoSiblingsAndAncestorsOf.p.tagName == 'LI') {
+                        next = todoSiblingsAndAncestorsOf = todoSiblingsAndAncestorsOf.p;
+                    } else {
+                        todoSiblingsAndAncestorsOf = 0;
+                        continue;
+                    }
+                } else {
+                    next = todoSubtrees.pop();
+
+                    // add children of next (if any)
+                    for (var i = 0; i < next.childNodes.length; i++) {
+                        var n = next.childNodes[i];
+                        if (n.tagName != 'UL') continue;
+                        for (var j = n.childNodes.length - 1; j >= 0; j--) {
+                            var m = n.childNodes[j];
+                            if (isLi(m)) {
+                                todoSubtrees.push(m);
+                            }
+                        }
+                    }
+
+                }
+
+                // call visitor
+                if (!vistorFn(next)) return;
+
+            }
+
+        }
+        function toArray(nodeList) {
+            var result = [];
+            for (var i = 0; i < nodeList.length; i++) {
+                result.push(nodeList[i]);
+            }
+            return result;
+        }
+
         function toggleLi(li) {
             if (!li.c) return;
             if (li.i) {
@@ -1554,9 +1754,10 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
             focusTreeNode(li);
         }
         function focusTreeNode(li) {
+            if (!li) return;
             for (var i = 0; i < li.childNodes.length; i++) {
                 var n = li.childNodes[i];
-                if (n.tagName != 'A') continue;
+                if (n.tagName != 'A' && n.tagName != 'BUTTON') continue;
                 try {
                     n.focus();
                 } catch(e) {}
@@ -1710,6 +1911,7 @@ addEvent(getElementById('c'), 'load', function() {searchPage.s(0);});
     }
 
     function scrollIntoViewIfNeeded(scrollArea, element) {
+        if (!scrollArea) return;
         try {
             var scrollAreaBoundaries = scrollArea.getBoundingClientRect();
             var elementBoundaries = element.getBoundingClientRect();
