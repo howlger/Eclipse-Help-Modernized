@@ -41,6 +41,8 @@
     var title = 'Help';
 
     var searchPage;
+    var searchFull;
+    var setBookByToc;
     var currentSearch = {};
 
     addEvent(window, 'load', function() {
@@ -79,8 +81,10 @@
         searchPage = createElement(getElementById('m'), 0, 'c', 'Loading...');
         searchPage.id = 'r';
         searchPage.s = function(show) {
+            searchPage.o = !!show;
             searchPage.style.display = show ? 'block' : 'none';
             getElementById('c').style.display = show ? 'none' : 'block';
+            updateDeepLink();
         }
         searchPage.s(0);
 
@@ -124,10 +128,19 @@
             // close maybe open search page
             searchPage.s(0);
 
+            // update title and deep link
+            try {
+                var topicTitle = contentFrame.contentDocument.title;
+                document.title = topicTitle ? (topicTitle + ' - ' + title) : title;
+            } catch(e) {
+                document.title = title;
+            }
+            updateDeepLink();
+
             // sync with TOC
             try {
                 syncToc();
-                addEvent(contentFrame.contentWindow, 'hashchange', syncToc);
+                addEvent(contentFrame.contentWindow, 'hashchange', function(){ syncToc(); updateDeepLink(); });
             } catch(e) {
                 toc.x(0);
             }
@@ -136,6 +149,67 @@
 
         // TODO remove dummy code
 //        createElement(getElementById('f'), 'p', false, 'footer');
+
+    }
+
+    var initContentPageDone = 0;
+    function initContentPage() {
+
+        // set initial start/cover page...
+        // ...by hash
+        var hash = window.location.hash;
+        try {
+            if (hash && (   'q=' == hash.substring(1, 3)
+                         || 'nav/' == hash.substring(1, 5)
+                         || 'topic/' == hash.substring(1, 7)
+                         || 'rtopic/' == hash.substring(1, 8)
+                         || 'ntopic/' == hash.substring(1, 8)
+                         || 'nftopic/' == hash.substring(1, 9))) {
+                if ('q=' == hash.substring(1, 3)) {
+                    var initialQuery = hash.substring(3);
+                    var decoded = decodeURIComponent(initialQuery);
+                    var end = decoded.indexOf('&toc=');
+                    getElementById('q').value = end < 0 ? decoded : decoded.substring(0, end);
+                    setBookByToc(end < 0 ? 0 : decoded.substring(end + 5));
+                    searchFull();
+                } else {
+                    getElementById('c').src = (INTEGRATED ? '' : '../../') + hash.substring(1);
+                }
+                initContentPageDone = 1;
+                return;
+            }
+        } catch(e) {}
+
+        // ...by legacy query parameters topic/nav
+        var params = {};
+        var queryPart = window.location.href.replace(/^[^#\?]*(?:\?([^#\?]*))?(#.*)?$/, '$1');
+        queryPart.replace(/(?:^|&+)([^=&]+)=([^&]*)/gi, function(m, param, value) { params[param] = decodeURIComponent(value); });
+        var topicOrNav = params.topic || params.nav;
+        if (topicOrNav) {
+            getElementById('c').src =   (INTEGRATED ? '' : '../../')
+                                      + (params.nav ? 'nav' : 'topic')
+                                      + topicOrNav
+                                      + (params.anchor ? '#' + params.anchor : '');
+            window.history.replaceState(null, '', window.location.pathname);
+            initContentPageDone = 1;
+            updateDeepLink();
+            return;
+        }
+
+        // ...default start/cover page
+        remoteRequest((INTEGRATED ? '' : '../../') + 'advanced/content.jsp', function(responseText) {
+            var start = responseText.indexOf('title="Topic View" src=\'');
+            if (start > 0) {
+                var end = responseText.indexOf("'", start + 24);
+                var element = createElement(null, 'p');
+                element.innerHTML = responseText.substring(start + 24, end);
+                getElementById('c').src =   (INTEGRATED ? '' : '../../')
+                                          + 'topic/'
+                                          + (element.textContent ? element.textContent : element.innerText);
+                initContentPageDone = 1;
+                updateDeepLink();
+            }
+        });
 
     }
 
@@ -165,6 +239,37 @@
         } else {
             toc.y(newLocation.href, toc, 1);
         }
+    }
+
+    function updateDeepLink() {
+        if (!initContentPageDone) return;
+        if (searchPage && searchPage.o) {
+            setHash('q=' + searchPage.q);
+            return;
+        }
+        try {
+            var link = createElement(0, 'a');
+            link.href = (INTEGRATED ? '' : '../../') + 'x';
+            var base = link.href.substring(0, link.href.length - 1);
+            var src = getElementById('c').contentDocument.location.href;
+            if (base != src.substring(0, base.length)) return;
+            var current = src.substring(base.length);
+            if (   'nav/' == current.substring(0, 4)
+                || 'topic/' == current.substring(0, 6)
+                || 'rtopic/' == current.substring(0, 7)
+                || 'ntopic/' == current.substring(0, 7)
+                || 'nftopic/' == current.substring(0, 8)) {
+                setHash(current);
+            } else removeHash();
+        } catch(e) {
+            setHash();
+        }
+    }
+    function setHash(hash) {
+        try {
+            var url = hash ? '#' + hash : window.location.href.replace(/^([^#\?]*(?:\?([^#\?]*))?)(#.*)?$/, '$1');
+            window.history.replaceState(null, '', url);
+        } catch(e) {}
     }
 
     function createSlider(tocSidebarToggleButton, headSpacerElement) {
@@ -310,7 +415,10 @@
                     break;
                 }
             }
-            if (!node) createSearchField(children, '', true);
+            if (!node) {
+                createSearchField(children, '', true);
+                initContentPage();
+            }
             processChildrenFn(children);
         });
     }
@@ -448,6 +556,15 @@
             setClassName(dropDownHandle, scope.n.toc ? 'd' : 'de');
             search();
         }
+        setBookByToc = function(toc) {
+            for (var i = 0; i < bookNodesIncludingAll.length; i++) {
+                var bookNode = bookNodesIncludingAll[i];
+                if (toc == bookNode.n.toc || (!toc && !bookNode.n.toc)) {
+                    setBook(bookNode);
+                    break;
+                }
+            }
+        }
 
         toMenu(booksButton, menuItems, bookNodesIncludingAll, setBook);
         if (defaultBookData) setBook(defaultBookData[0], defaultBookData[1], defaultBookData[2]);
@@ -516,10 +633,9 @@
         // focus search field
         searchField.focus();
 
-        var baseUrl = INTEGRATED ? '' : '../../';
-
         var isKeySelectionMode = false;
 
+        searchFull = function() { search(0, 1); };
         function search(e, fullSearch) {
             var noPendingQueries = !currentSearch[getSearchTypeId(fullSearch)];
 
@@ -579,7 +695,7 @@
             // submit query to server
             var query =   encodeURIComponent(searchWord.toLowerCase()).replace(/(%20){1,}/g, '+')
                         + (scope.n.toc ? '&toc=' + encodeURIComponent(scope.n.toc).replace(/%20/g, '+') : '');
-            var url =   baseUrl
+            var url =   (INTEGRATED ? '' : '../../')
                       + 'advanced/searchView.jsp?searchWord='
                       + query.replace(/(\&|$)/, (fullSearch ? '' : '*') + '$1')
                       + '&maxHits='
@@ -683,6 +799,7 @@
                 setInnerHtml(parentElement, '');
                 parentElement.q = query;
                 if (fullSearch) {
+                    updateDeepLink();
 
                     // no results?
                     if (!results.length) {
@@ -839,7 +956,7 @@
                     var node = results[i];
                     var li = createElement(resultList, 'li');
                     var a = createElement(li, 'a');
-                    a.href = baseUrl + 'topic' + node.h/*href*/;
+                    a.href = (INTEGRATED ? '' : '../../') + 'topic' + node.h/*href*/;
                     a.target = 'c';
                     var titleAndLocation = createElement(a, 0, 'm');
 
@@ -880,7 +997,7 @@
                 // add key support (and show proposals)
                 if (fullSearch) {
                     toMenu(searchField, items, results, function(d) {
-                            getElementById('c').src = baseUrl + 'topic' + d.h/*href*/;
+                            getElementById('c').src = (INTEGRATED ? '' : '../../') + 'topic' + d.h/*href*/;
                         },
                         0,
                         0,
@@ -912,7 +1029,7 @@
                                 searchWord = searchWord.substring(0, tocStart);
                             }
                             if (searchSearchWord(searchWord + '*', toc, d[1], false, true)) return;
-                            getElementById('c').src = baseUrl + 'topic' + d[1];
+                            getElementById('c').src = (INTEGRATED ? '' : '../../') + 'topic' + d[1];
                             hideProposals();
 
                         },
@@ -944,7 +1061,7 @@
                             iFrame.frameBorder = 0;
 
                             // TODO handle absolute paths
-                            iFrame.src = baseUrl + 'topic' + b[1];
+                            iFrame.src = (INTEGRATED ? '' : '../../') + 'topic' + b[1];
                         });
 
                     // show proposals
@@ -1085,12 +1202,12 @@
                 } else {
 
                     // disable scope and update top left search input field
-                    searchFrame.location.replace(  baseUrl
+                    searchFrame.location.replace(  (INTEGRATED ? '' : '../../')
                                                  + 'scopeState.jsp?workingSet=&searchWord='
                                                  + encodeURIComponent(searchWord));
 
                 }
-                var newNavUrl =   baseUrl
+                var newNavUrl =   (INTEGRATED ? '' : '../../')
                                 + 'advanced/nav.jsp?e=h&tab=search&searchWord=' // 'e=h' for tracking (to distinguish normal queries from queries done with this script)
                                 + (isSearchWordDecoded ? searchWord : encodeURIComponent(searchWord));
                 if (toc) newNavUrl += '&quickSearch=true&quickSearchType=QuickSearchToc&toc=' + encodeURIComponent(toc);
@@ -1100,7 +1217,7 @@
                 // topic (use 'setTimeout()' otherwise in Internet Explorer
                 //        'Go Back' does not work sometimes)
                 if (href) {
-                    setTimeout(function(){window.location.href = baseUrl + 'topic' + href}, 9);
+                    setTimeout(function(){window.location.href = (INTEGRATED ? '' : '../../') + 'topic' + href}, 9);
                 }
 
                 return true;
