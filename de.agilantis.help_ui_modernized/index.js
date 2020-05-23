@@ -122,6 +122,7 @@
                        return a;
                    },
                    1);
+        toc.c = 1; // scroll into view if needed: to upper third instead of scroll as less as possible
         var contentFrame = getElementById('c');
         addEvent(contentFrame, 'load', function() {
 
@@ -2034,9 +2035,18 @@
             var elementBoundaries = element.getBoundingClientRect();
             if (   elementBoundaries.top >= scrollAreaBoundaries.top
                 && elementBoundaries.bottom <= scrollAreaBoundaries.bottom) return;
-            scrollArea.scrollTop += elementBoundaries.bottom <= scrollAreaBoundaries.bottom
+
+            scrollArea.scrollTop += scrollArea.c
+
+                                    // show element in upper third
+                                    ? ((  (elementBoundaries.bottom - scrollAreaBoundaries.bottom)
+                                        + (elementBoundaries.top - scrollAreaBoundaries.top) * 2) / 3)
+
+                                    // scroll as less as possible
+                                    : (elementBoundaries.bottom <= scrollAreaBoundaries.bottom
                                     ? elementBoundaries.top - scrollAreaBoundaries.top
-                                    : elementBoundaries.bottom - scrollAreaBoundaries.bottom;
+                                       : elementBoundaries.bottom - scrollAreaBoundaries.bottom);
+
         } catch (e) {}
     }
 
