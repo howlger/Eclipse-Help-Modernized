@@ -11,19 +11,24 @@
 
     var INTEGRATED = 1;
     var SMALL_SCREEN_WIDTH = 768;
-    var TOC_SLIDER_HALF_WIDTH = 12 / 2;
+    var LOGO_ICON_WIDTH = 36;
+    var LOGO_FULL_WIDTH = 146;
     var TOC_SIDEBAR_DEFAULT_WIDTH = 380;
-    var TOC_SIDEBAR_MINIMUM_WIDTH = 64;
+    var TOC_SIDEBAR_MINIMUM_WIDTH = 76;
     var TOC_SIDEBAR_WIDTH_COOKIE_NAME = 'toc_width';
     var TOC_ICON_DESCRIPTION = 'Toggle table of content';
-    var TOC_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill-rule="evenodd" fill="currentColor" d="M19 5H1V3h18v2zm0 10H1v2h18v-2zm-4-6H1v2h14V9z" clip-rule="evenodd"/></svg>';
-    var MENU_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill-rule="evenodd" fill="currentColor" d="M 10 1.5 A 2 2 0 0 0 8 3.5 A 2 2 0 0 0 10 5.5 A 2 2 0 0 0 12 3.5 A 2 2 0 0 0 10 1.5 z M 10 8 A 2 2 0 0 0 8 10 A 2 2 0 0 0 10 12 A 2 2 0 0 0 12 10 A 2 2 0 0 0 10 8 z M 10 14.5 A 2 2 0 0 0 8 16.5 A 2 2 0 0 0 10 18.5 A 2 2 0 0 0 12 16.5 A 2 2 0 0 0 10 14.5 z" clip-rule="evenodd"/></svg>';
+    var TOC_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="M19 5H1V3h18v2zm0 10H1v2h18v-2zm-4-6H1v2h14V9z"/></svg>';
+    var HISTORY_BACK_DESCRIPTION = 'Go back one page';
+    var HISTORY_BACK_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="m 8.27224,17.95644 c 0.39048,0.390343 1.023592,0.390211 1.413938,0 0.390613,-0.390612 0.390613,-1.023597 -1.33e-4,-1.41421 L 4.144057,11.000499 18.27041,10.999748 c 0.55219,-1.31e-4 0.999731,-0.447671 0.999731,-1.0001299 -1.34e-4,-0.552189 -0.447674,-0.999595 -0.999864,-0.999595 l -14.126755,9.99e-4 5.542723,-5.543204 c 0.390479,-0.390479 0.390479,-1.023727 0,-1.414074 -0.195307,-0.195173 -0.451138,-0.292892 -0.707102,-0.292892 -0.255832,0 -0.511664,0.09772 -0.70697,0.292759 l -7.249421,7.250043 c -0.187575,0.18744 -0.292893,0.441666 -0.292893,0.7069649 1.33e-4,0.2653 0.105451,0.519396 0.293025,0.707237 z"/></svg>';
+    var HISTORY_FORWARD_DESCRIPTION = 'Go back one page';
+    var HISTORY_FORWARD_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="m 11.72776,17.95644 c -0.39048,0.390343 -1.023592,0.390211 -1.413938,0 -0.390613,-0.390612 -0.390613,-1.023597 1.33e-4,-1.41421 L 15.855943,11.000499 1.72959,10.999748 C 1.1774,10.999617 0.729859,10.552077 0.729859,9.9996181 0.729993,9.4474291 1.177533,9.0000231 1.729723,9.0000231 l 14.126755,9.99e-4 -5.542723,-5.543204 c -0.390479,-0.390479 -0.390479,-1.023727 0,-1.414074 0.195307,-0.195173 0.451138,-0.292892 0.707102,-0.292892 0.255832,0 0.511664,0.09772 0.70697,0.292759 l 7.249421,7.250043 c 0.187575,0.18744 0.292893,0.441666 0.292893,0.7069649 -1.33e-4,0.2653 -0.105451,0.519396 -0.293025,0.707237 z"/></svg>';
+    var MENU_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="M 10 1.5 A 2 2 0 0 0 8 3.5 A 2 2 0 0 0 10 5.5 A 2 2 0 0 0 12 3.5 A 2 2 0 0 0 10 1.5 z M 10 8 A 2 2 0 0 0 8 10 A 2 2 0 0 0 10 12 A 2 2 0 0 0 12 10 A 2 2 0 0 0 10 8 z M 10 14.5 A 2 2 0 0 0 8 16.5 A 2 2 0 0 0 10 18.5 A 2 2 0 0 0 12 16.5 A 2 2 0 0 0 10 14.5 z"/></svg>';
     var MENU_ICON_DESCRIPTION = 'Show menu';
-    var MENU_CLOSE_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill-rule="evenodd" fill="currentColor" d="M 4.34375 2.9296875 L 2.9296875 4.34375 L 8.5859375 10 L 2.9296875 15.65625 L 4.34375 17.070312 L 10 11.414062 L 15.65625 17.070312 L 17.070312 15.65625 L 11.414062 10 L 17.070312 4.34375 L 15.65625 2.9296875 L 10 8.5859375 L 4.34375 2.9296875 z" clip-rule="evenodd"/></svg>';
+    var MENU_CLOSE_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="M 4.34375 2.9296875 L 2.9296875 4.34375 L 8.5859375 10 L 2.9296875 15.65625 L 4.34375 17.070312 L 10 11.414062 L 15.65625 17.070312 L 17.070312 15.65625 L 11.414062 10 L 17.070312 4.34375 L 15.65625 2.9296875 L 10 8.5859375 L 4.34375 2.9296875 z"/></svg>';
     var MENU_CLOSE_ICON_DESCRIPTION = 'Hide menu';
-    var TREE_HANDLE = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor" fill-rule="evenodd"/></svg>';
+    var TREE_HANDLE = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor"/></svg>';
     var BOOK_NAME_SHORTENER = function shortenBookName(bookName) { return bookName.replace(/\s+(Documentation\s*)?(\-\s+([0-9,\-]+\s+)?Preview(\s+[0-9,\-]+)?\s*)?$/i, ''); };
-    var SEARCH_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><g fill="#fff"><path fill-rule="evenodd" fill="currentColor" d="M 7.5 0 C 3.3578644 0 0 3.3578644 0 7.5 C 0 11.642136 3.3578644 15 7.5 15 C 8.8853834 14.997 10.242857 14.610283 11.421875 13.882812 L 17.185547 19.662109 C 17.632478 20.113489 18.36112 20.112183 18.8125 19.660156 L 19.623047 18.845703 C 20.072507 18.398153 20.072507 17.665594 19.623047 17.214844 L 13.871094 11.447266 C 14.607206 10.26212 14.998156 8.8951443 15 7.5 C 15 3.3578644 11.642136 0 7.5 0 z M 7.5 2 A 5.5 5.5 0 0 1 13 7.5 A 5.5 5.5 0 0 1 7.5 13 A 5.5 5.5 0 0 1 2 7.5 A 5.5 5.5 0 0 1 7.5 2 z" clip-rule="evenodd"/></g></svg>';
+    var SEARCH_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><g fill="#fff"><path fill="currentColor" d="M 7.5 0 C 3.3578644 0 0 3.3578644 0 7.5 C 0 11.642136 3.3578644 15 7.5 15 C 8.8853834 14.997 10.242857 14.610283 11.421875 13.882812 L 17.185547 19.662109 C 17.632478 20.113489 18.36112 20.112183 18.8125 19.660156 L 19.623047 18.845703 C 20.072507 18.398153 20.072507 17.665594 19.623047 17.214844 L 13.871094 11.447266 C 14.607206 10.26212 14.998156 8.8951443 15 7.5 C 15 3.3578644 11.642136 0 7.5 0 z M 7.5 2 A 5.5 5.5 0 0 1 13 7.5 A 5.5 5.5 0 0 1 7.5 13 A 5.5 5.5 0 0 1 2 7.5 A 5.5 5.5 0 0 1 7.5 2 z"/></g></svg>';
     var SEARCH_FIELD_DESCRIPTION = '* = any string\n? = any character\n"" = phrase\nAND, OR & NOT = boolean operators';
     var SEARCH_FIELD_PLACEHOLDER = 'Search';
     var SEARCH_HITS_MAX = 500;
@@ -38,6 +43,7 @@
     // TODO integration: the browser should not have to calculate the following variables itself;
     //                   only "init()" should be called instead
     var iconExtension = '.svg';
+    var embeddedMode = 1;
     var title = 'Help';
 
     var searchPage;
@@ -63,13 +69,7 @@
         // .svg or .gif? + embedded?
         remoteRequest((INTEGRATED ? '' : '../../') + 'advanced/tabs.jsp', function(responseText) {
             if (responseText.indexOf('e_contents_view.gif') > 0) iconExtension = '.gif';
-
-//            // show history buttons in embedded help, but not in Infocenter mode
-//            if (responseText.indexOf('e_bookmarks_view.') > 0) {
-//                var ids = ['h-history-back-icon', 'h-history-back-btn', 'h-history-forward-icon', 'h-history-forward-btn'];
-//                for (var i = 0; i < ids.length; i++) document.getElementById(ids[i]).style.display = 'inline-block';
-//            }
-
+            if (responseText.indexOf('e_bookmarks_view.') < 0) embeddedMode = 0;
             init();
         });
 
@@ -88,16 +88,22 @@
         }
         searchPage.s(0);
 
-        // TOC sidebar button
+        // toolbar: TOC sidebar button and history Back/Forward buttons (in embedded help, but not in Infocenter mode)
         var header = getElementById('h');
-        var tocSidebarToggleButton = createElement(header, 'a', 'b');
-        tocSidebarToggleButton.href = '#';
-        tocSidebarToggleButton.alt = TOC_ICON_DESCRIPTION;
-        tocSidebarToggleButton.title = TOC_ICON_DESCRIPTION;
-        setInnerHtml(tocSidebarToggleButton, TOC_ICON);
+        var toolbarContainer = createElement(header);
+        var toolbar = createElement(toolbarContainer, 0, 'y');
+        var tocSidebarToggleButton = createButton(toolbar, TOC_ICON, TOC_ICON_DESCRIPTION);
+        if (embeddedMode) {
+            createButton(toolbar, HISTORY_BACK_ICON, HISTORY_BACK_DESCRIPTION, function() {
+                window.history.back();
+            });
+            createButton(toolbar, HISTORY_FORWARD_ICON, HISTORY_FORWARD_DESCRIPTION, function() {
+                window.history.forward();
+            });
+        }
 
         // TOC slider (to change TOC sidebar width by moving the slider)
-        var smallScreenAutoCloseFn = createSlider(tocSidebarToggleButton, createElement(header, 0, 'i'));
+        var smallScreenAutoCloseFn = createSlider(tocSidebarToggleButton, toolbarContainer, createElement(header, 0, 'i'));
 
         // fill TOC and create search field
         var toc = getElementById('t');
@@ -151,6 +157,17 @@
         // TODO remove dummy code
 //        createElement(getElementById('f'), 'p', false, 'footer');
 
+    }
+    function createButton(parent, innerHtml, description, clickFn) {
+        var button = createElement(parent, 'a', 'b');
+        button.href = '#';
+        button.alt = description;
+        button.title = description;
+        setInnerHtml(button, innerHtml);
+        if (clickFn) {
+            addEvent(button, 'click', function(e) { preventDefault(e); clickFn(e); });
+        }
+        return button;
     }
 
     var initContentPageDone = 0;
@@ -273,12 +290,14 @@
         } catch(e) {}
     }
 
-    function createSlider(tocSidebarToggleButton, headSpacerElement) {
+    function createSlider(tocSidebarToggleButton, toolbar, headSpacerElement) {
 
         // create slider element
         var slider = createElement();
         slider.id = 's';
         getElementById('m').insertBefore(slider, getElementById('c'));
+        var sliderWidth = slider.getBoundingClientRect().width;
+        var sliderHalfWidth = sliderWidth > 0 ? sliderWidth / 2 : 0;
 
         // create overlay required for smooth slider drag'n'drop
         var overlay = createOverlay();
@@ -288,15 +307,17 @@
         var tocSidebar = getElementById('t');
         var tocSidebarStyle = tocSidebar.style;
         var headSpacerElementStyle = headSpacerElement.style;
+        var toolbarWidth = toolbar.getBoundingClientRect().width;
+        var tocSidebarMinimumWidth = TOC_SIDEBAR_MINIMUM_WIDTH > toolbarWidth ? TOC_SIDEBAR_MINIMUM_WIDTH : toolbarWidth;
 
         // slider movement
         function move(e) {
-            tocWidth = (e.touches ? e.touches[0].clientX : e.pageX) - TOC_SLIDER_HALF_WIDTH;
+            tocWidth = (e.touches ? e.touches[0].clientX : e.pageX) - sliderHalfWidth;
             if (tocWidth < 0) {
                 tocWidth = 0;
             }
             tocSidebarStyle.width = tocWidth + 'px';
-            headSpacerElementStyle.marginRight = (tocWidth < 30 ? 0 : tocWidth - 30) + 'px';
+            updateSpacerWidth();
             preventDefault(e);
         }
         function moveEnd(e) {
@@ -310,7 +331,7 @@
             }
             overlay.o();
             tocSidebarStyle.userSelect = '';
-            if (tocWidth < TOC_SIDEBAR_MINIMUM_WIDTH) {
+            if (tocWidth < tocSidebarMinimumWidth) {
                 var oldWidth = getCookie('toc-width');
                 tocWidth = oldWidth ? oldWidth : TOC_SIDEBAR_DEFAULT_WIDTH;
                 toggleTocSidebar();
@@ -344,6 +365,18 @@
                 documentElement.removeEventListener(event, fn, passive ? { passive: false } : false);
             }
         }
+        function updateSpacerWidth(hideToc, tocWidth, withTransition) {
+            if (withTransition) {
+                headSpacerElementStyle.transition = 'width .25s ease-in';
+            }
+            var spacerWidth =   (tocWidth || tocSidebar.getBoundingClientRect().right)
+                              + sliderWidth
+                              - toolbar.getBoundingClientRect().right;
+            var displayWidth = hideToc || spacerWidth < 0 ? 0 : spacerWidth;
+            headSpacerElementStyle.width = displayWidth + 'px';
+            var widthPostfix = displayWidth >= LOGO_ICON_WIDTH ? (displayWidth >= LOGO_FULL_WIDTH ? 'f' : 1) : 0;
+            setClassName(headSpacerElement, 'k' + (embeddedMode ? 'e' : '') + widthPostfix);
+        }
 
         addEvent(slider, 'mousedown', moveStart);
         addEvent(slider, 'touchstart', moveStart);
@@ -372,15 +405,17 @@
                 }
             }
             if (initialize || !isSmall) {
-                tocSidebarStyle.width =   (hideToc ? 0 : tocWidth > TOC_SIDEBAR_MINIMUM_WIDTH
+                tocSidebarStyle.width =   (hideToc ? 0 : tocWidth > tocSidebarMinimumWidth
                                                          ? tocWidth
                                                          : TOC_SIDEBAR_DEFAULT_WIDTH)
                                         + 'px';
-                headSpacerElementStyle.marginRight = (hideToc ? 6 : (tocWidth < 30 ? 0 : tocWidth - 30)) + 'px';
             }
             tocSidebarStyle.userSelect = hideToc ? 'none' : '';
             if (!hideToc && tocSidebar.f) {
                 tocSidebar.f();
+            }
+            if (!isSmall) {
+                updateSpacerWidth(hideToc, tocWidth, 1);
             }
         }
         toggleTocSidebar(0, 1);
@@ -2044,7 +2079,7 @@
 
                                     // scroll as less as possible
                                     : (elementBoundaries.bottom <= scrollAreaBoundaries.bottom
-                                    ? elementBoundaries.top - scrollAreaBoundaries.top
+                                       ? elementBoundaries.top - scrollAreaBoundaries.top
                                        : elementBoundaries.bottom - scrollAreaBoundaries.bottom);
 
         } catch (e) {}

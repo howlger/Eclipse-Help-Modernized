@@ -106,6 +106,12 @@ button {
 
 #f { display: none; }
 
+/*** main toolbar (in the upper left) ***/
+.y {
+    display: flex;
+    margin-right: 6px;
+}
+
 /*** button ***/
 .b {
     display: inline-block;
@@ -372,7 +378,7 @@ button {
     top: 0;
     right: 0;
     overflow-x: hidden;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease-in;
     border-left: #ddd solid 1px;
     display: flex;
     flex-direction: column;
@@ -493,13 +499,20 @@ button {
     transform: rotate(90deg);
 }
 
+/*** logo ***/
+.k1 /* width: 36..146 */ {
+    /* logo icon */
+}
+.kf /* width: > 146 */ {
+    /* logo full */
+}
 
 /*******************************************************************************
  * Mobile                                                                      */
 
 @media screen and (max-width: 768px) {
 
-    #t, #s, .i {
+    #t, #s, .i, .k0, .k1, .kf, .ke0, .ke1, .kef  {
         display: none;
     }
     #m {
