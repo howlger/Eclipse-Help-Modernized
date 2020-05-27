@@ -1908,10 +1908,9 @@
             }
         }
         function focusDeepestVisibleChild(li) {
-            for (var i = 0; i < li.childNodes.length; i++) {
+            for (var i = 0; li.o && i < li.childNodes.length; i++) {
                 var n = li.childNodes[i];
                 if (n.tagName != 'UL') continue;
-                if (!n.o) break;
                 for (var j = n.childNodes.length - 1; j >= 0; j--) {
                     var m = n.childNodes[j];
                     if (!isLi(m)) continue;
