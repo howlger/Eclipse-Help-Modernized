@@ -28,6 +28,7 @@
     var MENU_CLOSE_ICON_DESCRIPTION = 'Hide menu';
     var TREE_HANDLE = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor"/></svg>';
     var BOOK_NAME_SHORTENER = function shortenBookName(bookName) { return bookName.replace(/\s+(Documentation\s*)?(\-\s+([0-9,\-]+\s+)?Preview(\s+[0-9,\-]+)?\s*)?$/i, ''); };
+    var BOOK_SCOPE_BY_DEFAULT = 0;
     var SEARCH_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><g fill="#fff"><path fill="currentColor" d="M 7.5 0 C 3.3578644 0 0 3.3578644 0 7.5 C 0 11.642136 3.3578644 15 7.5 15 C 8.8853834 14.997 10.242857 14.610283 11.421875 13.882812 L 17.185547 19.662109 C 17.632478 20.113489 18.36112 20.112183 18.8125 19.660156 L 19.623047 18.845703 C 20.072507 18.398153 20.072507 17.665594 19.623047 17.214844 L 13.871094 11.447266 C 14.607206 10.26212 14.998156 8.8951443 15 7.5 C 15 3.3578644 11.642136 0 7.5 0 z M 7.5 2 A 5.5 5.5 0 0 1 13 7.5 A 5.5 5.5 0 0 1 7.5 13 A 5.5 5.5 0 0 1 2 7.5 A 5.5 5.5 0 0 1 7.5 2 z"/></g></svg>';
     var SEARCH_FIELD_DESCRIPTION = '* = any string\n? = any character\n"" = phrase\nAND, OR & NOT = boolean operators';
     var SEARCH_FIELD_PLACEHOLDER = 'Search';
@@ -50,6 +51,7 @@
     var searchFull;
     var setBookByToc;
     var currentSearch = {};
+    var initBookScope = getCookie('book-scope', '' + !!BOOK_SCOPE_BY_DEFAULT) != 'false';
 
     addEvent(window, 'load', function() {
 
@@ -110,6 +112,9 @@
         createTree(toc,
                    tocContentProvider,
                    function(li, node) {
+                       if (node.toc) {
+                           li.toc = node.toc;
+                       }
                        var a = createElement(li, 'a');
                        a.href = node.h;
                        a.target = 'c';
@@ -584,19 +589,23 @@
             }
         }
 
-        function setBook(bookNode) {
+        function setBook(bookNode, updateDisplayedProposalsOnly) {
             booksDropDown.style.display = 'none';
             if (scope.n.toc) booksButtonText.removeChild(booksButtonText.firstChild);
             scope = bookNode;
             if (scope.n.toc) booksButtonText.appendChild(document.createTextNode(BOOK_NAME_SHORTENER(bookNode.n.t)));
             setClassName(dropDownHandle, scope.n.toc ? 'd' : 'de');
-            search();
+            if (!updateDisplayedProposalsOnly || proposals.style.display != 'none') {
+                search();
+            }
+            setCookie('book-scope', !!scope.n.toc);
         }
-        setBookByToc = function(toc) {
+        setBookByToc = function(toc, updateBookOnly, initBook) {
+            if (updateBookOnly && !initBook && !scope.n.toc) return;
             for (var i = 0; i < bookNodesIncludingAll.length; i++) {
                 var bookNode = bookNodesIncludingAll[i];
                 if (toc == bookNode.n.toc || (!toc && !bookNode.n.toc)) {
-                    setBook(bookNode);
+                    setBook(bookNode, updateBookOnly);
                     break;
                 }
             }
@@ -1679,6 +1688,12 @@
                     scrollIntoViewIfNeeded(scrollArea, n);
                     break;
                 }
+            }
+
+            // update search field book scope
+            if (setBookByToc && li.toc) {
+                setBookByToc(li.toc, 1, initBookScope);
+                initBookScope = 0;
             }
 
         };
