@@ -13,6 +13,9 @@
     var SMALL_SCREEN_WIDTH = 768;
     var LOGO_ICON_WIDTH = 36;
     var LOGO_FULL_WIDTH = 146;
+    var MENU_FONT_SIZING = 0;
+    var MENU_HELP = 0;
+    var MENU_ABOUT = 0;
     var TOC_SIDEBAR_DEFAULT_WIDTH = 380;
     var TOC_SIDEBAR_MINIMUM_WIDTH = 76;
     var TOC_SIDEBAR_WIDTH_COOKIE_NAME = 'toc_width';
@@ -139,6 +142,9 @@
 
             // close maybe open search page
             searchPage.s(0);
+
+            // font sizing
+            setFontSize(0, 1, 1);
 
             // update title and deep link
             try {
@@ -459,6 +465,7 @@
             if (!node) {
                 createSearchField(children, '', true);
                 initContentPage();
+                setFontSize(0, 1);
             }
             processChildrenFn(children);
         });
@@ -1475,14 +1482,19 @@
         menu.o = function(e) { preventDefault(e); overlay.o(); menuStyle.width = '0'; };
         menu.o();
         addEvent(overlay, 'click', menu.o);
-        function createMenuItem(label, description, fn, id) {
-            var item = createElement(menu, 'a', 'b', label);
-            item.href = '#';
+        function createMenuItem(label, description, fn, id, href, parent) {
+            var item = createElement(parent ? parent : menu, fn ? 'button' : 'a', 'b', label);
+            item.href = href ? ((INTEGRATED ? '' : '../../') + href) : '#';
+            item.target = 'c';
             item.title = description;
             if (id) {
                 item.id = id;
             }
-            addEvent(item, 'click', function(e) { preventDefault(e); fn(e); menu.o(); });
+            addEvent(item, 'click', function(e) {
+                if (fn) { preventDefault(e); fn(e); }
+                if (href) { getElementById('c').contentDocument.location.href = (INTEGRATED ? '' : '../../') + href; }
+                if (!parent) menu.o();
+            });
             return item;
         }
 
@@ -1506,6 +1518,15 @@
         createElement(highlight, 'span', 'ht', 'search term');
         toggleHighlight(0, 1);
 
+        // "Font: - +"
+        if (MENU_FONT_SIZING) {
+            var fontSizer = createElement(menu);
+            fontSizer.id = 'af';
+            createElement(fontSizer, 'span', 0, 'Font:');
+            createMenuItem('\u2013', 'Decrease font size', function() { setFontSize(0); }, 'afm', 0, fontSizer);
+            createMenuItem('+', 'Increase font size', function() { setFontSize(1); }, 'afp', 0, fontSizer);
+        }
+
         // "Print topic"
         createMenuItem('Print topic', 'Print topic without its subtopics', function() {
             try {
@@ -1516,6 +1537,16 @@
 
         // "Print chapter"
         createMenuItem('Print chapter', 'Print topic including subtopics', printChapter, 'app');
+
+        // "Help"
+        if (MENU_HELP) {
+            createMenuItem('Help', 'How to use help', 0, 'ai', 'topic/org.eclipse.help.base/doc/help_home.html');
+        }
+
+        // "About"
+        if (MENU_ABOUT) {
+            createMenuItem('About', 'Configuration details', 0, 'aa', 'about.html');
+        }
 
         // show menu button
         var menuButton = createElement(getElementById('h'), 'a', 'b');
@@ -1540,6 +1571,32 @@
             }
         }
         setClassName(getElementById('ah'), enableHighlighting ? 'b x' : 'b');
+    }
+
+    function setFontSize(increase, initalize, updateContentFrameOnly) {
+        if (!MENU_FONT_SIZING) return;
+        var newFontSize;
+        var contentFrameDocument = getElementById('c').contentWindow.document;
+        var contentFrameDocumentElement = contentFrameDocument.documentElement || contentFrameDocument.body;
+        var contentStyle = window.getComputedStyle(contentFrameDocumentElement, null).getPropertyValue('font-size');
+        var contentFontSize = parseFloat(contentStyle);
+        var toc = document.getElementById('t');
+        var tocStyle = getComputedStyle(toc, null).getPropertyValue('font-size');
+        var tocFontSize = parseFloat(tocStyle);
+        if (initalize) {
+            newFontSize = getCookie('font-size');
+        } else if (increase && !initalize && tocFontSize < 64) {
+            newFontSize = (tocFontSize + 3);
+        } else if (!increase && !initalize && tocFontSize > 12) {
+            newFontSize = (tocFontSize - 3);
+        }
+        if (!newFontSize) return;
+        contentFrameDocumentElement.style.fontSize = newFontSize + 'px';
+        if (!updateContentFrameOnly) {
+            toc.style.fontSize = newFontSize + 'px';
+            searchPage.style.fontSize = newFontSize + 'px';
+        }
+        setCookie('font-size', newFontSize, 365);
     }
 
     function printChapter() {
