@@ -35,9 +35,11 @@
     var SEARCH_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><g fill="#fff"><path fill="currentColor" d="M 7.5 0 C 3.3578644 0 0 3.3578644 0 7.5 C 0 11.642136 3.3578644 15 7.5 15 C 8.8853834 14.997 10.242857 14.610283 11.421875 13.882812 L 17.185547 19.662109 C 17.632478 20.113489 18.36112 20.112183 18.8125 19.660156 L 19.623047 18.845703 C 20.072507 18.398153 20.072507 17.665594 19.623047 17.214844 L 13.871094 11.447266 C 14.607206 10.26212 14.998156 8.8951443 15 7.5 C 15 3.3578644 11.642136 0 7.5 0 z M 7.5 2 A 5.5 5.5 0 0 1 13 7.5 A 5.5 5.5 0 0 1 7.5 13 A 5.5 5.5 0 0 1 2 7.5 A 5.5 5.5 0 0 1 7.5 2 z"/></g></svg>';
     var SEARCH_FIELD_DESCRIPTION = '* = any string\n? = any character\n"" = phrase\nAND, OR & NOT = boolean operators';
     var SEARCH_FIELD_PLACEHOLDER = 'Search';
+    var BASE_URL;
+    var SEARCH_BASE_URL;
     var SEARCH_HITS_MAX = 500;
     var SEARCH_AS_YOU_TYPE_PROPOSAL_MAX = 7;
-    var SEARCH_RESULTS_PATTERN = new RegExp('<tr[^<]*<td[^<]*<img[^<]*</td[^<]*<td[^<]*<a\\s+(?:(?:class|id|title|onmouseover|onmouseout)\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*href="([^"]*)"(?:\\s+o\\w+="[^"]*")*\\s+title="([^"]*)"[^>]*>([^<]*)</a>(?:(?:(?!<[/]?tr)[\\s\\S])*</tr\\s*>\\s*<tr(?:(?!</tr)(?!class="location">)[\\s\\S])*class="location">((?:(?!</div)[\\s\\S])*))?(?:(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*</tr){1,2}(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*\\sclass=["\']description["\'][^>]*>([^<]*)', 'g');
+    var SEARCH_RESULTS_PATTERN = new RegExp('<tr[^<]*<td[^<]*<img[^<]*</td[^<]*<td[^<]*<a\\s+(?:(?!href)(?!title)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*(href|title)\\s*=\\s*"([^"]*)"\\s+(?:(?!href)(?!title)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*(href|title)\\s*=\\s*"([^"]*)"[^>]*>([^<]*)</a>(?:(?:(?!<[/]?tr)[\\s\\S])*</tr\\s*>\\s*<tr(?:(?!</tr)(?!class="location">)[\\s\\S])*class="location">((?:(?!</div)[\\s\\S])*))?(?:(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*</tr){1,2}(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*\\sclass=["\']description["\'][^>]*>([^<]*)', 'g');
     var SEARCH_RESULTS_BREADCRUMB_SNIPPET_PATTERN = new RegExp('<a\\s+href="([^"]+)">([^<]+)</a>', 'g');
     var SEARCH_AS_YOU_TYPE_CACHE_SIZE = 7;
     var SEARCH_FULL_SEARCH_CACHE_SIZE = 3;
@@ -52,6 +54,7 @@
 
     var searchPage;
     var searchFull;
+    var renderFullSearch;
     var setBookByToc;
     var currentSearch = {};
     var initBookScope = getCookie('book-scope', '' + !!BOOK_SCOPE_BY_DEFAULT) != 'false';
@@ -60,6 +63,12 @@
 
         // as "index.jsp"?
         INTEGRATED = window.location.pathname.indexOf('/index.jsp') >= 0;
+
+        // compute (search) base URL
+        var a = createElement(0, 'a');
+        a.href = INTEGRATED ? '' : '../../';
+        BASE_URL = a.href;
+        SEARCH_BASE_URL = BASE_URL + 'advanced/searchView.jsp?searchWord=';
 
         // title
         remoteRequest((INTEGRATED ? '' : '../../') + 'index.jsp?legacy', function(responseText) {
@@ -89,7 +98,6 @@
             searchPage.o = !!show;
             searchPage.style.display = show ? 'block' : 'none';
             getElementById('c').style.display = show ? 'none' : 'block';
-            updateDeepLink();
         }
         searchPage.s(0);
 
@@ -140,8 +148,18 @@
         var contentFrame = getElementById('c');
         addEvent(contentFrame, 'load', function() {
 
+            // full search?
+            var contentFrameHref = frames.c.location.href;
+            if (contentFrameHref.substring(0, SEARCH_BASE_URL.length) == SEARCH_BASE_URL) {
+                searchPage.s(1);
+                var data = frames.c.document.documentElement.innerHTML;
+                renderFullSearch(contentFrameHref.substring(SEARCH_BASE_URL.length), data);
+                return;
+            }
+
             // close maybe open search page
             searchPage.s(0);
+            updateDeepLink();
 
             // font sizing
             setFontSize(0, 1, 1);
@@ -153,16 +171,23 @@
             } catch(e) {
                 document.title = title;
             }
-            updateDeepLink();
 
             // sync with TOC
             try {
                 syncToc();
-                addEvent(contentFrame.contentWindow, 'hashchange', function(){ syncToc(); updateDeepLink(); });
+                addEvent(contentFrame.contentWindow, 'hashchange', function() { syncToc(); updateDeepLink(); });
             } catch(e) {
                 toc.x(0);
             }
 
+        });
+        addEvent(window, 'hashchange', function() {
+            var newHash = window.location.hash;
+            if (isQueryHash(newHash)) {
+                searchFullByHash(newHash);
+            } else {
+                searchPage.s(0);
+            }
         });
 
         // TODO remove dummy code
@@ -181,7 +206,6 @@
         return button;
     }
 
-    var initContentPageDone = 0;
     function initContentPage() {
 
         // set initial start/cover page...
@@ -195,16 +219,10 @@
                          || 'ntopic/' == hash.substring(1, 8)
                          || 'nftopic/' == hash.substring(1, 9))) {
                 if ('q=' == hash.substring(1, 3)) {
-                    var initialQuery = hash.substring(3);
-                    var decoded = decodeURIComponent(initialQuery);
-                    var end = decoded.indexOf('&toc=');
-                    getElementById('q').value = end < 0 ? decoded : decoded.substring(0, end);
-                    setBookByToc(end < 0 ? 0 : decoded.substring(end + 5));
-                    searchFull();
+                    searchFullByHash(hash);
                 } else {
                     getElementById('c').src = (INTEGRATED ? '' : '../../') + hash.substring(1);
                 }
-                initContentPageDone = 1;
                 return;
             }
         } catch(e) {}
@@ -220,7 +238,6 @@
                                       + topicOrNav
                                       + (params.anchor ? '#' + params.anchor : '');
             window.history.replaceState(null, '', window.location.pathname);
-            initContentPageDone = 1;
             updateDeepLink();
             return;
         }
@@ -235,7 +252,6 @@
                 getElementById('c').src =   (INTEGRATED ? '' : '../../')
                                           + 'topic/'
                                           + (element.textContent ? element.textContent : element.innerText);
-                initContentPageDone = 1;
                 updateDeepLink();
             }
         });
@@ -270,35 +286,32 @@
         }
     }
 
-    function updateDeepLink() {
-        if (!initContentPageDone) return;
-        if (searchPage && searchPage.o) {
-            setHash('q=' + searchPage.q);
-            return;
+    function updateDeepLink(query) {
+        var hash;
+        if (query) {
+            hash = 'q=' + query;
+        } else {
+            try {
+                var src = getElementById('c').contentDocument.location.href;
+                if (BASE_URL != src.substring(0, BASE_URL.length)) return;
+                var current = src.substring(BASE_URL.length);
+                if (   'nav/' == current.substring(0, 4)
+                    || 'topic/' == current.substring(0, 6)
+                    || 'rtopic/' == current.substring(0, 7)
+                    || 'ntopic/' == current.substring(0, 7)
+                    || 'nftopic/' == current.substring(0, 8)) {
+                    hash = current;
+                }
+            } catch(e) {}
         }
-        try {
-            var link = createElement(0, 'a');
-            link.href = (INTEGRATED ? '' : '../../') + 'x';
-            var base = link.href.substring(0, link.href.length - 1);
-            var src = getElementById('c').contentDocument.location.href;
-            if (base != src.substring(0, base.length)) return;
-            var current = src.substring(base.length);
-            if (   'nav/' == current.substring(0, 4)
-                || 'topic/' == current.substring(0, 6)
-                || 'rtopic/' == current.substring(0, 7)
-                || 'ntopic/' == current.substring(0, 7)
-                || 'nftopic/' == current.substring(0, 8)) {
-                setHash(current);
-            } else removeHash();
-        } catch(e) {
-            setHash();
-        }
-    }
-    function setHash(hash) {
         try {
             var url = hash ? '#' + hash : window.location.href.replace(/^([^#\?]*(?:\?([^#\?]*))?)(#.*)?$/, '$1');
             window.history.replaceState(null, '', url);
         } catch(e) {}
+    }
+    function isQueryHash(hash) {
+        return hash && (   (hash.length > 1 && hash.substring(0, 2) == 'q=')
+                        || (hash.length > 2 && hash.substring(0, 3) == '#q='));
     }
 
     function createSlider(tocSidebarToggleButton, toolbar, headSpacerElement) {
@@ -705,6 +718,7 @@
             if (fullSearch) {
                 currentSearch['t'] = 0;
                 hideProposals();
+                updateDeepLink(query);
             } else {
 
                 // hide hint
@@ -745,24 +759,47 @@
             }
 
             // submit query to server
-            var query =   encodeURIComponent(searchWord.toLowerCase()).replace(/(%20){1,}/g, '+')
-                        + (scope.n.toc ? '&toc=' + encodeURIComponent(scope.n.toc).replace(/%20/g, '+') : '');
-            var url =   (INTEGRATED ? '' : '../../')
-                      + 'advanced/searchView.jsp?searchWord='
+            var query =   encodeURIComponent(searchWord.toLowerCase())
+                        + (scope.n.toc ? '&toc=' + encodeURIComponent(scope.n.toc) : '');
+            var url =   SEARCH_BASE_URL
                       + query.replace(/(\&|$)/, (fullSearch ? '' : '*') + '$1')
                       + '&maxHits='
                       + (fullSearch ? SEARCH_HITS_MAX : SEARCH_AS_YOU_TYPE_PROPOSAL_MAX)
                       + (query.indexOf('&toc=') < 0 ? '' : '&quickSearch=true&quickSearchType=QuickSearchToc');
+            if (fullSearch) {
+                window.frames['c'].location = url;
+                return;
+            }
+            var callbackFn = callbackFor(fullSearch, query, scope, searchWord);
             if (noPendingQueries) {
-                remoteRequest(url, callbackFor(fullSearch, query, scope, searchWord), getSearchTypeId(fullSearch));
+                remoteRequest(url, callbackFn, getSearchTypeId(fullSearch));
             } else {
                 setTimeout(function() {
 
                     // remote request if and only if not staled/outdated
                     if (query == currentSearch[getSearchTypeId(fullSearch)])
-                        remoteRequest(url, callbackFor(fullSearch, query, scope, searchWord), getSearchTypeId(fullSearch));
+                        remoteRequest(url, callbackFn, getSearchTypeId(fullSearch));
 
                 }, SEARCH_DELAY_IN_MILLISECOND);
+            }
+
+            renderFullSearch = function(queryPart, data) {
+                var query = queryPart.substring(0, queryPart.indexOf('&maxHits='));
+                updateDeepLink(query);
+                if (query == searchPage.q) return;
+                var decoded = decodeURIComponent(query);
+                var end = decoded.indexOf('&toc=');
+                var toc = end < 0 ? 0 : decoded.substring(end + 5);
+                var scope;
+                for (var i = 0; i < bookNodesIncludingAll.length; i++) {
+                    var bookNode = bookNodesIncludingAll[i];
+                    if (toc == bookNode.n.toc || (!toc && !bookNode.n.toc)) {
+                        scope = bookNode;
+                        break;
+                    }
+                }
+                var searchWord = end < 0 ? decoded : decoded.substring(0, end);
+                (callbackFor(1, query, scope, searchWord))(data);
             }
 
             function callbackFor(fullSearch, query, scope, searchWord) {
@@ -777,13 +814,13 @@
                     var results = [];
                     for (; (match = SEARCH_RESULTS_PATTERN.exec(data)) != null;) {
                         var items = [];
-                        for (var i = 1; i < 6; i++) {
+                        for (var i = 2; i < 8; i++) {
                             element.innerHTML = match[i];
                             items.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
                         }
                         var breadcrumb = [];
-                        if (match[4]) {
-                            for (; (breadcrumbMatch = SEARCH_RESULTS_BREADCRUMB_SNIPPET_PATTERN.exec(match[4])) != null;) {
+                        if (match[6]) {
+                            for (; (breadcrumbMatch = SEARCH_RESULTS_BREADCRUMB_SNIPPET_PATTERN.exec(match[6])) != null;) {
                                 for (var i = 1; i < 3; i++) {
                                     element.innerHTML = breadcrumbMatch[i];
                                     breadcrumb.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
@@ -791,11 +828,12 @@
                             }
                             hasBreadcrumbs = 1;
                         }
+                        var hrefFollowedByTitle = 'href' == match[1];
                         results.push({
-                            t/*title*/: items[2],
-                            d/*description*/:  (items[4] ? items[4] : items[3]),
-                            h/*href*/:  items[0].substring(8),
-                            b/*breadcrumb*/:  items[4] ? breadcrumb : [0, items[1]]
+                            /* title       */ t: items[3],
+                            /* description */ d: items[4],
+                            /* href        */ h:  items[hrefFollowedByTitle ? 0 : 2].substring(8),
+                            /* breadcrumb  */ b:  match[6] ? breadcrumb : [0, items[hrefFollowedByTitle ? 2 : 0]]
                         });
                     }
 
@@ -823,7 +861,7 @@
             function renderResults(fullSearch, results, hasBreadcrumbs, query, scope, searchWord) {
 
                 // staled?
-                if (query != currentSearch[getSearchTypeId(fullSearch)]) return;
+                if (!fullSearch && query != currentSearch[getSearchTypeId(fullSearch)]) return;
 
                 // show results
                 var items = [];
@@ -851,7 +889,6 @@
                 setInnerHtml(parentElement, '');
                 parentElement.q = query;
                 if (fullSearch) {
-                    updateDeepLink();
 
                     // no results?
                     if (!results.length) {
@@ -1048,17 +1085,17 @@
 
                 // add key support (and show proposals)
                 if (fullSearch) {
-                    toMenu(searchField, items, results, function(d) {
-                            getElementById('c').src = (INTEGRATED ? '' : '../../') + 'topic' + d.h/*href*/;
-                        },
-                        0,
-                        0,
-                        function(item, data, viaMouse) {
-                            if (!viaMouse) {
-                                scrollIntoViewIfNeeded(searchPage, item);
-                            }
-                        },
-                        1);
+//                    toMenu(searchField, items, results, function(d) {
+//                            getElementById('c').src = (INTEGRATED ? '' : '../../') + 'topic' + d.h/*href*/;
+//                        },
+//                        0,
+//                        0,
+//                        function(item, data, viaMouse) {
+//                            if (!viaMouse) {
+//                                scrollIntoViewIfNeeded(searchPage, item);
+//                            }
+//                        },
+//                        1);
                 } else {
 
                     // key support
@@ -1220,9 +1257,9 @@
                         .replace(/\-([^\-\s]*$)/ig, ' $1')
 
                         .replace(/(^\s+|\s+$)/ig, '')
-                        .toLowerCase()).replace(/(%20){1,}/g, '+');
+                        .toLowerCase());
             if (query.length == 0) return '';
-            return query + (scope.n.toc ? '&toc=' + encodeURIComponent(scope.n.toc).replace(/%20/g, '+') : '');
+            return query + (scope.n.toc ? '&toc=' + encodeURIComponent(scope.n.toc) : '');
         }
 
         function queryToRegEx(query) {
@@ -1464,6 +1501,15 @@
             return result;
         }
 
+    }
+
+    function searchFullByHash(hash) {
+        var initialQuery = hash.substring(3);
+        var decoded = decodeURIComponent(initialQuery);
+        var end = decoded.indexOf('&toc=');
+        getElementById('q').value = end < 0 ? decoded : decoded.substring(0, end);
+        setBookByToc(end < 0 ? 0 : decoded.substring(end + 5));
+        searchFull();
     }
 
 
@@ -2012,6 +2058,7 @@
         return overlay;
     }
 
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     // Utility functions (polyfill/retrofit functions see below)
@@ -2162,6 +2209,7 @@
         }
         return false;
     }
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
