@@ -9,7 +9,6 @@
  ******************************************************************************/
 (function(window, document) {
 
-    var INTEGRATED = 1;
     var SMALL_SCREEN_WIDTH = 768;
     var LOGO_ICON_WIDTH = 36;
     var LOGO_FULL_WIDTH = 146;
@@ -61,17 +60,14 @@
 
     addEvent(window, 'load', function() {
 
-        // as "index.jsp"?
-        INTEGRATED = window.location.pathname.indexOf('/index.jsp') >= 0;
-
-        // compute (search) base URL
+        // (search) base URL
         var a = createElement(0, 'a');
-        a.href = INTEGRATED ? '' : '../../';
-        BASE_URL = a.href;
+        a.href = window.location.pathname.indexOf('/index.jsp') >= 0 ? 'x' : '../../x';
+        BASE_URL = a.href.substring(0, a.href.length - 1);
         SEARCH_BASE_URL = BASE_URL + 'advanced/searchView.jsp?searchWord=';
 
         // title
-        remoteRequest((INTEGRATED ? '' : '../../') + 'index.jsp?legacy', function(responseText) {
+        remoteRequest(BASE_URL + 'index.jsp?legacy', function(responseText) {
             var match = new RegExp('<title>([^<]*)</title>').exec(responseText);
             if (!match) return;
             var element = createElement(null, 'div');
@@ -81,7 +77,7 @@
         });
 
         // .svg or .gif? + embedded?
-        remoteRequest((INTEGRATED ? '' : '../../') + 'advanced/tabs.jsp', function(responseText) {
+        remoteRequest(BASE_URL + 'advanced/tabs.jsp', function(responseText) {
             if (responseText.indexOf('e_contents_view.gif') > 0) iconExtension = '.gif';
             if (responseText.indexOf('e_bookmarks_view.') < 0) embeddedMode = 0;
             init();
@@ -135,7 +131,7 @@
                        li.b = a.protocol + '//' + a.host + a.pathname;
                        if (node.i) {
                            var iconImg = createElement(a, 'img');
-                           iconImg.setAttribute('src', (INTEGRATED ? '' : '../../')
+                           iconImg.setAttribute('src', BASE_URL
                                                        + 'advanced/images/'
                                                        + node.i
                                                        + iconExtension);
@@ -221,7 +217,7 @@
                 if ('q=' == hash.substring(1, 3)) {
                     searchFullByHash(hash);
                 } else {
-                    getElementById('c').src = (INTEGRATED ? '' : '../../') + hash.substring(1);
+                    getElementById('c').src = BASE_URL + hash.substring(1);
                 }
                 return;
             }
@@ -233,7 +229,7 @@
         queryPart.replace(/(?:^|&+)([^=&]+)=([^&]*)/gi, function(m, param, value) { params[param] = decodeURIComponent(value); });
         var topicOrNav = params.topic || params.nav;
         if (topicOrNav) {
-            getElementById('c').src =   (INTEGRATED ? '' : '../../')
+            getElementById('c').src =   BASE_URL
                                       + (params.nav ? 'nav' : 'topic')
                                       + topicOrNav
                                       + (params.anchor ? '#' + params.anchor : '');
@@ -243,13 +239,13 @@
         }
 
         // ...default start/cover page
-        remoteRequest((INTEGRATED ? '' : '../../') + 'advanced/content.jsp', function(responseText) {
+        remoteRequest(BASE_URL + 'advanced/content.jsp', function(responseText) {
             var start = responseText.indexOf('title="Topic View" src=\'');
             if (start > 0) {
                 var end = responseText.indexOf("'", start + 24);
                 var element = createElement(null, 'p');
                 element.innerHTML = responseText.substring(start + 24, end);
-                getElementById('c').src =   (INTEGRATED ? '' : '../../')
+                getElementById('c').src =   BASE_URL
                                           + 'topic/'
                                           + (element.textContent ? element.textContent : element.innerText);
                 updateDeepLink();
@@ -454,7 +450,7 @@
     }
 
     function tocContentProvider(node, processChildrenFn) {
-        var callbackUrl =   (INTEGRATED ? '' : '../../') + 'advanced/tocfragment'
+        var callbackUrl =   BASE_URL + 'advanced/tocfragment'
                           + (node
                              ?   (node.toc ? '?toc=' + node.toc : '')
                                + (node.path ? '&path=' + node.path : '')
@@ -523,7 +519,7 @@
                     toc: currentToc,
                     path: toc ? getAttribute(n, 'id') : 0,
                     t: getAttribute(n, 'title'),
-                    h: (INTEGRATED ? '' : '../../') + getAttribute(n, 'href').substring(3),
+                    h: BASE_URL + getAttribute(n, 'href').substring(3),
                     i: n.getAttribute('image'),
                     y: expandPath
                 },
@@ -1045,7 +1041,7 @@
                     var node = results[i];
                     var li = createElement(resultList, 'li');
                     var a = createElement(li, 'a');
-                    a.href = (INTEGRATED ? '' : '../../') + 'topic' + node.h/*href*/;
+                    a.href = BASE_URL + 'topic' + node.h/*href*/;
                     a.target = 'c';
                     var titleAndLocation = createElement(a, 0, 'm');
 
@@ -1086,7 +1082,7 @@
                 // add key support (and show proposals)
                 if (fullSearch) {
 //                    toMenu(searchField, items, results, function(d) {
-//                            getElementById('c').src = (INTEGRATED ? '' : '../../') + 'topic' + d.h/*href*/;
+//                            getElementById('c').src = BASE_URL + 'topic' + d.h/*href*/;
 //                        },
 //                        0,
 //                        0,
@@ -1118,7 +1114,7 @@
                                 searchWord = searchWord.substring(0, tocStart);
                             }
                             if (searchSearchWord(searchWord + '*', toc, d[1], false, true)) return;
-                            getElementById('c').src = (INTEGRATED ? '' : '../../') + 'topic' + d[1];
+                            getElementById('c').src = BASE_URL + 'topic' + d[1];
                             hideProposals();
 
                         },
@@ -1150,7 +1146,7 @@
                             iFrame.frameBorder = 0;
 
                             // TODO handle absolute paths
-                            iFrame.src = (INTEGRATED ? '' : '../../') + 'topic' + b[1];
+                            iFrame.src = BASE_URL + 'topic' + b[1];
                         });
 
                     // show proposals
@@ -1291,12 +1287,12 @@
                 } else {
 
                     // disable scope and update top left search input field
-                    searchFrame.location.replace(  (INTEGRATED ? '' : '../../')
+                    searchFrame.location.replace(  BASE_URL
                                                  + 'scopeState.jsp?workingSet=&searchWord='
                                                  + encodeURIComponent(searchWord));
 
                 }
-                var newNavUrl =   (INTEGRATED ? '' : '../../')
+                var newNavUrl =   BASE_URL
                                 + 'advanced/nav.jsp?e=h&tab=search&searchWord=' // 'e=h' for tracking (to distinguish normal queries from queries done with this script)
                                 + (isSearchWordDecoded ? searchWord : encodeURIComponent(searchWord));
                 if (toc) newNavUrl += '&quickSearch=true&quickSearchType=QuickSearchToc&toc=' + encodeURIComponent(toc);
@@ -1306,7 +1302,7 @@
                 // topic (use 'setTimeout()' otherwise in Internet Explorer
                 //        'Go Back' does not work sometimes)
                 if (href) {
-                    setTimeout(function(){window.location.href = (INTEGRATED ? '' : '../../') + 'topic' + href}, 9);
+                    setTimeout(function(){window.location.href = BASE_URL + 'topic' + href}, 9);
                 }
 
                 return true;
@@ -1530,7 +1526,7 @@
         addEvent(overlay, 'click', menu.o);
         function createMenuItem(label, description, fn, id, href, parent) {
             var item = createElement(parent ? parent : menu, fn ? 'button' : 'a', 'b', label);
-            item.href = href ? ((INTEGRATED ? '' : '../../') + href) : '#';
+            item.href = href ? (BASE_URL + href) : '#';
             item.target = 'c';
             item.title = description;
             if (id) {
@@ -1538,7 +1534,7 @@
             }
             addEvent(item, 'click', function(e) {
                 if (fn) { preventDefault(e); fn(e); }
-                if (href) { getElementById('c').contentDocument.location.href = (INTEGRATED ? '' : '../../') + href; }
+                if (href) { getElementById('c').contentDocument.location.href = BASE_URL + href; }
                 if (!parent) menu.o();
             });
             return item;
@@ -1651,7 +1647,7 @@
         var topicHref = contentWindow.location.href;
         if (!topicHref) return;
         var dummy = document.createElement('a');
-        dummy.href = (INTEGRATED ? '' : '../../') + 'x';
+        dummy.href = BASE_URL + 'x';
         var topic = topicHref.substring(dummy.href.length - 2);
         if (topic.length > 7 && '/topic/' == topic.substring(0, 7)) topic = topic.substring(6);
         else if (topic.length > 5 && '/nav/' == topic.substring(0, 5)) topic = '/..' + topic;
@@ -1684,7 +1680,7 @@
             query = '&' + topic.substr(queryStart + 1);
             topic = topic.substr(0, queryStart);
         }
-        window.open((INTEGRATED ? '' : '../../') + 'advanced/print.jsp?topic=' + topic + query + anchor, 'printWindow', 'directories=yes,location=no,menubar=yes,resizable=yes,scrollbars=yes,status=yes,titlebar=yes,toolbar=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y);
+        window.open(BASE_URL + 'advanced/print.jsp?topic=' + topic + query + anchor, 'printWindow', 'directories=yes,location=no,menubar=yes,resizable=yes,scrollbars=yes,status=yes,titlebar=yes,toolbar=yes,width=' + w + ',height=' + h + ',left=' + x + ',top=' + y);
     }
 
 
