@@ -16,6 +16,13 @@ import org.eclipse.help.webapp.AbstractButton;
 public class SwitchButton extends AbstractButton {
 
     @Override
+    public boolean isAddedToToolbar(String toolbarName) {
+        // show the button only in the upper right corner (content toolbar)
+        return CONTENT_TOOLBAR.equals(toolbarName);
+    }
+
+
+    @Override
     public String getId() {
         return getClass().getSimpleName();
     }
