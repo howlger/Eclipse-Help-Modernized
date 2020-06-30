@@ -472,7 +472,7 @@
                 }
             }
             if (!node) {
-                createSearchField(children, '', true);
+                createSearchField(children, '');
                 initContentPage();
                 setFontSize(0, 1);
             }
@@ -540,7 +540,7 @@
     //
     // Search: search-as-you-type ('t') and full search ('f')
 
-    function createSearchField(bookNodes, defaultBook, showMore) {
+    function createSearchField(bookNodes, defaultBook) {
         var scope = {n: {}};
 
         // create overlay required for closing proposals drop-down even when clicking into the content iframe
@@ -666,11 +666,11 @@
 
         var searchFieldAreaElements = [booksButton, searchField, searchButton];
         for (var i = 0; i < searchFieldAreaElements.length; i++) {
-            addEvent(searchFieldAreaElements[i], 'focus', function(e) {
+            addEvent(searchFieldAreaElements[i], 'focus', function() {
                 searchFieldAreaHasFocus = 1;
                 updateSearchFieldAreaClass();
             });
-            addEvent(searchFieldAreaElements[i], 'blur', function(e) {
+            addEvent(searchFieldAreaElements[i], 'blur', function() {
                 searchFieldAreaHasFocus = 0;
                 updateSearchFieldAreaClass();
             });
@@ -693,8 +693,6 @@
 
         // focus search field
         searchField.focus();
-
-        var isKeySelectionMode = false;
 
         searchFull = function() { search(0, 1); };
         function search(e, fullSearch) {
@@ -989,7 +987,6 @@
                     // hint
                     var wordBeginRegEx = queryToRegEx(query);
                     var newHints = {};
-                    var rankingUnit = 1 / results.length;
                     for (var i = 0; i < results.length && searchWord.length < 36; i++) {
                         var match = wordBeginRegEx.exec(results[i].t/*title*/);
                         if (match) {
@@ -1057,7 +1054,7 @@
                     if (fullSearch && hasBreadcrumbs && node.b/*breadcrumb*/) {
                         var location = createElement(titleAndLocation, 0, 'w');
                         for (var j = scope.n.toc ? 2 : 0; j < node.b/*breadcrumb*/.length; j+=2) {
-                            var breadcrumbItem = createElement(location, 'span', 0, node.b/*breadcrumb*/[j+1]);
+                            createElement(location, 'span', 0, node.b/*breadcrumb*/[j+1]);
                             if (j < node.b/*breadcrumb*/.length-2) {
                                 createElement(location, 'span', 0, ' > ');
                             }
@@ -1391,72 +1388,63 @@
         }
 
         function toMenu(master, items, data, chooseFn, applyFn, cancelFn, armFn) {
-            function inner(master, items, data, chooseFn, applyFn, cancelFn, amrFn) {
+            //var isNotInputField = master.nodeName != 'INPUT';
+            var cursorIndex = 0;
+            var isInit = 0;
+            master.onkeydown = function(e) {
+                e = e || window.event;
+                var key = e.keyCode || e.charCode;
 
-                var isNotInputField = master.nodeName != 'INPUT';
-                var isKeySelectionMode = isNotInputField;
-                var cursorIndex = 0;
-                var isInit = 0;
-                master.onkeydown = function(e) {
-                    e = e || window.event;
-                    var key = e.keyCode || e.charCode;
+                if (   cursorIndex > 0
+                    && items[cursorIndex-1].getAttribute('class') == '') {
+                    cursorIndex = 0;
+                }
 
-                    if (   cursorIndex > 0
-                        && items[cursorIndex-1].getAttribute('class') == '') {
-                        cursorIndex = 0;
-                    }
+                // RIGHT (key: 39) or TAB without SHIFT (key: 9) to apply
+                if (applyFn && (key == 39 || (key == 9 && !e.shiftKey))) {
+                    if (applyFn(data, key)) preventDefault(e);
+                }
 
-                    // RIGHT (key: 39) or TAB without SHIFT (key: 9) to apply
-                    if (applyFn && (key == 39 || (key == 9 && !e.shiftKey))) {
-                        if (applyFn(data, key)) preventDefault(e);
-                    }
-
-                    // ESC to cancel
-                    if (cancelFn && key == 27) {
-                        cancelFn();
-                        preventDefault(e);
-                        return;
-                    }
-
-                    // ENTER to choose
-                    if (key == 13 && cursorIndex > 0) {
-                        preventDefault(e);
-                        stopPropagation(e);
-                        items[cursorIndex-1].setAttribute('class', '');
-                        chooseFn(data[cursorIndex-1]);
-                        cursorIndex = 0;
-                        return;
-                    }
-
-                    // select by UP and DOWN
-                    if (key != 40 && key != 38) {
-                        isKeySelectionMode = isNotInputField;
-                        return;
-                    }
+                // ESC to cancel
+                if (cancelFn && key == 27) {
+                    cancelFn();
                     preventDefault(e);
-
-                    var isDown = key == 40;
-                    if (cursorIndex > 0) {
-                        items[cursorIndex-1].setAttribute('class', '');
-                    }
-                    cursorIndex = cursorIndex < 1
-                                  ? (isDown ? 1 : items.length)
-                                  : (cursorIndex + (isDown ? 1 : -1)) % (items.length + 1);
-                    if (cursorIndex > 0) {
-                        items[cursorIndex-1].setAttribute('class', 'z');
-                        if (armFn) armFn(items[cursorIndex-1], data[cursorIndex-1], 0);
-                    }
+                    return;
                 }
 
-                for (var i = 0; i < items.length; i++) {
-                    items[i].onmousedown = function(a) {setTimeout(function() {if (master && !master.hasFocus) master.focus()}, 42)};
-                    items[i].onmouseup = items[i].ontouchend = function(a, b) {return function(e) {preventDefault(e); if (!a.canceled) {chooseFn(b); a.setAttribute('class', ''); cursorIndex = 0}}}(items[i], data[i]);
-                    items[i].onmouseover = items[i].ontouchstart = function(a, b, c) {return function() {if (!isInit) return; if (cursorIndex > 0) items[cursorIndex-1].setAttribute('class', ''); a.setAttribute('class', 'z'); cursorIndex = b; a.canceled = ''; if (armFn && b > 0) armFn(a, c, 1)}}(items[i], i+1, data[i]);
-                    items[i].onmouseout = function(a) {return function() {a.setAttribute('class', '')}}(items[i]);
+                // ENTER to choose
+                if (key == 13 && cursorIndex > 0) {
+                    preventDefault(e);
+                    stopPropagation(e);
+                    items[cursorIndex-1].setAttribute('class', '');
+                    chooseFn(data[cursorIndex-1]);
+                    cursorIndex = 0;
+                    return;
                 }
-                setTimeout(function() {isInit = 1; }, 142);
+
+                // select by UP and DOWN
+                if (key != 40 && key != 38) return;
+                preventDefault(e);
+                var isDown = key == 40;
+                if (cursorIndex > 0) {
+                    items[cursorIndex-1].setAttribute('class', '');
+                }
+                cursorIndex = cursorIndex < 1
+                              ? (isDown ? 1 : items.length)
+                              : (cursorIndex + (isDown ? 1 : -1)) % (items.length + 1);
+                if (cursorIndex > 0) {
+                    items[cursorIndex-1].setAttribute('class', 'z');
+                    if (armFn) armFn(items[cursorIndex-1], data[cursorIndex-1], 0);
+                }
             }
-            var x = function(a,b,c,d,e,f) {return inner(a,b,c,d,e,f)}(master, items, data, chooseFn, applyFn, cancelFn, armFn);
+
+            for (var i = 0; i < items.length; i++) {
+                items[i].onmousedown = function() {setTimeout(function() {if (master && !master.hasFocus) master.focus()}, 42)};
+                items[i].onmouseup = items[i].ontouchend = function(a, b) {return function(e) {preventDefault(e); if (!a.canceled) {chooseFn(b); a.setAttribute('class', ''); cursorIndex = 0}}}(items[i], data[i]);
+                items[i].onmouseover = items[i].ontouchstart = function(a, b, c) {return function() {if (!isInit) return; if (cursorIndex > 0) items[cursorIndex-1].setAttribute('class', ''); a.setAttribute('class', 'z'); cursorIndex = b; a.canceled = ''; if (armFn && b > 0) armFn(a, c, 1)}}(items[i], i+1, data[i]);
+                items[i].onmouseout = function(a) {return function() {a.setAttribute('class', '')}}(items[i]);
+            }
+            setTimeout(function() {isInit = 1; }, 142);
         }
 
         function addHighlightedText(element, text, searchWord) {
@@ -1482,19 +1470,6 @@
                 hIndex = textLowerCase.indexOf(searchWordLowerCase, lastEnd);
             }
             element.appendChild(document.createTextNode(text.substring(lastEnd)));
-        }
-
-        function unencodeHtmlContent(escapedHtml) {
-            var elem = document.createElement('div');
-            elem.innerHTML = escapedHtml;
-            var result = '';
-            // Chrome splits innerHTML into many child nodes,
-            // each one at most 65536.
-            // Whereas FF creates just one single huge child node.
-            for (var i = 0; i < elem.childNodes.length; ++i) {
-              result = result + elem.childNodes[i].nodeValue;
-            }
-            return result;
         }
 
     }
@@ -1550,7 +1525,7 @@
 
         // "Highlight search terms"
         function HighlightConnector() {};
-        HighlightConnector.prototype.setButtonState = function(name, state) {
+        HighlightConnector.prototype.setButtonState = function(/*name, state*/) {
             // dummy for highlight() in org.eclipse.help.webapp/advanced/highlight.js
         };
         window.ContentToolbarFrame = new HighlightConnector();
@@ -1620,8 +1595,6 @@
         var newFontSize;
         var contentFrameDocument = getElementById('c').contentWindow.document;
         var contentFrameDocumentElement = contentFrameDocument.documentElement || contentFrameDocument.body;
-        var contentStyle = window.getComputedStyle(contentFrameDocumentElement, null).getPropertyValue('font-size');
-        var contentFontSize = parseFloat(contentStyle);
         var toc = document.getElementById('t');
         var tocStyle = getComputedStyle(toc, null).getPropertyValue('font-size');
         var tocFontSize = parseFloat(tocStyle);
@@ -1654,7 +1627,6 @@
         else if (topic.length > 8 && ('/rtopic/' == topic.substring(0, 8) || '/ntopic/' == topic.substring(0, 8))) topic = topic.substring(7);
         var w = contentWindow.innerWidth || contentWindow.document.body.clientWidth;
         var h = contentWindow.innerHeight || contentWindow.document.body.clientHeight;
-        var element = contentElement;
         var x = window.screenX;
         var y = window.screenY;
         for (var e = contentElement; !!e; e = e.offsetParent) {
@@ -1690,10 +1662,10 @@
 
     function createTree(element, contentProvider, labelProvider, selectable) {
         var root = createElement(element, 0, 'tree');
-        function createNode(parent, node, open) {
+        function createNode(parent, node) {
             contentProvider(node, createNodeChildrenFn(parent, node));
         };
-        function createNodeChildrenFn(parent, node) {
+        function createNodeChildrenFn(parent) {
             return function(children, open) {
                 var ul = createElement(parent, 'ul');
                 for (var i = 0; i < children.length; i++) {
@@ -1733,13 +1705,13 @@
                     var label = labelProvider(li, child.n);
                     setClassName(label, 'l');
                     if (selectable) {
-                        addEvent(label, 'click', (function(li, node) {
+                        addEvent(label, 'click', (function(li) {
                             return function(e) {
                                 if (element.s === li) return;
                                 element.x(li);
                                 stopPropagation(e);
                             };
-                        })(li, child.n));
+                        })(li));
                     }
                     addEvent(label, 'dblclick', (function(li) {
                         return function(e) {
@@ -1797,7 +1769,7 @@
 
         };
         element.y = function(href, scrollArea, closeSiblings) {
-            contentProvider({topic: href}, function(children, open) {
+            contentProvider({topic: href}, function(children) {
                 if (!children || children.length != 1 || !children[0].n || !children[0].n.y) {
 
                     // deselect current selection
