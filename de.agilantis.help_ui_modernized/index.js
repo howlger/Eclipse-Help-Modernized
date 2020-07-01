@@ -698,9 +698,7 @@
         function search(e, fullSearch) {
             var noPendingQueries = !currentSearch[getSearchTypeId(fullSearch)];
 
-            // get query and remember it to detect stale responses
-            var query = getQuery();
-            currentSearch[getSearchTypeId(fullSearch)] = query;
+            // get search word, query, URL and remember query to detect stale responses
             var searchWord =  searchField.value
 
                                   // trim
@@ -709,6 +707,15 @@
                                   // TODO if Eclipse bug 351077 (https://bugs.eclipse.org/351077), remove following line
                                   .replace(/\-([^\-\s]*$)/ig, ' $1');
 
+            var query = searchWord.length
+                        ? (searchWord.toLowerCase() + (scope.n.toc ? '&toc=' + encodeURIComponent(scope.n.toc) : ''))
+                        : '';
+            var url =   SEARCH_BASE_URL
+                      + query.replace(/(\&|$)/, (fullSearch ? '' : '*') + '$1')
+                      + '&maxHits='
+                      + (fullSearch ? SEARCH_HITS_MAX : SEARCH_AS_YOU_TYPE_PROPOSAL_MAX)
+                      + (query.indexOf('&toc=') < 0 ? '' : '&quickSearch=true&quickSearchType=QuickSearchToc');
+            currentSearch[getSearchTypeId(fullSearch)] = query;
             if (fullSearch) {
                 currentSearch['t'] = 0;
                 hideProposals();
@@ -732,8 +739,12 @@
 
             // init UI
             if (fullSearch) {
+                if (searchPage.o && query == searchPage.q) return;
                 searchPage.s(1);
-                if (query == searchPage.q) return;
+                if (query == searchPage.q) {
+                    window.frames['c'].location = url;
+                    return;
+                }
                 setInnerHtml(searchPage, 'Searching...');
                 searchPage.scrollTop = 0;
             } else if (query == proposals.q) {
@@ -747,19 +758,15 @@
             for (var i = 0; i < cache.length; i++) {
                 var r = cache[i];
                 if (query == r.q) {
+                    if (fullSearch) {
+                        window.frames['c'].location = url;
+                    }
                     renderResults(fullSearch, r.r, r.b, query, scope, searchWord);
                     return;
                 }
             }
 
             // submit query to server
-            var query =   encodeURIComponent(searchWord.toLowerCase())
-                        + (scope.n.toc ? '&toc=' + encodeURIComponent(scope.n.toc) : '');
-            var url =   SEARCH_BASE_URL
-                      + query.replace(/(\&|$)/, (fullSearch ? '' : '*') + '$1')
-                      + '&maxHits='
-                      + (fullSearch ? SEARCH_HITS_MAX : SEARCH_AS_YOU_TYPE_PROPOSAL_MAX)
-                      + (query.indexOf('&toc=') < 0 ? '' : '&quickSearch=true&quickSearchType=QuickSearchToc');
             if (fullSearch) {
                 window.frames['c'].location = url;
                 return;
@@ -1239,20 +1246,6 @@
                 r.name.push(p0[i]);
                 r.name.push(p0[i+1]);
             }
-        }
-
-        function getQuery() {
-            var query = encodeURIComponent(searchField.value
-
-                        // TODO if Eclipse bug 351077
-                        //      (https://bugs.eclipse.org/351077) is fixed
-                        //      then remove following line
-                        .replace(/\-([^\-\s]*$)/ig, ' $1')
-
-                        .replace(/(^\s+|\s+$)/ig, '')
-                        .toLowerCase());
-            if (query.length == 0) return '';
-            return query + (scope.n.toc ? '&toc=' + encodeURIComponent(scope.n.toc) : '');
         }
 
         function queryToRegEx(query) {
