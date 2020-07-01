@@ -185,7 +185,9 @@ button {
     flex: auto;
 }
 #q, .qh {
+    width: 100%; /* needed for some mobiles where "flex: auto" is not enough or does not work */
     flex: auto;
+    min-width: 24px;
     border: 0;
     margin: 2px 0;
     font-size: 1rem;
