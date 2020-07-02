@@ -708,7 +708,8 @@
                                   .replace(/\-([^\-\s]*$)/ig, ' $1');
 
             var query = searchWord.length
-                        ? (searchWord.toLowerCase() + (scope.n.toc ? '&toc=' + encodeURIComponent(scope.n.toc) : ''))
+                        ? (  encodeURIComponent(searchWord.toLowerCase())
+                           + (scope.n.toc ? '&toc=' + encodeURIComponent(scope.n.toc) : ''))
                         : '';
             var url =   SEARCH_BASE_URL
                       + query.replace(/(\&|$)/, (fullSearch ? '' : '*') + '$1')
