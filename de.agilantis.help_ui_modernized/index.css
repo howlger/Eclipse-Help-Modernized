@@ -545,3 +545,15 @@ button {
     }
 
 }
+
+@media screen and (max-height: 360px) {
+    .p ol {
+        overflow-y: auto;
+        max-height: calc(100vh - 38px);
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    .p ol::-webkit-scrollbar {
+        display: none;
+    }
+}
