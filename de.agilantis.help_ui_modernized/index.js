@@ -70,6 +70,9 @@
         BASE_URL = a.href.substring(0, a.href.length - 1);
         SEARCH_BASE_URL = BASE_URL + 'advanced/searchView.jsp?searchWord=';
 
+        // make sure no scope is set (a scope might have been set via the legacy UI before)
+        remoteRequest(BASE_URL + 'scopeState.jsp?searchWord=&workingSet=');
+
         // title
         remoteRequest(BASE_URL + 'index.jsp?legacy', function(responseText) {
             var match = new RegExp('<title>([^<]*)</title>').exec(responseText);
