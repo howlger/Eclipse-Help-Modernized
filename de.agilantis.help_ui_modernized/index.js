@@ -24,6 +24,9 @@
     var HISTORY_BACK_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="m 8.27224,17.95644 c 0.39048,0.390343 1.023592,0.390211 1.413938,0 0.390613,-0.390612 0.390613,-1.023597 -1.33e-4,-1.41421 L 4.144057,11.000499 18.27041,10.999748 c 0.55219,-1.31e-4 0.999731,-0.447671 0.999731,-1.0001299 -1.34e-4,-0.552189 -0.447674,-0.999595 -0.999864,-0.999595 l -14.126755,9.99e-4 5.542723,-5.543204 c 0.390479,-0.390479 0.390479,-1.023727 0,-1.414074 -0.195307,-0.195173 -0.451138,-0.292892 -0.707102,-0.292892 -0.255832,0 -0.511664,0.09772 -0.70697,0.292759 l -7.249421,7.250043 c -0.187575,0.18744 -0.292893,0.441666 -0.292893,0.7069649 1.33e-4,0.2653 0.105451,0.519396 0.293025,0.707237 z"/></svg>';
     var HISTORY_FORWARD_DESCRIPTION = 'Go back one page';
     var HISTORY_FORWARD_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="m 11.72776,17.95644 c -0.39048,0.390343 -1.023592,0.390211 -1.413938,0 -0.390613,-0.390612 -0.390613,-1.023597 1.33e-4,-1.41421 L 15.855943,11.000499 1.72959,10.999748 C 1.1774,10.999617 0.729859,10.552077 0.729859,9.9996181 0.729993,9.4474291 1.177533,9.0000231 1.729723,9.0000231 l 14.126755,9.99e-4 -5.542723,-5.543204 c -0.390479,-0.390479 -0.390479,-1.023727 0,-1.414074 0.195307,-0.195173 0.451138,-0.292892 0.707102,-0.292892 0.255832,0 0.511664,0.09772 0.70697,0.292759 l 7.249421,7.250043 c 0.187575,0.18744 0.292893,0.441666 0.292893,0.7069649 -1.33e-4,0.2653 -0.105451,0.519396 -0.293025,0.707237 z"/></svg>';
+    var BOOKMARKS_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="M 10.019531 0.5 A 1.000065 1.000065 0 0 0 9.1035156 1.0566406 L 6.5742188 6.1816406 L 0.91796875 7.0039062 A 1.000065 1.000065 0 0 0 0.36523438 8.7089844 L 4.4570312 12.699219 L 3.4902344 18.332031 A 1.000065 1.000065 0 0 0 4.9414062 19.384766 L 10 16.726562 L 15.058594 19.384766 A 1.000065 1.000065 0 0 0 16.509766 18.332031 L 15.542969 12.699219 L 19.634766 8.7089844 A 1.000065 1.000065 0 0 0 19.082031 7.0039062 L 13.425781 6.1816406 L 10.896484 1.0566406 A 1.000065 1.000065 0 0 0 10.019531 0.5 z M 10 3.7597656 L 11.865234 7.5390625 A 1.000065 1.000065 0 0 0 12.617188 8.0859375 L 16.789062 8.6914062 L 13.771484 11.632812 A 1.000065 1.000065 0 0 0 13.482422 12.517578 L 14.195312 16.673828 L 10.464844 14.710938 A 1.000065 1.000065 0 0 0 9.5351562 14.710938 L 5.8046875 16.673828 L 6.5175781 12.517578 A 1.000065 1.000065 0 0 0 6.2285156 11.632812 L 3.2109375 8.6914062 L 7.3828125 8.0859375 A 1.000065 1.000065 0 0 0 8.1347656 7.5390625 L 10 3.7597656 z"/></svg>';
+    var BOOKMARKS_DESCRIPTION = 'Bookmarks';
+    var BOOKMARKS_PATTERN = new RegExp('<tr[^<]*<td[^<]*<a\\s+(?:(?!href)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*href\\s*=\\s*\'([^\']*)\'[^<]*<img[^>]*>\\s*([^<]*)</a>', 'g');
     var MENU_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="M 10 1.5 A 2 2 0 0 0 8 3.5 A 2 2 0 0 0 10 5.5 A 2 2 0 0 0 12 3.5 A 2 2 0 0 0 10 1.5 z M 10 8 A 2 2 0 0 0 8 10 A 2 2 0 0 0 10 12 A 2 2 0 0 0 12 10 A 2 2 0 0 0 10 8 z M 10 14.5 A 2 2 0 0 0 8 16.5 A 2 2 0 0 0 10 18.5 A 2 2 0 0 0 12 16.5 A 2 2 0 0 0 10 14.5 z"/></svg>';
     var MENU_ICON_DESCRIPTION = 'Show menu';
     var MENU_CLOSE_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="M 4.34375 2.9296875 L 2.9296875 4.34375 L 8.5859375 10 L 2.9296875 15.65625 L 4.34375 17.070312 L 10 11.414062 L 15.65625 17.070312 L 17.070312 15.65625 L 11.414062 10 L 17.070312 4.34375 L 15.65625 2.9296875 L 10 8.5859375 L 4.34375 2.9296875 z"/></svg>';
@@ -51,6 +54,7 @@
     var embeddedMode = 1;
     var title = 'Help';
 
+    var bookmarksPage;
     var searchPage;
     var searchFull;
     var renderFullSearch;
@@ -87,7 +91,100 @@
 
     function init() {
 
-        // dynamic content area
+        // bookmark page
+        bookmarksPage = createElement(getElementById('m'), 0, 'c');
+        bookmarksPage.id = 'b';
+        bookmarksPage.s = function(show) {
+            bookmarksPage.o = !!show;
+            bookmarksPage.style.display = show ? 'block' : 'none';
+            getElementById('c').style.display = show ? 'none' : 'block';
+            if (!show) return;
+//            searchPage.s(0);
+            searchPage.style.display = 'none';
+            bookmarksPage.innerHTML = '';
+
+            // add bookmark
+            try {
+                var url = frames.c.location.href;
+                var title = frames.c.document.title;
+                if (title == null || title == '') {
+                    title = url;
+                }
+                createElement(bookmarksPage, 'span', 'g', 'Add:');
+                var addArea = createElement(bookmarksPage, 'span', 'a');
+                var input = createElement(addArea, 'input');
+                input.type = 'text';
+                input.autocomplete = 'off';
+                input.value = title;
+                createButton(addArea, BOOKMARKS_ICON, 'Bookmark current topic', function() {
+                    try {
+                        var url = frames.c.location.href;
+                        var title = frames.c.document.title;
+                        if (title == null || title == '') {
+                            title = url;
+                        }
+                        remoteRequest(  BASE_URL + 'advanced/bookmarksView.jsp?operation=add&'
+                                      + 'bookmark=' + encodeURIComponent(url)
+                                      + '&title=' + encodeURIComponent(input.value));
+                        bookmarksPage.s(0);
+                     } catch (e) {}
+                });
+             } catch (e) {}
+
+            remoteRequest(BASE_URL + 'advanced/bookmarksView.jsp', function(responseText) {
+                var ol;
+                var element = createElement();
+                var deleteButtons = [];
+                for (; (match = BOOKMARKS_PATTERN.exec(responseText)) != null;) {
+                    if (!ol) {
+                        createElement(bookmarksPage, 0, 'g', 'Bookmarks:');
+                        ol = createElement(bookmarksPage, 'ol');
+                    }
+                    var groups = [];
+                    for (var i = 1; i < 4; i++) {
+                        element.innerHTML = match[i];
+                        groups.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
+                    }
+                    var li = createElement(ol, 'li');
+                    var href = groups[0].substring(0, 3) == '../' ? BASE_URL + '/' + groups[0] : groups[0];
+                    var deleteButton = createButton(li, 'Delete', 'Delete this bookmark', function(href, title, li) {
+                        return function() {
+                            remoteRequest(  BASE_URL + 'advanced/bookmarksView.jsp?operation=remove&'
+                                          + 'bookmark=' + encodeURIComponent(href)
+                                          + '&title=' + encodeURIComponent(title));
+                            li.style.display = 'none';
+                        }
+                    }(href, groups[1], li));
+                    deleteButton.style.display = 'none';
+                    deleteButton.className = 'b br';
+                    deleteButtons.push(deleteButton);
+                    var a = createElement(li, 'a');
+                    a.target = 'c';
+                    a.href = href;
+                    createElement(a, 'span').innerHTML = BOOKMARKS_ICON;
+                    createElement(a, 'span', 0, groups[1]);
+                }
+                if (!deleteButtons.length) return;
+                var deleteAllBookmarks = createButton(bookmarksPage,  'Delete all bookmarks', 'Delete all bookmarks', function() {
+                    remoteRequest(BASE_URL + 'advanced/bookmarksView.jsp?operation=removeAll');
+                    bookmarksPage.s(0);
+                });
+                deleteAllBookmarks.style.display = 'none';
+                deleteAllBookmarks.className = 'b br';
+                deleteButtons.push(deleteAllBookmarks);
+                var editButton = createButton(bookmarksPage, 'Edit', 'Delete bookmarks', function() {
+                    var editMode = editButton.innerHTML == 'Edit';
+                    editButton.innerHTML = editMode ? 'Cancel' : 'Edit';
+                    for (var i = 0; i < deleteButtons.length; i++) {
+                        deleteButtons[i].style.display = editMode ? 'inline-block' : 'none';
+                    }
+                });
+
+            });
+        }
+        bookmarksPage.s(0);
+
+        // search page
         searchPage = createElement(getElementById('m'), 0, 'c', 'Loading...');
         searchPage.id = 'r';
         searchPage.s = function(show) {
@@ -153,7 +250,8 @@
                 return;
             }
 
-            // close maybe open search page
+            // close maybe open bookmark or search page
+            if (bookmarksPage && bookmarksPage.s) bookmarksPage.s(0);
             searchPage.s(0);
             updateDeepLink();
 
@@ -553,6 +651,15 @@
         // search field area
         var searchFieldAreaWrapper = createElement(getElementById('h'), 0, 'q0');
         var searchFieldArea = createElement(createElement(searchFieldAreaWrapper, 0, 'q1'), 'form', 'q');
+
+        if (embeddedMode
+// TODO enable bookmarks (WIP)
+&& false) {
+            createButton(searchFieldAreaWrapper, BOOKMARKS_ICON, BOOKMARKS_DESCRIPTION, function() {
+                bookmarksPage.s(!bookmarksPage.o);
+            });
+        }
+
         var searchFieldAreaHasFocus;
         var searchFieldAreaContainsQuery;
         var proposals;
@@ -2117,7 +2224,7 @@
     var openRequests = {};
     function remoteRequest(url, callbackFn, cancelId) {
         var request = new XMLHttpRequest();
-        request.onreadystatechange = function() {
+        if (callbackFn) request.onreadystatechange = function() {
             if (request.readyState == 4 && request.status == 200) callbackFn(request.responseText);
         }
         request.open('GET', url);

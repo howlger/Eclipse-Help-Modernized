@@ -123,7 +123,7 @@ button {
     height: 20px;
     width: 20px;
 }
-.b:hover {
+.b:hover, #h .q0 > .b:hover {
     background: #d7d9db;
     border-radius: 5px;
 }
@@ -132,10 +132,12 @@ button {
 .q0 {
     flex: auto;
     z-index: 2;
+    display: flex;
 }
 .q1 {
     position: relative;
     max-width: 640px;
+    flex: auto;
 }
 .q, .qf, .qm {
     display: flex;
@@ -157,7 +159,7 @@ button {
 .q0 .b:hover {
     background: none;
 }
-.qf.qa .b, .qm.qa .b, .q.qa .b:hover  {
+.qf.qa .b, .qm.qa .b, .q.qa .b:hover, #b .a .b, #b .a .b:hover {
     color: #fff;
     background: #37e;
     margin: 0 -0.5px 0 0;  /* workaround for Microsoft Edge to avoid white between blue button and blue border */
@@ -207,7 +209,7 @@ button {
 }
 
 /*** search proposals (.p) and scopes button (.s) with drop-down (.u) ***/
-#r {
+.c {
     padding: 6px;
 }
 .r0 {
@@ -238,7 +240,7 @@ button {
 .p .v {
     display: inline-block;
 }
-#r .j li a {
+#r .j li a, #b li a {
     max-width: 640px;
     margin: 0 0 0.25em 10px;
     padding: 6px;
@@ -248,7 +250,7 @@ button {
     background: #e8f2fe;
     outline: none;
 }
-.j, .j a, #r .t {
+.j, .j a, #r .t, #b a {
     color: #222;
 }
 .j a .w, #r .tree .l, #r .t .tl {
@@ -368,6 +370,46 @@ button {
 }
 .tree input {
     margin-right: 0.5em;
+}
+
+#h .q0 > .b {
+    margin-left: 6px;
+}
+
+/*** bookmarks ***/
+#b .g {
+    margin: 1em 0 1em 15px;
+    font-weight: bold;
+}
+#b .b {
+    width: auto;
+    font-size: 1em;
+    font-weight: bold;
+    background: #f2f4f7;
+    border: 1px solid #edeff2;
+    border-radius: 5px;
+    margin-left: 15px;
+}
+#b .br {
+    color: #fff;
+    background: #e33;
+}
+#b .a .b {
+    border: none;
+    border-radius: 0 5px 5px 0;
+}
+#b li {
+    margin: 1em 0;
+}
+#b .a {
+    border: 1px solid #37e;
+    border-radius: 8px;
+    margin: 1em 15px;
+    display: inline-flex;
+    align-items: center;
+}
+#b input {
+    margin: 3px 0.5em;
 }
 
 /*** menu ***/
