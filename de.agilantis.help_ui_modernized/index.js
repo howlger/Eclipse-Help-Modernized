@@ -321,11 +321,16 @@
             }
         } catch(e) {}
 
-        // ...by legacy query parameters topic/nav
+        // ...by legacy query parameters (topic/nav or search link)
         var params = {};
         var queryPart = window.location.href.replace(/^[^#\?]*(?:\?([^#\?]*))?(#.*)?$/, '$1');
         queryPart.replace(/(?:^|&+)([^=&]+)=([^&]*)/gi, function(m, param, value) { params[param] = decodeURIComponent(value); });
         var topicOrNav = params.topic || params.nav;
+        if (params.searchWord && params.tab == 'search') {
+            window.history.replaceState(null, '', window.location.pathname);
+            searchFullByHash('?q=' + params.searchWord);
+            return;
+        }
         if (topicOrNav) {
             getElementById('c').src =   BASE_URL
                                       + (params.nav ? 'nav' : 'topic')
