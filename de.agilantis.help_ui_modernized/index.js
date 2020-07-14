@@ -102,7 +102,6 @@
             bookmarksPage.style.display = show ? 'block' : 'none';
             getElementById('c').style.display = show ? 'none' : 'block';
             if (!show) return;
-//            searchPage.s(0);
             searchPage.style.display = 'none';
             bookmarksPage.innerHTML = '';
 
