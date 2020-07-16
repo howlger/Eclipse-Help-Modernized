@@ -26,6 +26,13 @@
     var HISTORY_FORWARD_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="m 11.72776,17.95644 c -0.39048,0.390343 -1.023592,0.390211 -1.413938,0 -0.390613,-0.390612 -0.390613,-1.023597 1.33e-4,-1.41421 L 15.855943,11.000499 1.72959,10.999748 C 1.1774,10.999617 0.729859,10.552077 0.729859,9.9996181 0.729993,9.4474291 1.177533,9.0000231 1.729723,9.0000231 l 14.126755,9.99e-4 -5.542723,-5.543204 c -0.390479,-0.390479 -0.390479,-1.023727 0,-1.414074 0.195307,-0.195173 0.451138,-0.292892 0.707102,-0.292892 0.255832,0 0.511664,0.09772 0.70697,0.292759 l 7.249421,7.250043 c 0.187575,0.18744 0.292893,0.441666 0.292893,0.7069649 -1.33e-4,0.2653 -0.105451,0.519396 -0.293025,0.707237 z"/></svg>';
     var BOOKMARKS_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="M 10.019531 0.5 A 1.000065 1.000065 0 0 0 9.1035156 1.0566406 L 6.5742188 6.1816406 L 0.91796875 7.0039062 A 1.000065 1.000065 0 0 0 0.36523438 8.7089844 L 4.4570312 12.699219 L 3.4902344 18.332031 A 1.000065 1.000065 0 0 0 4.9414062 19.384766 L 10 16.726562 L 15.058594 19.384766 A 1.000065 1.000065 0 0 0 16.509766 18.332031 L 15.542969 12.699219 L 19.634766 8.7089844 A 1.000065 1.000065 0 0 0 19.082031 7.0039062 L 13.425781 6.1816406 L 10.896484 1.0566406 A 1.000065 1.000065 0 0 0 10.019531 0.5 z M 10 3.7597656 L 11.865234 7.5390625 A 1.000065 1.000065 0 0 0 12.617188 8.0859375 L 16.789062 8.6914062 L 13.771484 11.632812 A 1.000065 1.000065 0 0 0 13.482422 12.517578 L 14.195312 16.673828 L 10.464844 14.710938 A 1.000065 1.000065 0 0 0 9.5351562 14.710938 L 5.8046875 16.673828 L 6.5175781 12.517578 A 1.000065 1.000065 0 0 0 6.2285156 11.632812 L 3.2109375 8.6914062 L 7.3828125 8.0859375 A 1.000065 1.000065 0 0 0 8.1347656 7.5390625 L 10 3.7597656 z"/></svg>';
     var BOOKMARKS_DESCRIPTION = 'Bookmarks';
+    var BOOKMARKS_CLOSE_DESCRIPTION = 'Close bookmarks';
+    var BOOKMARKS_ADD_PAGE_DESCRIPTION = 'Bookmark current page';
+    var BOOKMARKS_ADD_SEARCH_DESCRIPTION = 'Bookmark current search';
+    var BOOKMARKS_DELETE = 'Delete';
+    var BOOKMARKS_DELETE_DESCRIPTION = 'Delete this bookmarks (cannot be undone)';
+    var BOOKMARKS_DELETE_ALL = 'Delete all bookmarks';
+    var BOOKMARKS_DELETE_ALL_DESCRIPTION = 'Delete all bookmarks (cannot be undone)';
     var BOOKMARKS_PATTERN = new RegExp('<tr[^<]*<td[^<]*<a\\s+(?:(?!href)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*href\\s*=\\s*\'([^\']*)\'[^<]*<img[^>]*>\\s*([^<]*)</a>', 'g');
     var MENU_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="M 10 1.5 A 2 2 0 0 0 8 3.5 A 2 2 0 0 0 10 5.5 A 2 2 0 0 0 12 3.5 A 2 2 0 0 0 10 1.5 z M 10 8 A 2 2 0 0 0 8 10 A 2 2 0 0 0 10 12 A 2 2 0 0 0 12 10 A 2 2 0 0 0 10 8 z M 10 14.5 A 2 2 0 0 0 8 16.5 A 2 2 0 0 0 10 18.5 A 2 2 0 0 0 12 16.5 A 2 2 0 0 0 10 14.5 z"/></svg>';
     var MENU_ICON_DESCRIPTION = 'Show menu';
@@ -118,7 +125,8 @@
                 input.type = 'text';
                 input.autocomplete = 'off';
                 input.value = title;
-                createButton(addArea, BOOKMARKS_ICON, 'Bookmark current topic', function() {
+                var addButtonTooltip = searchPage.o ? BOOKMARKS_ADD_SEARCH_DESCRIPTION : BOOKMARKS_ADD_PAGE_DESCRIPTION;
+                createButton(addArea, BOOKMARKS_ICON, addButtonTooltip, function() {
                     try {
                         var url = frames.c.location.href;
                         if (url.substring(0, BASE_URL.length + 6) == BASE_URL + 'topic/') {
@@ -144,7 +152,7 @@
             } catch (e) {}
 
             // "x" button
-            setClassName(createButton(bookmarksPage, MENU_CLOSE_ICON, 'Close bookmarks', function() {
+            setClassName(createButton(bookmarksPage, MENU_CLOSE_ICON, BOOKMARKS_CLOSE_DESCRIPTION, function() {
                 bookmarksPage.s();
             }), 'b bc');
 
@@ -164,7 +172,10 @@
                     }
                     var li = createElement(ol, 'li');
                     var href = groups[0].substring(0, 3) == '../' ? BASE_URL + '/' + groups[0] : groups[0];
-                    var deleteButton = createButton(li, 'Delete', 'Delete this bookmark', function(href, title, li) {
+                    var deleteButton = createButton(li,
+                                                    BOOKMARKS_DELETE,
+                                                    BOOKMARKS_DELETE_DESCRIPTION,
+                                                    function(href, title, li) {
                         return function() {
                             remoteRequest(  BASE_URL + 'advanced/bookmarksView.jsp?operation=remove&'
                                           + 'bookmark=' + encodeURIComponent(href)
@@ -182,7 +193,10 @@
                     createElement(a, 'span', 0, groups[1]);
                 }
                 if (!deleteButtons.length) return;
-                var deleteAllBookmarks = createButton(bookmarksPage,  'Delete all bookmarks', 'Delete all bookmarks', function() {
+                var deleteAllBookmarks = createButton(bookmarksPage,
+                                                      BOOKMARKS_DELETE_ALL,
+                                                      BOOKMARKS_DELETE_ALL_DESCRIPTION,
+                                                      function() {
                     remoteRequest(BASE_URL + 'advanced/bookmarksView.jsp?operation=removeAll');
                     bookmarksPage.s();
                 });
