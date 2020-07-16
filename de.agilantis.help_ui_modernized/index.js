@@ -68,7 +68,7 @@
         var a = createElement(0, 'a');
         a.href = window.location.pathname.indexOf('/index.jsp') >= 0 ? 'x' : '../../x';
         BASE_URL = a.href.substring(0, a.href.length - 1);
-        SEARCH_BASE_URL = BASE_URL + 'advanced/searchView.jsp?searchWord=';
+        SEARCH_BASE_URL = BASE_URL + 'advanced/searchView.jsp?showSearchCategories=false&searchWord=';
 
         // make sure no scope is set (a scope might have been set via the legacy UI before)
         remoteRequest(BASE_URL + 'scopeState.jsp?searchWord=&workingSet=');
@@ -960,17 +960,17 @@
                     var hrefFollowedByTitle = 'href' == match[1];
                     results.push({
                         /* title       */ t: items[3],
-                        /* description */ d: items[4],
-                        /* href        */ h:  items[hrefFollowedByTitle ? 0 : 2].substring(8),
-                        /* breadcrumb  */ b:  match[6] ? breadcrumb : [0, items[hrefFollowedByTitle ? 2 : 0]]
+                        /* description */ d: items[5],
+                        /* href        */ h: items[hrefFollowedByTitle ? 0 : 2].substring(8),
+                        /* breadcrumb  */ b: match[6] ? breadcrumb : [0, items[hrefFollowedByTitle ? 2 : 0]]
                     });
                 }
 
                 // cache parsed results
                 var queryResult = {
-                    r/*results*/: results,
-                    b/*has breadcrumbs*/: hasBreadcrumbs,
-                    q/*query*/: query
+                    /* results         */ r: results,
+                    /* has breadcrumbs */ b: hasBreadcrumbs,
+                    /* query           */ q: query
                 }
                 var cache = SEARCH_CACHE[getSearchTypeId(fullSearch)];
                 var cacheIndexId = getSearchTypeId(fullSearch) + 'i';
