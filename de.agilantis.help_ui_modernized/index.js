@@ -121,6 +121,16 @@
                 createButton(addArea, BOOKMARKS_ICON, 'Bookmark current topic', function() {
                     try {
                         var url = frames.c.location.href;
+                        if (url.substring(0, BASE_URL.length + 6) == BASE_URL + 'topic/') {
+                            url = url.substring(BASE_URL.length + 5);
+
+                        // workaround for a bug of the legacy UI: non-topic links (e.g. ".../nav/..." instead of
+                        // ".../topic/...") are stored absolutely instead of relatively (which doesn't work, because by
+                        // default a random port number is chosen when restarting Eclipse)
+                        } else if (url.substring(0, BASE_URL.length) == BASE_URL) {
+                            url = '/../' + url.substring(BASE_URL.length);
+                        }
+
                         var title = frames.c.document.title;
                         if (title == null || title == '') {
                             title = url;
@@ -161,7 +171,7 @@
                                           + '&title=' + encodeURIComponent(title));
                             li.style.display = 'none';
                         }
-                    }(href, groups[1], li));
+                    }(groups[0].substring(0, 9) == '../topic/' ? groups[0].substring(8) : groups[0], groups[1], li));
                     deleteButton.style.display = 'none';
                     deleteButton.className = 'b br';
                     deleteButtons.push(deleteButton);
