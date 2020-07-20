@@ -131,7 +131,6 @@ button {
 /*** search field (area) ***/
 .q0 {
     flex: auto;
-    z-index: 2;
     display: flex;
 }
 .q1 {
@@ -185,6 +184,9 @@ button {
 .q2 {
     display: flex;
     flex: auto;
+}
+.q2, .q1 .b {
+    z-index: 2;
 }
 #q, .qh {
     width: 100%; /* needed for some mobiles where "flex: auto" is not enough or does not work */
@@ -279,10 +281,10 @@ button {
 .u {
     margin: -4px 0 0 3px;
     width: auto;
-    z-index: 4;
 }
 .s0 {
     position: relative;
+    z-index: 5;
 }
 .s {
     background: #f2f4f7;

@@ -715,6 +715,7 @@
 
         // scopes drop-down
         var scopeButtonWrapper = createElement(searchFieldArea, 0, 's0');
+
         var booksButton = createElement(scopeButtonWrapper, 'button', 's');
         setAttribute(booksButton, 'type', 'button');
         booksButtonText = createElement(booksButton, 'span');
@@ -722,12 +723,19 @@
         setInnerHtml(dropDownHandle, TREE_HANDLE);
         var booksDropDown = createElement(scopeButtonWrapper, 0, 'u');
         booksDropDown.style.display = 'none';
+        var scopeOverlay = createOverlay(4);
+        addEvent(scopeOverlay, 'click', function() { booksDropDown.style.display = 'none'; scopeOverlay.o(); });
         addEvent(booksButton, 'mousedown', function(e) {
             var isOpen = booksDropDown.style.display == 'block';
             try {
                 booksButton.focus();
             } catch(e) {}
             booksDropDown.style.display = isOpen ? 'none' : 'block';
+            if (isOpen) {
+                scopeOverlay.o();
+            } else {
+                scopeOverlay.a();
+            }
             preventDefault(e);
             stopPropagation(e);
         });
@@ -735,6 +743,7 @@
         addEvent(booksButton, 'focus', function() {
             booksDropDown.hasFocus = true;
             booksDropDown.style.display = 'block';
+            scopeOverlay.a();
         });
 //        addEvent(booksButton, 'blur', function() {
 //            booksDropDown.hasFocus = false;
@@ -756,6 +765,7 @@
 
         function setBook(bookNode, updateDisplayedProposalsOnly) {
             booksDropDown.style.display = 'none';
+            scopeOverlay.o();
             if (scope.n.toc) booksButtonText.removeChild(booksButtonText.firstChild);
             scope = bookNode;
             if (scope.n.toc) booksButtonText.appendChild(document.createTextNode(BOOK_NAME_SHORTENER(bookNode.n.t)));
