@@ -2176,7 +2176,7 @@
             overlayStyle.width = '100%';
         }
         overlay.a = function() { overlayStyle.display = 'block'; };
-        overlay.o = function(e) { overlayStyle.display = 'none'; preventDefault(e); };
+        overlay.o = function() { overlayStyle.display = 'none'; };
         return overlay;
     }
 
