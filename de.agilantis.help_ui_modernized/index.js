@@ -145,7 +145,8 @@
                         }
                         remoteRequest(  BASE_URL + 'advanced/bookmarksView.jsp?operation=add&'
                                       + 'bookmark=' + encodeURIComponent(url)
-                                      + '&title=' + encodeURIComponent(input.value));
+                                      + '&title=' + encodeURIComponent(input.value)
+                                      + '&t=' + Date.now());
                         bookmarksPage.s();
                      } catch (e) {}
                 });
@@ -156,7 +157,7 @@
                 bookmarksPage.s();
             }), 'b bc');
 
-            remoteRequest(BASE_URL + 'advanced/bookmarksView.jsp', function(responseText) {
+            remoteRequest(BASE_URL + 'advanced/bookmarksView.jsp?t=' + Date.now(), function(responseText) {
                 var ol;
                 var element = createElement();
                 var deleteButtons = [];
@@ -179,7 +180,8 @@
                         return function() {
                             remoteRequest(  BASE_URL + 'advanced/bookmarksView.jsp?operation=remove&'
                                           + 'bookmark=' + encodeURIComponent(href)
-                                          + '&title=' + encodeURIComponent(title));
+                                          + '&title=' + encodeURIComponent(title)
+                                          + '&t=' + Date.now());
                             li.style.display = 'none';
                         }
                     }(groups[0].substring(0, 9) == '../topic/' ? groups[0].substring(8) : groups[0], groups[1], li));
@@ -197,7 +199,7 @@
                                                       BOOKMARKS_DELETE_ALL,
                                                       BOOKMARKS_DELETE_ALL_DESCRIPTION,
                                                       function() {
-                    remoteRequest(BASE_URL + 'advanced/bookmarksView.jsp?operation=removeAll');
+                    remoteRequest(BASE_URL + 'advanced/bookmarksView.jsp?operation=removeAll&t=' + Date.now());
                     bookmarksPage.s();
                 });
                 deleteAllBookmarks.style.display = 'none';
