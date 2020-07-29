@@ -1632,7 +1632,7 @@
 
     function searchFullByHash(hash) {
         var initialQuery = hash.substring(3);
-        var decoded = decodeURIComponent(initialQuery);
+        var decoded = decodeURIComponent(initialQuery.replace(/\+/g, ' '));
         var end = decoded.indexOf('&toc=');
         getElementById('q').value = end < 0 ? decoded : decoded.substring(0, end);
         setBookByToc(end < 0 ? 0 : decoded.substring(end + 5));
