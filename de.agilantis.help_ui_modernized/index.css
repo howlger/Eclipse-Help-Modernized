@@ -242,7 +242,7 @@ button {
 .p .v {
     display: inline-block;
 }
-#r .j li a, #b li a {
+#r .j li a, #b li a, .ba {
     max-width: 640px;
     margin: 0 0 0.25em 10px;
     padding: 6px;
@@ -333,6 +333,16 @@ button {
 }
 .u li {
     white-space: nowrap;
+    padding-left: 36px;
+}
+.u li.x, .u li.y {
+    padding-left: 9px;
+}
+.u li.l {
+    border-top: 1px solid #edeff2;
+}
+.u li.x:before {
+    margin-right: 6px;
 }
 .p .f {
     display: none;
@@ -378,12 +388,12 @@ button {
     margin-left: 6px;
 }
 
-/*** bookmarks ***/
-#b .g {
+/*** bookmarks (#b) and scopes (#o) ***/
+.g {
     margin: 0 0 0.5em 10px;
     font-weight: bold;
 }
-#b .b {
+#b .b, #o .b {
     width: auto;
     font-size: 1em;
     font-weight: bold;
@@ -393,64 +403,74 @@ button {
     margin: 0.5em -12px 0 18px;
     color: #999;
 }
-#b .b:hover {
+#b .b:hover, #o .b:hover {
     color: #222;
 }
-#b .br:hover {
+#b .br:hover, #o .br:hover {
     color: #fff;
     background-color: #c11;
 }
-#b .bc {
+#b .bc, #o .bc {
     color: #555;
     background: none;
     border: none;
     margin: 1em 0 2px 2em;
     float: right;
 }
-#b .bc:hover {
+#b .bc:hover, #o .bc:hover {
     background: #d7d9db;
 }
 #b li .b {
     margin: 0;
 }
-#b input {
+#o li .b {
+    margin: 1px;
+}
+#b input, #o .a input {
     width: 320px;
 }
-#b .br {
+#b .br, #o .br {
     color: #fff;
     background: #e33;
 }
-#b li .br {
+#b li .br, #o li .b {
     padding: 4px 8px;
 }
 #b .a .b {
     border: none;
     border-radius: 0 5px 5px 0;
 }
-#b li {
+#b li, #o li {
     margin: 0 0 0 18px;
     list-style: none;
 }
-#b li a {
+#b li a, .ba {
     display: inline-flex;
     align-items: center;
     margin: 0;
     padding: 0 3px;
 }
-#b li a:hover {
+#b li a:hover, .ba:hover {
     background-color: #e8f2fe;
 }
-#b li a span {
+#b li a span, .ba {
     padding: 3px;
 }
-#b .a {
+.c .a  {
     border: 1px solid #37e;
     border-radius: 8px;
     margin: 1em 0 1em 16px;
     display: inline-flex;
+    min-height: 36px;
     align-items: center;
 }
-#b input {
+#o div.g {
+    margin: 1em 0 0.5em 10px;
+}
+.c .tree {
+    padding: 0 0 8px 0;
+}
+#b input, #o .a input {
     margin: 3px 0.5em;
 }
 
@@ -512,8 +532,13 @@ button {
     height: 20px;
     margin: 0 12px 0 0;
 }
-#ah.x:before {
+#ah.x:before, .u li.x:before {
     content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' focusable='false' role='presentation'%3E%3Cpath d='M 18.720152,3.3629316 C 18.060084,2.7820531 17.056888,2.8348761 16.47601,3.4949448 L 7.7898314,13.157953 3.4335592,8.9600604 C 2.7999482,8.3528147 1.7966621,8.3791818 1.1894164,9.0128871 0.58217173,9.6465896 0.60853792,10.649785 1.2422432,11.257031 l 5.5443048,5.333102 c 0.2903944,0.290393 0.6864358,0.448864 1.1088434,0.448864 h 0.052827 c 0.4224085,-0.02636 0.8448161,-0.211204 1.1088434,-0.528055 L 18.825715,5.6334442 C 19.432961,4.9470093 19.380137,3.9438138 18.720159,3.3629353 Z' fill='%2354595d'/%3E%3C/svg%3E");
+
+    /* required for IE: */
+    display: inline-block;
+    width: 20px;
+
 }
 #ap:before, #app:before {
     content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' focusable='false' role='presentation'%3E%3Cpath d='m 6.1536984,14.617279 v 1.536358 h 7.6920456 v -1.536358 z m 0,-2.564015 v 1.536357 h 7.6920456 v -1.536357 z m -4.615227,1.536357 h 1.538409 v 4.10345 c -0.0051,1.246112 0.281016,1.537384 1.538409,1.537384 H 15.384153 c 1.257393,0 1.538409,-0.231787 1.538409,-1.537384 v -4.10345 h 1.538409 c 1.307648,0.02051 1.553281,-0.270247 1.538409,-1.537383 V 6.411404 c 0,-1.2050867 -0.194865,-1.5394343 -1.538409,-1.5394343 H 16.922562 V 2.30898 C 16.937433,1.0423563 16.691801,0.76954505 15.384153,0.76954505 H 4.6152894 c -1.230727,0 -1.543537,0.29332335 -1.538409,1.53943495 v 2.5629897 h -1.538409 c -1.323032,0 -1.538409999868,0.2881953 -1.538409999868,1.5394343 v 5.640834 C -0.0050386,13.298349 0.3077434,13.610134 1.5384714,13.589621 Z M 15.384153,17.692046 H 4.6152894 v -6.66644 H 15.384153 Z m 0.96407,-9.485831 c 0,-0.461523 0.369218,-0.830228 0.830741,-0.830228 0.461522,0 0.830741,0.368705 0.830741,0.830228 0,0.461523 -0.369219,0.830741 -0.830741,0.830741 -0.461523,0 -0.830741,-0.369218 -0.830741,-0.830741 z M 4.6152894,2.3079544 H 15.384153 V 4.8740209 H 4.6152894 Z' fill='%2354595d'/%3E%3C/svg%3E");

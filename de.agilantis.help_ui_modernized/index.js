@@ -41,6 +41,8 @@
     var TREE_HANDLE = '<svg width="24" height="24" viewBox="0 0 24 24" focusable="false" role="presentation">-<path d="M10.294 9.698a.988.988 0 0 1 0-1.407 1.01 1.01 0 0 1 1.419 0l2.965 2.94a1.09 1.09 0 0 1 0 1.548l-2.955 2.93a1.01 1.01 0 0 1-1.42 0 .988.988 0 0 1 0-1.407l2.318-2.297-2.327-2.307z" fill="currentColor"/></svg>';
     var BOOK_NAME_SHORTENER = function shortenBookName(bookName) { return bookName.replace(/\s+(Documentation\s*)?(\-\s+([0-9,\-]+\s+)?Preview(\s+[0-9,\-]+)?\s*)?$/i, ''); };
     var BOOK_SCOPE_BY_DEFAULT = 0;
+    var BOOK_SCOPE_COOKIE = 'book-scope';
+    var SEARCH_SCOPE_CLOSE_DESCRIPTION = 'Close scopes';
     var SEARCH_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><g fill="#fff"><path fill="currentColor" d="M 7.5 0 C 3.3578644 0 0 3.3578644 0 7.5 C 0 11.642136 3.3578644 15 7.5 15 C 8.8853834 14.997 10.242857 14.610283 11.421875 13.882812 L 17.185547 19.662109 C 17.632478 20.113489 18.36112 20.112183 18.8125 19.660156 L 19.623047 18.845703 C 20.072507 18.398153 20.072507 17.665594 19.623047 17.214844 L 13.871094 11.447266 C 14.607206 10.26212 14.998156 8.8951443 15 7.5 C 15 3.3578644 11.642136 0 7.5 0 z M 7.5 2 A 5.5 5.5 0 0 1 13 7.5 A 5.5 5.5 0 0 1 7.5 13 A 5.5 5.5 0 0 1 2 7.5 A 5.5 5.5 0 0 1 7.5 2 z"/></g></svg>';
     var SEARCH_FIELD_DESCRIPTION = '* = any string\n? = any character\n"" = phrase\nAND, OR & NOT = boolean operators';
     var SEARCH_FIELD_PLACEHOLDER = 'Search';
@@ -50,6 +52,15 @@
     var SEARCH_AS_YOU_TYPE_PROPOSAL_MAX = 7;
     var SEARCH_RESULTS_PATTERN = new RegExp('<tr[^<]*<td[^<]*<img[^<]*</td[^<]*<td[^<]*<a\\s+(?:(?!href)(?!title)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*(href|title)\\s*=\\s*"([^"]*)"\\s+(?:(?!href)(?!title)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*(href|title)\\s*=\\s*"([^"]*)"[^>]*>([^<]*)</a>(?:(?:(?!<[/]?tr)[\\s\\S])*</tr\\s*>\\s*<tr(?:(?!</tr)(?!class="location">)[\\s\\S])*class="location">((?:(?!</div)[\\s\\S])*))?(?:(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*</tr){1,2}(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*\\sclass=["\']description["\'][^>]*>([^<]*)', 'g');
     var SEARCH_RESULTS_BREADCRUMB_SNIPPET_PATTERN = new RegExp('<a\\s+href="([^"]+)">([^<]+)</a>', 'g');
+    var SEARCH_SCOPE_LABEL_NONE = 'All';
+    var SEARCH_SCOPE_LABEL_BOOK = 'Book';
+    var SEARCH_SCOPE_LABEL_CHAPTER = 'Chapter';
+    var SEARCH_SCOPE_LABEL_TOPIC = 'Find in page';
+    var SEARCH_SCOPE_CURRENT_PATTERN = new RegExp('<div\\s+id\\s*=\\s*"scope"\\s*>([^<]*)<');
+    var SEARCH_SCOPE_ALL_PATTERN = new RegExp('<a\\s+(?:(?!title)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*title\\s*=\\s*"([^"]*)"', 'gi');
+    var SEARCH_SCOPE_NAME_PATTERN = new RegExp('<input\\s+type\\s*=\\s*["\']text["\']\\s+(?:(?!value)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*value\\s*=\\s*\'([^\']*)\'', 'i');
+    var SEARCH_SCOPE_IS_NEW_PATTERN = new RegExp('oldName\\s*=\\s*\'\'', 'i');
+    var SEARCH_SCOPE_HREFS_PATTERN = new RegExp('<input(?:\\s+(?!checked)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*")))*(\\s+checked)?[^<]+<label\\s+for\\s*=\\s*"([^"]*)"[^>]*>([^<]*)</label>\\s*(</div)?', 'gi');
     var SEARCH_AS_YOU_TYPE_CACHE_SIZE = 7;
     var SEARCH_FULL_SEARCH_CACHE_SIZE = 3;
     var SEARCH_DELAY_IN_MILLISECOND = 99;
@@ -60,14 +71,14 @@
     var iconExtension = '.svg';
     var embeddedMode = 1;
     var title = 'Help';
-
     var bookmarksPage;
+    var scopesPage;
     var searchPage;
-    var searchFull;
     var renderFullSearch;
-    var setBookByToc;
+    var updateScopeByToc;
+    var setSearchScope;
     var currentSearch = {};
-    var initBookScope = getCookie('book-scope', '' + !!BOOK_SCOPE_BY_DEFAULT) != 'false';
+    var searchScope = {l: 0, s: '', t: 0};
 
     addEvent(window, 'load', function() {
 
@@ -77,37 +88,71 @@
         BASE_URL = a.href.substring(0, a.href.length - 1);
         SEARCH_BASE_URL = BASE_URL + 'advanced/searchView.jsp?showSearchCategories=false&searchWord=';
 
-        // make sure no scope is set (a scope might have been set via the legacy UI before)
-        remoteRequest(BASE_URL + 'scopeState.jsp?searchWord=&workingSet=');
+        remoteRequest(BASE_URL + 'advanced/search.jsp', function(responseText) {
 
-        // title
-        remoteRequest(BASE_URL + 'index.jsp?legacy', function(responseText) {
-            var match = new RegExp('<title>([^<]*)</title>').exec(responseText);
-            if (!match) return;
-            var element = createElement(null, 'div');
-            element.innerHTML = match[1];
-            title = element.textContent || element.innerText;
-            document.title = title;
-        });
+            // read user defined search scope
+            var match = SEARCH_SCOPE_CURRENT_PATTERN.exec(responseText);
+            searchScope.i = match ? match[1] : match;
 
-        // .svg or .gif? + embedded?
-        remoteRequest(BASE_URL + 'advanced/tabs.jsp', function(responseText) {
-            if (responseText.indexOf('e_contents_view.gif') > 0) iconExtension = '.gif';
-            if (responseText.indexOf('e_bookmarks_view.') < 0) embeddedMode = 0;
-            init();
+            // make sure no scope is set (a scope might have been set via the legacy UI before)
+            remoteRequest(BASE_URL + 'scopeState.jsp?workingSet=');
+
+            // title
+            remoteRequest(BASE_URL + 'index.jsp?legacy', function(responseText) {
+                var match = new RegExp('<title>([^<]*)</title>').exec(responseText);
+                if (!match) return;
+                document.title = decodeHtml(match[1]);
+            });
+
+            // .svg or .gif? + embedded? + read scopes
+            remoteRequest(BASE_URL + 'advanced/tabs.jsp', function(responseText) {
+                if (responseText.indexOf('e_contents_view.gif') > 0) iconExtension = '.gif';
+                if (responseText.indexOf('e_bookmarks_view.') < 0) embeddedMode = 0;
+
+                // read scopes
+                remoteRequest(BASE_URL + 'advanced/workingSetManager.jsp?t=' + Date.now(), function(responseText) {
+                    var scopeIndex = 0;
+                    for (;(match = SEARCH_SCOPE_ALL_PATTERN.exec(responseText));) {
+                         var scopeName = decodeHtml(match[1]);
+                         if (scopeName.substring(0, 1) == '\u200B') {
+                             if (scopeName.length < 3) {
+                                 searchScope.l = scopeName.length;
+                                 break;
+                             } else {
+                                 searchScope.l = 4;
+                                 searchScope.t = scopeName.length - 3;
+                                 continue;
+                             }
+                         }
+                         if (searchScope.i && searchScope.i == scopeName) {
+                             searchScope.l = 4;
+                             searchScope.s = scopeName;
+                             break;
+                         } else if (searchScope.l == 4 && searchScope.t == scopeIndex) {
+                             searchScope.s = scopeName;
+                         }
+                         scopeIndex++;
+                    }
+
+                    init();
+
+                });
+            });
+
         });
 
     });
 
     function init() {
 
-        // bookmark page
+        // bookmarks page
         bookmarksPage = createElement(getElementById('m'), 0, 'c');
         bookmarksPage.id = 'b';
         bookmarksPage.s = function(show) {
             bookmarksPage.o = !!show;
+            if (show && scopesPage) scopesPage.s();
             bookmarksPage.style.display = show ? 'block' : 'none';
-            getElementById('c').style.display = show || (searchPage && searchPage.o)? 'none' : 'block';
+            getElementById('c').style.display = show || (searchPage && searchPage.o) ? 'none' : 'block';
             if (searchPage) searchPage.style.display = searchPage.o && !show ? 'block' : 'none';
             if (!show) return;
             bookmarksPage.innerHTML = '';
@@ -194,27 +239,198 @@
                     createElement(a, 'span').innerHTML = BOOKMARKS_ICON;
                     createElement(a, 'span', 0, groups[1]);
                 }
-                if (!deleteButtons.length) return;
-                var deleteAllBookmarks = createButton(bookmarksPage,
-                                                      BOOKMARKS_DELETE_ALL,
-                                                      BOOKMARKS_DELETE_ALL_DESCRIPTION,
-                                                      function() {
-                    remoteRequest(BASE_URL + 'advanced/bookmarksView.jsp?operation=removeAll&t=' + Date.now());
-                    bookmarksPage.s();
-                });
-                deleteAllBookmarks.style.display = 'none';
-                deleteAllBookmarks.className = 'b br';
-                deleteButtons.push(deleteAllBookmarks);
-                var editButton = createButton(bookmarksPage, 'Edit', 'Delete bookmarks', function() {
-                    var editMode = editButton.innerHTML == 'Edit';
-                    editButton.innerHTML = editMode ? 'Cancel' : 'Edit';
-                    for (var i = 0; i < deleteButtons.length; i++) {
-                        deleteButtons[i].style.display = editMode ? 'inline-block' : 'none';
-                    }
-                });
+                if (deleteButtons.length) {
+                    var editButton = createButton(bookmarksPage, 'Edit', 'Delete bookmarks', function() {
+                        var editMode = editButton.innerHTML == 'Edit';
+                        editButton.innerHTML = editMode ? BOOKMARKS_DELETE_ALL : 'Edit';
+                        editButton.title = editMode ? BOOKMARKS_DELETE_ALL_DESCRIPTION : 'Delete bookmarks';
+                        setClassName(editButton, editMode ? 'b br' : 'b');
+                        for (var i = 0; i < deleteButtons.length; i++) {
+                            deleteButtons[i].style.display = 'inline-block';
+                        }
+                        if (!editMode) {
+                            remoteRequest(BASE_URL + 'advanced/bookmarksView.jsp?operation=removeAll&t=' + Date.now());
+                            bookmarksPage.s();
+                        }
+                    });
+                }
+                createButton(bookmarksPage, 'Cancel', BOOKMARKS_CLOSE_DESCRIPTION, function() { bookmarksPage.s(); });
+
             });
         }
         bookmarksPage.s();
+
+        // scopes page
+        scopesPage = createElement(getElementById('m'), 0, 'c');
+        scopesPage.id = 'o';
+        scopesPage.s = function(show) {
+            scopesPage.o = !!show;
+            if (show && bookmarksPage) bookmarksPage.s();
+            scopesPage.style.display = show ? 'block' : 'none';
+            getElementById('c').style.display = show || (searchPage && searchPage.o) ? 'none' : 'block';
+            if (searchPage) searchPage.style.display = searchPage.o && !show ? 'block' : 'none';
+            if (!show) return;
+            function showScopesPage(query, scopeNr) {
+                scopesPage.innerHTML = '';
+
+                // "x" button
+                setClassName(createButton(scopesPage, MENU_CLOSE_ICON, SEARCH_SCOPE_CLOSE_DESCRIPTION, function() {
+                    scopesPage.s();
+                }), 'b bc');
+
+                // get and show content
+                remoteRequest(  BASE_URL
+                              + 'advanced/workingSet'
+                              + (query ? '.jsp?' + query + '&' : 'Manager.jsp?')
+                              + 't=' + Date.now(),
+                              function(responseText) {
+                    var match = SEARCH_SCOPE_NAME_PATTERN.exec(responseText);
+                    if (match) {
+                        createElement(scopesPage, 'span', 'g', 'Scope:');
+                        var scopeName = decodeHtml(match[1]);
+                        var nameInput = createElement(createElement(scopesPage, 'span', 'a'), 'input');
+                        nameInput.type = 'text';
+                        nameInput.value = scopeName;
+                        var tree = [];
+                        var allNodes = [];
+                        var parentNode;
+                        for (; (match = SEARCH_SCOPE_HREFS_PATTERN.exec(responseText)) != null;) {
+                            var node = {n: {l: decodeHtml(match[3]), v: decodeHtml(match[2]), c: [], x: !!match[1]}, l: 1};
+                            allNodes.push(node.n);
+                            if (match[4] && parentNode) {
+                                parentNode.l = 0;
+                                parentNode.n.c.push(node);
+                                node.n.p = parentNode.n;
+                            } else {
+                                parentNode = node;
+                                tree.push(node);
+                            }
+                        }
+                        createTree(scopesPage,
+
+                            // content provider
+                            function(node, processChildrenFn) {
+                                processChildrenFn(node ? node.c : tree);
+                            },
+
+                            // label provider
+                            function(li, node) {
+                                var checkboxWithLabel = createElement(li);
+                                var checkbox = createElement(checkboxWithLabel, 'input');
+                                checkbox.type = 'checkbox';
+                                checkbox.id = node.v;
+                                if (node.x) {
+                                    checkbox.checked = 'checked';
+                                }
+                                node.b = checkbox;
+                                checkbox.n = node;
+                                updateOrGetScopeCheckboxStates(node);
+                                if (updateOrGetScopeCheckboxStates(node, 1)) {
+                                    setClassName(li, 'open');
+                                }
+                                addEvent(checkbox, 'click', (function(node) {
+                                    return function() {
+                                        updateOrGetScopeCheckboxStates(node.p);
+                                        setSubtreeState(node, node.b.checked);
+                                    };
+                                })(node));
+                                var label = createElement(checkboxWithLabel, 'label', 0, node.l);
+                                setAttribute(label, 'for', node.v);
+                                return checkboxWithLabel;
+                            }
+
+                        );
+                        function getHrefs() {
+                            hrefs = '';
+                            for (var i = 0; i < allNodes.length; i++) {
+                                var node = allNodes[i];
+                                if (   (node.b ? node.b.checked : node.x)
+                                    && (!node.p || !(node.p.b ? node.p.b.checked : node.p.x))) {
+                                    hrefs += '&hrefs=' + node.v;
+                                }
+                            }
+                            return hrefs;
+                        }
+                        if (SEARCH_SCOPE_IS_NEW_PATTERN.exec(responseText)) {
+                            createButton(scopesPage, 'Create', 'Add new scope', function() {
+                                doScopesOperation(  'add&oldName=&workingSet='
+                                                  + encodeURIComponent(nameInput.value)
+                                                  + getHrefs());
+                            });
+                        } else {
+                            var deleteButton = createButton(scopesPage, 'Delete', 'Delete this scope', function() {
+                                doScopesOperation('remove&workingSet=' + encodeURIComponent(scopeName));
+                            });
+                            deleteButton.className = 'b br';
+                            createButton(scopesPage, 'Apply', 'Update this scope', function() {
+                                doScopesOperation(  'edit&oldName='
+                                                  + encodeURIComponent(scopeName)
+                                                  + '&workingSet='
+                                                  + encodeURIComponent(nameInput.value)
+                                                  + getHrefs());
+                                setSearchScope([4, scopeName, scopeNr]);
+                            });
+                        }
+                        createButton(scopesPage, 'Cancel', 'Go back to list of scopes',function() { showScopesPage(); });
+
+                    } else {
+                        createElement(scopesPage, 0, 'g', 'Scopes:');
+                        var ol = createElement(scopesPage, 'ol');
+                        for (var scopeIndex = 0; (match = SEARCH_SCOPE_ALL_PATTERN.exec(responseText)) != null;) {
+                            var scopeName = decodeHtml(match[1]);
+                            if (scopeName.substring(0, 1) == '\u200B') continue;
+                            var li = createElement(ol, 'li');
+                            createButton(li, scopeName, 0, function(scopeName, scopeIndex) {
+                                return function() { showScopesPage('operation=edit&workingSet=' + encodeURIComponent(scopeName), scopeIndex); };
+                            }(scopeName, scopeIndex), 'ba');
+                            scopeIndex++;
+                        }
+                        createButton(scopesPage, 'New', 'Add a new scope', function() { showScopesPage('operation=add'); });
+                        createButton(scopesPage, 'Cancel', SEARCH_SCOPE_CLOSE_DESCRIPTION, function() { scopesPage.s(); });
+                    }
+                });
+            }
+            function doScopesOperation(query) {
+                remoteRequest(  BASE_URL
+                              + 'workingSetState.jsp?operation='
+                              + query
+                              + '&t=' + Date.now(),
+                              function() { showScopesPage(); });
+            }
+            showScopesPage();
+        }
+        function updateOrGetScopeCheckboxStates(node, computeState) {
+            for (var parent = node; parent; parent = parent.p) {
+                var allChecked = 1;
+                var allUnchecked = 1;
+                for (var i = 0; i < parent.c.length; i++) {
+                    var childNode = parent.c[i].n;
+                    if (childNode.b ? childNode.b.checked : childNode.x) {
+                        allUnchecked = 0;
+                    } else {
+                        allChecked = 0;
+                    }
+                }
+                if (computeState) {
+                    return !allChecked && !allUnchecked;
+                }
+                if (!parent.c.length) continue;
+                parent.b.checked = !!allChecked;
+                parent.b.indeterminate = !allChecked && !allUnchecked;
+            }
+        }
+        function setSubtreeState(node, state) {
+            for (var i = 0; i < node.c.length; i++) {
+                var childNode = node.c[i].n;
+                if (childNode.b) {
+                    childNode.b.checked = !!state;
+                } else {
+                    childNode.x = state;
+                }
+                setSubtreeState(childNode, state);
+            }
+        }
+        scopesPage.s();
 
         // search page
         searchPage = createElement(getElementById('m'), 0, 'c', 'Loading...');
@@ -224,6 +440,7 @@
             searchPage.style.display = show ? 'block' : 'none';
             getElementById('c').style.display = show ? 'none' : 'block';
             if (bookmarksPage) bookmarksPage.s();
+            if (scopesPage) scopesPage.s();
             if (show) {
                 document.title = searchPage.l + ' - ' + title;
             } else {
@@ -262,6 +479,7 @@
                        if (node.toc) {
                            li.toc = node.toc;
                        }
+                       li.n = node;
                        var a = createElement(li, 'a');
                        a.href = node.h;
                        a.target = 'c';
@@ -293,8 +511,9 @@
                 return;
             }
 
-            // close maybe open bookmark or search page
+            // close maybe open bookmarks, scopes or search page
             if (bookmarksPage) bookmarksPage.s();
+            if (scopesPage) scopesPage.s();
             searchPage.s();
             updateDeepLink();
 
@@ -331,10 +550,14 @@
 //        createElement(getElementById('f'), 'p', false, 'footer');
 
     }
-    function createButton(parent, innerHtml, description, clickFn) {
-        var button = createElement(parent, 'button', 'b');
-        button.title = description;
-        setInnerHtml(button, innerHtml);
+    function createButton(parent, innerHtml, description, clickFn, className, text) {
+        var button = createElement(parent, 'button', className ? className : 'b', text);
+        if (description) {
+            button.title = description;
+        }
+        if (innerHtml) {
+            setInnerHtml(button, innerHtml);
+        }
         if (clickFn) {
             addEvent(button, 'click', function(e) { preventDefault(e); clickFn(e); });
         }
@@ -363,13 +586,11 @@
         } catch(e) {}
 
         // ...by legacy query parameters (topic/nav or search link)
-        var params = {};
-        var queryPart = window.location.href.replace(/^[^#\?]*(?:\?([^#\?]*))?(#.*)?$/, '$1');
-        queryPart.replace(/(?:^|&+)([^=&]+)=([^&]*)/gi, function(m, param, value) { params[param] = decodeURIComponent(value); });
+        var params = getParams(window.location.href.replace(/^[^#\?]*(?:\?([^#\?]*))?(#.*)?$/, '$1'));
         var topicOrNav = params.topic || params.nav;
         if (params.searchWord && params.tab == 'search') {
             window.history.replaceState(null, '', window.location.pathname);
-            searchFullByHash('?q=' + params.searchWord);
+            searchFullByHash('#q=' + encodeURIComponent(params.searchWord));
             return;
         }
         if (topicOrNav) {
@@ -616,7 +837,7 @@
                 }
             }
             if (!node) {
-                createSearchField(children, '');
+                createSearchField(children);
                 initContentPage();
                 setFontSize(0, 1);
             }
@@ -665,7 +886,8 @@
                     t: getAttribute(n, 'title'),
                     h: BASE_URL + getAttribute(n, 'href').substring(3),
                     i: n.getAttribute('image'),
-                    y: expandPath
+                    y: expandPath,
+                    l/*is leaf*/: getAttribute(n, 'is_leaf')
                 },
                 l/*is leaf*/: getAttribute(n, 'is_leaf'),
                 c/*children*/: tocToNodes(n.childNodes, currentToc)
@@ -684,8 +906,8 @@
     //
     // Search: search-as-you-type ('t') and full search ('f')
 
-    function createSearchField(bookNodes, defaultBook) {
-        var scope = {n: {}};
+    function createSearchField(bookNodes) {
+        var currentTocLi;
 
         // create overlay required for closing proposals drop-down even when clicking into the content iframe
         var overlay = createOverlay();
@@ -724,15 +946,61 @@
         var dropDownHandle = createElement(booksButton, 'span', 'de');
         setInnerHtml(dropDownHandle, TREE_HANDLE);
         var booksDropDown = createElement(scopeButtonWrapper, 0, 'u');
-        booksDropDown.style.display = 'none';
+        booksDropDown.s = function(show) {
+            booksDropDown.style.display = show ? 'block' : 'none';
+            if (!show) return;
+            setInnerHtml(booksDropDown);
+            var booksDropDownUl = createElement(booksDropDown, 'ul', 'r');
+            var menuItems = [];
+            var dataItems = [];
+            var currentBook;
+            var currentChapter;
+            for (var tocLi = currentTocLi; tocLi && tocLi.n; tocLi = tocLi.p) {
+                if (!tocLi.n.path) {
+                    currentBook = tocLi.n.t;
+                    if (!currentChapter) {
+                        currentChapter = currentBook;
+                    }
+                } else if (!currentChapter && !tocLi.n.l) {
+                    currentChapter = tocLi.n.t;
+                }
+            }
+            menuItems.push(createElement(booksDropDownUl, 'li', searchScope.l == 0 ? 'x': 0, SEARCH_SCOPE_LABEL_NONE));
+            dataItems.push([0]);
+            menuItems.push(createElement(booksDropDownUl, 'li', searchScope.l == 1 ? 'x': 0, SEARCH_SCOPE_LABEL_BOOK + (currentBook ? ': ' + currentBook : '')));
+            dataItems.push([1]);
+            menuItems.push(createElement(booksDropDownUl, 'li', searchScope.l == 2 ? 'x': 0, SEARCH_SCOPE_LABEL_CHAPTER + (currentChapter ? ': ' + currentChapter : '')));
+            dataItems.push([2]);
+//            menuItems.push(createElement(booksDropDownUl, 'li', searchScope.l == 3 ? 'x': 0, SEARCH_SCOPE_LABEL_TOPIC));
+//            dataItems.push([3]);
+            remoteRequest(BASE_URL + 'advanced/workingSetManager.jsp?t=' + Date.now(), function(menuItems, dataItems) {
+                return function(responseText) {
+                    var delimiter = 'l ';
+                    var scopeIndex = 0;
+                    for (;(match = SEARCH_SCOPE_ALL_PATTERN.exec(responseText));) {
+                         var label = decodeHtml(match[1]);
+                         if (label.substring(0, 1) == '\u200B') continue;
+                         var className = delimiter + (searchScope.l == 4 && searchScope.s == label ? 'x' : '');
+                         menuItems.push(createElement(booksDropDownUl, 'li', className, label));
+                         delimiter = '';
+                         dataItems.push([4, label, scopeIndex]);
+                         scopeIndex++;
+                    }
+                    menuItems.push(createElement(booksDropDownUl, 'li', 'l y', 'Scopes...'));
+                    dataItems.push([5]);
+                    toMenu(booksButton, menuItems, dataItems, setSearchScope);
+                }
+            }(menuItems, dataItems));
+        }
+        booksDropDown.s();
         var scopeOverlay = createOverlay(4);
-        addEvent(scopeOverlay, 'click', function() { booksDropDown.style.display = 'none'; scopeOverlay.o(); });
+        addEvent(scopeOverlay, 'click', function() { booksDropDown.s(); scopeOverlay.o(); });
         addEvent(booksButton, 'mousedown', function(e) {
             var isOpen = booksDropDown.style.display == 'block';
             try {
                 booksButton.focus();
             } catch(e) {}
-            booksDropDown.style.display = isOpen ? 'none' : 'block';
+            booksDropDown.s(!isOpen);
             if (isOpen) {
                 scopeOverlay.o();
             } else {
@@ -744,52 +1012,75 @@
         addEvent(booksButton, 'click', function(e) {stopPropagation(e)});
         addEvent(booksButton, 'focus', function() {
             booksDropDown.hasFocus = true;
-            booksDropDown.style.display = 'block';
+            booksDropDown.s(1);
             scopeOverlay.a();
         });
 //        addEvent(booksButton, 'blur', function() {
 //            booksDropDown.hasFocus = false;
 //            setTimeout(function() {if (!booksDropDown.hasFocus) booksDropDown.style.display = 'none'}, 200);
 //        });
-        var booksDropDownUl = createElement(booksDropDown, 'ul', 'r');
-        var menuItems = [];
-        var defaultBookData;
-        var bookNodesIncludingAll = bookNodes.slice();
-        bookNodesIncludingAll.unshift({n: {t: '(All)'}});
-        for (var i = 0; i < bookNodesIncludingAll.length; i++) {
-            var n = bookNodesIncludingAll[i].n;
-            var li = createElement(booksDropDownUl, 'li', null, BOOK_NAME_SHORTENER(n.t));
-            menuItems.push(li);
-            if (defaultBook && defaultBook == n.toc){
-                defaultBookData = [n.t, n.toc, n.h];
-            }
+        if (!embeddedMode && BOOK_SCOPE_BY_DEFAULT && searchScope.l == 0 && getCookie(BOOK_SCOPE_COOKIE) != 'init') {
+            setSearchScope([1]);
+            setCookie(BOOK_SCOPE_COOKIE, 'init');
+        } else {
+            updateScopeButtonLabel();
         }
 
-        function setBook(bookNode, updateDisplayedProposalsOnly) {
-            booksDropDown.style.display = 'none';
+        setSearchScope = function(scopeData) {
+            booksDropDown.s();
             scopeOverlay.o();
-            if (scope.n.toc) booksButtonText.removeChild(booksButtonText.firstChild);
-            scope = bookNode;
-            if (scope.n.toc) booksButtonText.appendChild(document.createTextNode(BOOK_NAME_SHORTENER(bookNode.n.t)));
-            setClassName(dropDownHandle, scope.n.toc ? 'd' : 'de');
-            if (!updateDisplayedProposalsOnly || proposals.style.display != 'none') {
-                search();
+            if (scopeData[0] == 5) {
+                scopesPage.s(1);
+                return;
             }
-            setCookie('book-scope', !!scope.n.toc);
+            if (searchScope.l != scopeData[0]) {
+                if (searchScope.l == 1 || searchScope.l == 2 || searchScope.l == 4) {
+                    var dummyScopeName = '%E2%80%8B' + (searchScope.l > 1 ? '%E2%80%8B' : '');
+                    for (var i = 0; searchScope.l == 4 && i <= searchScope.t; i++) {
+                        dummyScopeName += '%E2%80%8B';
+                    }
+                    remoteRequest(  BASE_URL
+                                  + 'workingSetState.jsp?operation=remove&workingSet='
+                                  + dummyScopeName
+                                  + '&t=' + Date.now());
+                }
+                if (scopeData[0] == 1 || scopeData[0] == 2 || scopeData[0] == 4) {
+                    var dummyScopeName = '%E2%80%8B' + (scopeData[0] > 1 ? '%E2%80%8B' : '');
+                    for (var i = 0; scopeData[0] == 4 && i <= scopeData[2]; i++) {
+                        dummyScopeName += '%E2%80%8B';
+                    }
+                    remoteRequest(  BASE_URL
+                                  + 'workingSetState.jsp?operation=add&workingSet='
+                                  + dummyScopeName
+                                  + '&t=' + Date.now());
+                }
+            }
+            searchScope.l = scopeData[0];
+            searchScope.s = searchScope.l == 4 ? scopeData[1] : 0;
+            searchScope.t = searchScope.l == 4 ? scopeData[2] : 0;
+            updateScopeButtonLabel();
         }
-        setBookByToc = function(toc, updateBookOnly, initBook) {
-            if (updateBookOnly && !initBook && !scope.n.toc) return;
-            for (var i = 0; i < bookNodesIncludingAll.length; i++) {
-                var bookNode = bookNodesIncludingAll[i];
-                if (toc == bookNode.n.toc || (!toc && !bookNode.n.toc)) {
-                    setBook(bookNode, updateBookOnly);
+        updateScopeByToc = function(li) {
+            currentTocLi = li;
+            updateScopeButtonLabel();
+        }
+        function updateScopeButtonLabel() {
+            setInnerHtml(booksButtonText, '');
+            if (searchScope.l == 0 || (searchScope.l < 3 && !currentTocLi)) return;
+            var newButtonlabel;
+            for (var tocLi = currentTocLi; searchScope.l < 3 && tocLi && tocLi.n; tocLi = tocLi.p) {
+                if (!tocLi.n.path || (searchScope.l == 2 && !tocLi.n.l)) {
+                    newButtonlabel = tocLi.n.t;
                     break;
                 }
             }
+            if (searchScope.l == 4) {
+                newButtonlabel = searchScope.s;
+            }
+            if (newButtonlabel) {
+                booksButtonText.appendChild(document.createTextNode(BOOK_NAME_SHORTENER(newButtonlabel)));
+            }
         }
-
-        toMenu(booksButton, menuItems, bookNodesIncludingAll, setBook);
-        if (defaultBookData) setBook(defaultBookData[0], defaultBookData[1], defaultBookData[2]);
 
         // search field
         var wrap = createElement(searchFieldArea, 0, 'q2');
@@ -855,7 +1146,6 @@
         // focus search field
         searchField.focus();
 
-        searchFull = function() { search(0, 1); };
         function search(e, fullSearch) {
             var noPendingQueries = !currentSearch[getSearchTypeId(fullSearch)];
 
@@ -868,9 +1158,18 @@
                                   // TODO if Eclipse bug 351077 (https://bugs.eclipse.org/351077), remove following line
                                   .replace(/\-([^\-\s]*$)/ig, ' $1');
 
+            var tocScope = currentTocLi ? currentTocLi.n : currentTocLi;
+            for (var tocLi = currentTocLi; searchScope.l < 3 && tocLi && tocLi.n; tocLi = tocLi.p) {
+                if (!tocLi.n.path || (searchScope.l == 2 && !tocLi.n.l)) {
+                    tocScope = tocLi.n;
+                    break;
+                }
+            }
             var query = searchWord.length
                         ? (  encodeURIComponent(searchWord.toLowerCase())
-                           + (scope.n.toc ? '&toc=' + encodeURIComponent(scope.n.toc) : ''))
+                           + ((searchScope.l == 1 || searchScope.l == 2) && tocScope && tocScope.toc ? '&toc=' + encodeURIComponent(tocScope.toc) : '')
+                           + (searchScope.l == 2 && tocScope && tocScope.path ? '&path=' + tocScope.path : '')
+                           + (searchScope.l == 4 && searchScope.s ? '&scope=' + encodeURIComponent(searchScope.s) : ''))
                         : '';
             var url =   SEARCH_BASE_URL
                       + query.replace(/(\&|$)/, (fullSearch ? '' : '*') + '$1')
@@ -882,6 +1181,7 @@
                 currentSearch['t'] = 0;
                 hideProposals();
                 if (bookmarksPage) bookmarksPage.s();
+                if (scopesPage) scopesPage.s();
                 updateDeepLink(query);
             } else {
 
@@ -924,7 +1224,7 @@
                     if (fullSearch) {
                         window.frames['c'].location = url;
                     }
-                    renderResults(fullSearch, r.r, r.b, query, scope, searchWord);
+                    renderResults(fullSearch, r.r, r.b, query, searchWord, r.s);
                     return;
                 }
             }
@@ -934,7 +1234,18 @@
                 window.frames['c'].location = url;
                 return;
             }
-            var callbackFn = callbackFor(fullSearch, query, scope, searchWord);
+            var currentSearchScope = {
+                /* level */               l: searchScope.l,
+                /* (custom) scope name */ s: searchScope.s,
+                /* path */                p: 0
+            };
+            if (searchScope.l > 0 && searchScope.l < 3 && currentTocLi) {
+                currentSearchScope.p = [currentTocLi.n];
+                for (var parentLi = currentTocLi.p; searchScope.l > 1 && parentLi && parentLi.n; parentLi = parentLi.p) {
+                    currentSearchScope.p.unshift(parentLi.n);
+                }
+            }
+            var callbackFn = callbackFor(fullSearch, query, searchWord, currentSearchScope);
             if (noPendingQueries) {
                 remoteRequest(url, callbackFn, getSearchTypeId(fullSearch));
             } else {
@@ -952,22 +1263,85 @@
             var query = queryPart.substring(0, queryPart.indexOf('&maxHits='));
             updateDeepLink(query);
             if (query == searchPage.q) return;
-            var decoded = decodeURIComponent(query);
-            var end = decoded.indexOf('&toc=');
-            var toc = end < 0 ? 0 : decoded.substring(end + 5);
+            var valuePairs = queryPart.split('&');
+            var searchWord;
+            var toc;
+            var path;
             var scope;
-            for (var i = 0; i < bookNodesIncludingAll.length; i++) {
-                var bookNode = bookNodesIncludingAll[i];
-                if (toc == bookNode.n.toc || (!toc && !bookNode.n.toc)) {
-                    scope = bookNode;
-                    break;
+            for (var i = 0; i < valuePairs.length; i++) {
+                if (!searchWord && valuePairs[i].indexOf('=') < 0) {
+                    searchWord = decodeURIComponent(valuePairs[i]);
+                } else if (valuePairs[i].substring(0, 4) == 'toc=') {
+                    toc = decodeURIComponent(valuePairs[i].substring(4));
+                } else if (valuePairs[i].substring(0, 5) == 'path=') {
+                    path = decodeURIComponent(valuePairs[i].substring(5));
+                } else if (valuePairs[i].substring(0, 6) == 'scope=') {
+                    scope = decodeURIComponent(valuePairs[i].substring(6));
                 }
             }
-            var searchWord = end < 0 ? decoded : decoded.substring(0, end);
-            (callbackFor(1, query, scope, searchWord))(data);
+            var currentSearchScope = {
+                /* level */               l: scope ? 4 : (toc ? (path ? 2 : 1) : 0),
+                /* (custom) scope name */ s: scope,
+                /* path */                p: 0
+            };
+            var scopeFound = !toc;
+            if (toc && currentTocLi && currentTocLi.n) {
+                var nodes = [currentTocLi.n];
+                for (var parentLi = currentTocLi.p; parentLi && parentLi.n; parentLi = parentLi.p) {
+                    if (path) {
+                        nodes.unshift(parentLi.n);
+                    } else {
+                        nodes = [parentLi.n];
+                    }
+                }
+                if (toc == nodes[0].toc && (!path || path == nodes[nodes.length - 1].path)) {
+                    currentSearchScope.p = nodes;
+                    scopeFound = 1;
+                }
+            }
+            if (!scopeFound) {
+                remoteRequest(  BASE_URL + 'advanced/tocfragment?toc=' + encodeURIComponent(toc)
+                              + (path ? '&path=' + path : ''), (function(toc, path, currentSearchScope, searchWord, query, data) {
+                    return function(responseText) {
+                        var nodePath = [];
+                        var books = parseXml(responseText).documentElement.childNodes;
+                        var book;
+                        for (var i = 0; i < books.length; i++) {
+                            book = books[i];
+                            if (book.tagName == 'node' && toc == book.getAttribute('id')) {
+                                nodePath.push({t: book.getAttribute('title'), toc: toc});
+                                break;
+                            }
+                        }
+                        var nodes = book.childNodes;
+                        tocLevelLoop: while (1) {
+                            for (var i = 0; i < nodes.length; i++) {
+                                n = nodes[i];
+                                if (n.tagName != 'node') continue;
+                                var id = n.getAttribute('id');
+                                if (path == id) {
+                                    nodePath.push({t: n.getAttribute('title'), toc: toc, path: id});
+                                    break tocLevelLoop;
+                                };
+                                if (   id
+                                    && path.length > id.length
+                                    && path.substring(0, id.length + 1) == id + '_') {
+                                    nodes = n.childNodes;
+                                    nodePath.push({t: n.getAttribute('title'), toc: toc, path: id});
+                                    continue tocLevelLoop;
+                                }
+                            }
+                            break;
+                        }
+                        currentSearchScope.p = nodePath;
+                        (callbackFor(1, query, searchWord, currentSearchScope))(data);
+                    };})(toc, path, currentSearchScope, searchWord, query, data));
+                return;
+            }
+            (callbackFor(1, query, searchWord, currentSearchScope))(data);
         }
 
-        function callbackFor(fullSearch, query, scope, searchWord) {
+        function callbackFor(fullSearch, query, searchWord, searchScope) {
             return function(data) {
 
                 // progress bar (not yet indexed)?
@@ -1006,7 +1380,8 @@
                 var queryResult = {
                     /* results         */ r: results,
                     /* has breadcrumbs */ b: hasBreadcrumbs,
-                    /* query           */ q: query
+                    /* query           */ q: query,
+                    /* search scope    */ s: searchScope
                 }
                 var cache = SEARCH_CACHE[getSearchTypeId(fullSearch)];
                 var cacheIndexId = getSearchTypeId(fullSearch) + 'i';
@@ -1018,12 +1393,12 @@
                     cache[SEARCH_CACHE[cacheIndexId]] = queryResult;
                 }
 
-                renderResults(fullSearch, results, hasBreadcrumbs, query, scope, searchWord);
+                renderResults(fullSearch, results, hasBreadcrumbs, query, searchWord, searchScope);
             }
 
         }
 
-        function renderResults(fullSearch, results, hasBreadcrumbs, query, scope, searchWord) {
+        function renderResults(fullSearch, results, hasBreadcrumbs, query, searchWord, searchScope) {
 
             // staled?
             if (!fullSearch && query != currentSearch[getSearchTypeId(fullSearch)]) return;
@@ -1050,11 +1425,21 @@
                 stopPropagation(e);
             }
 
+            var searchScopeLabel = searchScope.l > 3 ? searchScope.s : '';
+            if (searchScope.p) {
+                for (var i = 0; i < searchScope.p.length; i++) {
+                    if (i > 0) {
+                        searchScopeLabel += ' > ';
+                    }
+                    searchScopeLabel += searchScope.p[i].t;
+                }
+            }
             var parentElement = fullSearch ? searchPage : proposals;
             setInnerHtml(parentElement, '');
             parentElement.q = query;
-            parentElement.l = 'Search' + (scope.n.toc ? ' (' + scope.n.t + ')': '') + ': ' + searchWord;
+            parentElement.l = 'Search' + (searchScope.l > 0 ? ' (' + searchScopeLabel+ ')': '') + ': ' + searchWord;
             if (fullSearch) {
+                document.title = searchPage.l + ' - ' + title;
 
                 // no results?
                 if (!results.length) {
@@ -1064,7 +1449,23 @@
                 }
 
                 // filter tree
-                var filterTree = asTree(results, scope.n.toc ? results[0].b/*breadcrumb*/.slice(0, 2) : [], 9, true);
+                var filterTree = asTree(results, [], 9, true);
+                // TODO correction of tree for deeper scopes (below) might be done in "asTree" or "asTree" might be better simplified
+                if (searchScope.p && filterTree.length == 1 && filterTree[0].isNode) {
+                    var afterCutOff = searchScope.p.length * 2 - filterTree[0].name.length;
+                    if (afterCutOff < 0) {
+                        filterTree[0].name = filterTree[0].name.slice(searchScope.p.length * 2);
+                    } else if (afterCutOff >= 0) {
+                        filterTree = filterTree[0].children;
+                        if (afterCutOff > 0 && filterTree.length > 0 && filterTree[0].isNode) {
+                            if (filterTree[0].name.length <= afterCutOff) {
+                                filterTree = filterTree[0].children;
+                            } else {
+                                filterTree[0].name = filterTree[0].name.slice(afterCutOff);
+                            }
+                        }
+                    }
+                }
                 createTree(searchPage,
 
                     // content provider
@@ -1097,7 +1498,7 @@
 
                         // checkbox
                         var checkboxWithLabel = createElement(li);
-                        var checkbox = createElement(checkboxWithLabel, 'input', 0);
+                        var checkbox = createElement(checkboxWithLabel, 'input');
                         checkbox.type = 'checkbox';
                         checkbox.checked = node.p ? node.p.x.checked : true;
                         node.x = checkbox;
@@ -1112,7 +1513,7 @@
                         var labelText = '';
                         if (isRoot) {
                             checkbox.style.display = 'none';
-                            labelText = 'Results ' + (scope.n.toc ? 'in ' : '');
+                            labelText = 'Results ' + (searchScope && searchScope.l > 0 ? 'in ' : '');
                         } else {
                             addEvent(checkbox, 'click', (function(liCheck, li) {
                                 return function() {
@@ -1126,8 +1527,8 @@
                             }
                         }
                         var label = createElement(checkboxWithLabel, 'span', node.isNode ? 0 : 't', labelText + ' ');
-                        if (isRoot && scope.n.toc) {
-                            createElement(label, 'span', 'tl', scope.n.t + ' ');
+                        if (isRoot && searchScope && searchScope.l > 0 ) {
+                            createElement(label, 'span', 'tl', searchScopeLabel + ' ');
                         }
                         createElement(label, 'span', 'count', checkbox.numberOfResults);
                         addEvent(label, 'click', (function(checkbox, li) {
@@ -1217,15 +1618,15 @@
                 // title
                 addHighlightedText(createElement(titleAndLocation, 0, 'v'), node.t/*title*/, searchWord);
 
-                // show book title only for no book scope
-                if (!fullSearch && !scope.n.toc) {
+                // show book title only for no book/chapter scope
+                if (!fullSearch && !searchScope.p) {
                     createElement(titleAndLocation, 0, 'w', node.b/*breadcrumb*/[1]);
                 }
 
                 // breadcrumb
                 if (fullSearch && hasBreadcrumbs && node.b/*breadcrumb*/) {
                     var location = createElement(titleAndLocation, 0, 'w');
-                    for (var j = scope.n.toc ? 2 : 0; j < node.b/*breadcrumb*/.length; j+=2) {
+                    for (var j = searchScope && searchScope.p ? searchScope.p.length * 2 : 0; j < node.b/*breadcrumb*/.length; j+=2) {
                         createElement(location, 'span', 0, node.b/*breadcrumb*/[j+1]);
                         if (j < node.b/*breadcrumb*/.length-2) {
                             createElement(location, 'span', 0, ' > ');
@@ -1241,7 +1642,7 @@
                 if (fullSearch) {
                     var resultofStart = node.h/*href*/.indexOf('?resultof=');
                     var hrefNormed = '../topic' + (resultofStart < 0 ? node.h/*href*/ : node.h/*href*/.substring(0, resultofStart));
-                    data.push(toValue(node.b/*breadcrumb*/.slice(0, n.path.length).concat(hrefNormed).concat(node.t/*title*/)));
+                    data.push(toValue(node.b/*breadcrumb*/.slice().concat(hrefNormed).concat(node.t/*title*/)));
                 } else {
                     data.push([node.t/*title*/, node.h/*href*/]);
                 }
@@ -1341,7 +1742,7 @@
             for (var i = 0; i < results.length; i++) {
                 var r = results[i];
                 r.p = i;
-                r.q = r.b/*breadcrumb*/.slice(0, r.b/*breadcrumb*/.length);
+                r.q = r.b/*breadcrumb*/.slice();
                 var resultofStart = r.h/*href*/.indexOf('?resultof=');
                 r.q.push('../topic' + (resultofStart < 0 ? r.h/*href*/ : r.h/*href*/.substring(0, resultofStart)));
                 r.q.push(r.t/*title*/);
@@ -1358,7 +1759,7 @@
                     var node = {
                         isNode: true,
                         name: [r.b/*breadcrumb*/[path.length], r.b/*breadcrumb*/[path.length+1]],
-                        l/*ocation*/: path.slice(0, path.length),
+                        l/*ocation*/: path.slice(),
                         children: [r]
                     };
                     grouped[key] = node;
@@ -1552,7 +1953,7 @@
                 var key = e.keyCode || e.charCode;
 
                 if (   cursorIndex > 0
-                    && items[cursorIndex-1].getAttribute('class') == '') {
+                    && getClassName(items[cursorIndex-1]) == items[cursorIndex-1].z) {
                     cursorIndex = 0;
                 }
 
@@ -1572,7 +1973,7 @@
                 if (key == 13 && cursorIndex > 0) {
                     preventDefault(e);
                     stopPropagation(e);
-                    items[cursorIndex-1].setAttribute('class', '');
+                    setClassName(items[cursorIndex-1], items[cursorIndex-1].z);
                     chooseFn(data[cursorIndex-1]);
                     cursorIndex = 0;
                     return;
@@ -1583,22 +1984,23 @@
                 preventDefault(e);
                 var isDown = key == 40;
                 if (cursorIndex > 0) {
-                    items[cursorIndex-1].setAttribute('class', '');
+                    setClassName(items[cursorIndex-1], items[cursorIndex-1].z);
                 }
                 cursorIndex = cursorIndex < 1
                               ? (isDown ? 1 : items.length)
                               : (cursorIndex + (isDown ? 1 : -1)) % (items.length + 1);
                 if (cursorIndex > 0) {
-                    items[cursorIndex-1].setAttribute('class', 'z');
-                    if (armFn) armFn(items[cursorIndex-1], data[cursorIndex-1], 0);
+                   var item = items[cursorIndex-1];
+                   setClassName(item, item.z + ' z');
+                   if (armFn) armFn(item, data[cursorIndex-1], 0);
                 }
             }
-
             for (var i = 0; i < items.length; i++) {
+                items[i].z = getClassName(items[i]);
                 items[i].onmousedown = function() {setTimeout(function() {if (master && !master.hasFocus) master.focus()}, 42)};
-                items[i].onmouseup = items[i].ontouchend = function(a, b) {return function(e) {preventDefault(e); if (!a.canceled) {chooseFn(b); a.setAttribute('class', ''); cursorIndex = 0}}}(items[i], data[i]);
-                items[i].onmouseover = items[i].ontouchstart = function(a, b, c) {return function() {if (!isInit) return; if (cursorIndex > 0) items[cursorIndex-1].setAttribute('class', ''); a.setAttribute('class', 'z'); cursorIndex = b; a.canceled = ''; if (armFn && b > 0) armFn(a, c, 1)}}(items[i], i+1, data[i]);
-                items[i].onmouseout = function(a) {return function() {a.setAttribute('class', '')}}(items[i]);
+                items[i].onmouseup = items[i].ontouchend = function(a, b) {return function(e) {preventDefault(e); if (!a.canceled) {chooseFn(b); setClassName(a, a.z); cursorIndex = 0}}}(items[i], data[i]);
+                items[i].onmouseover = items[i].ontouchstart = function(a, b, c) {return function() {if (!isInit) return; if (cursorIndex > 0) setClassName(items[cursorIndex-1], items[cursorIndex-1].z); setClassName(a, a.z + ' z'); cursorIndex = b; a.canceled = ''; if (armFn && b > 0) armFn(a, c, 1)}}(items[i], i+1, data[i]);
+                items[i].onmouseout = function(a) {return function() {setClassName(a, a.z)}}(items[i]);
             }
             setTimeout(function() {isInit = 1; }, 142);
         }
@@ -1631,12 +2033,18 @@
     }
 
     function searchFullByHash(hash) {
-        var initialQuery = hash.substring(3);
-        var decoded = decodeURIComponent(initialQuery.replace(/\+/g, ' '));
-        var end = decoded.indexOf('&toc=');
-        getElementById('q').value = end < 0 ? decoded : decoded.substring(0, end);
-        setBookByToc(end < 0 ? 0 : decoded.substring(end + 5));
-        searchFull();
+        var url =   SEARCH_BASE_URL + hash.substring(3) + '&maxHits=' + SEARCH_HITS_MAX
+                  + (hash.indexOf('&toc=') < 0 ? '' : '&quickSearch=true&quickSearchType=QuickSearchToc');
+        window.frames['c'].location = url;
+
+        // fill search field
+        var searchWord = getParams(hash)['#q'];
+        if (searchWord && searchWord != getElementById('q').value) {
+            getElementById('q').value = searchWord;
+        }
+
+        // TODO set search socpe?
+
     }
 
 
@@ -1700,16 +2108,28 @@
             createMenuItem('+', 'Increase font size', function() { setFontSize(1); }, 'afp', 0, fontSizer);
         }
 
-        // "Print topic"
-        createMenuItem('Print topic', 'Print topic without its subtopics', function() {
+        // "Bookmarks..."
+        if (embeddedMode) {
+            createMenuItem('Bookmarks...', 'Bookmark current topic and manage existing bookmarks', function() {
+                bookmarksPage.s(1);
+            });
+        }
+
+        // "Search scopes..."
+        createMenuItem('Search scopes...', 'Manage search scopes', function() {
+            scopesPage.s(1);
+        });
+
+        // "Print topic..."
+        createMenuItem('Print topic...', 'Print topic without its subtopics', function() {
             try {
                 getElementById('c').contentWindow.print();
             } catch (e) {
             }
         }, 'ap');
 
-        // "Print chapter"
-        createMenuItem('Print chapter', 'Print topic including subtopics', printChapter, 'app');
+        // "Print chapter..."
+        createMenuItem('Print chapter...', 'Print topic including subtopics', printChapter, 'app');
 
         // "Help"
         if (MENU_HELP) {
@@ -1825,7 +2245,7 @@
             return function(children, open) {
                 var ul = createElement(parent, 'ul');
                 for (var i = 0; i < children.length; i++) {
-                    var li = createElement(ul, 'li', open ? 'open' : 'closed');
+                    var li = createElement(ul, 'li', 'closed');
                     li.p = parent;
                     var child = children[i];
                     if (!child.l) {
@@ -1875,7 +2295,7 @@
                             stopPropagation(e);
                         }
                     })(li));
-                    if (open) toggleLi(li);
+                    if (open || getClassName(li) == 'open') toggleLi(li);
                 }
             }
         };
@@ -1918,9 +2338,8 @@
             }
 
             // update search field book scope
-            if (setBookByToc && li.toc) {
-                setBookByToc(li.toc, 1, initBookScope);
-                initBookScope = 0;
+            if (updateScopeByToc && li.toc) {
+                updateScopeByToc(li);
             }
 
         };
@@ -2199,6 +2618,13 @@
         }
     }
 
+    function decodeHtml(htmlString) {
+        if (!htmlString) return htmlString;
+        var element = createElement();
+        setInnerHtml(element, htmlString);
+        return element.textContent || element.innerText;
+    }
+
     function getElementById(id) {
         return document.getElementById(id);
     }
@@ -2234,7 +2660,7 @@
     }
 
     function setInnerHtml(element, innerHtml) {
-        element.innerHTML = innerHtml;
+        element.innerHTML = innerHtml ? innerHtml : '';
     }
 
     function preventDefault(e) {
@@ -2251,6 +2677,13 @@
         if (!e) return;
         e.cancelBubble = true;
         if (e.stopPropagation) e.stopPropagation();
+    }
+
+    function getParams(queryPart) {
+        var params = {};
+        queryPart.replace(/(?:^|&+)([^=&]+)=([^&]*)/gi,
+                          function(m, param, value) { params[param] = decodeURIComponent(value); });
+        return params;
     }
 
     function getCookie(cookieName, defaultValue) {
