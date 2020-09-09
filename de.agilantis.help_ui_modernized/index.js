@@ -1020,8 +1020,8 @@
 //            setTimeout(function() {if (!booksDropDown.hasFocus) booksDropDown.style.display = 'none'}, 200);
 //        });
         if (!embeddedMode && BOOK_SCOPE_BY_DEFAULT && searchScope.l == 0 && getCookie(BOOK_SCOPE_COOKIE) != 'init') {
-            setSearchScope([1]);
             setCookie(BOOK_SCOPE_COOKIE, 'init');
+            setTimeout(function(){ if(setSearchScope) setSearchScope([1]); }, 420);
         } else {
             updateScopeButtonLabel();
         }
