@@ -55,7 +55,7 @@
     var SEARCH_SCOPE_LABEL_NONE = 'All';
     var SEARCH_SCOPE_LABEL_BOOK = 'Book';
     var SEARCH_SCOPE_LABEL_CHAPTER = 'Chapter';
-    var SEARCH_SCOPE_LABEL_TOPIC = 'Find in page';
+//    var SEARCH_SCOPE_LABEL_TOPIC = 'Find in page';
     var SEARCH_SCOPE_CURRENT_PATTERN = new RegExp('<div\\s+id\\s*=\\s*"scope"\\s*>([^<]*)<');
     var SEARCH_SCOPE_ALL_PATTERN = new RegExp('<a\\s+(?:(?!title)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*title\\s*=\\s*"([^"]*)"', 'gi');
     var SEARCH_SCOPE_NAME_PATTERN = new RegExp('<input\\s+type\\s*=\\s*["\']text["\']\\s+(?:(?!value)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*value\\s*=\\s*\'([^\']*)\'', 'i');
@@ -837,7 +837,7 @@
                 }
             }
             if (!node) {
-                createSearchField(children);
+                createSearchField();
                 initContentPage();
                 setFontSize(0, 1);
             }
@@ -906,7 +906,7 @@
     //
     // Search: search-as-you-type ('t') and full search ('f')
 
-    function createSearchField(bookNodes) {
+    function createSearchField() {
         var currentTocLi;
 
         // create overlay required for closing proposals drop-down even when clicking into the content iframe
@@ -1314,7 +1314,7 @@
                             }
                         }
                         var nodes = book.childNodes;
-                        tocLevelLoop: while (1) {
+                        tocLevelLoop: while (path) {
                             for (var i = 0; i < nodes.length; i++) {
                                 n = nodes[i];
                                 if (n.tagName != 'node') continue;
@@ -2087,7 +2087,7 @@
         closeMenuButton.title = MENU_CLOSE_ICON_DESCRIPTION;
         setInnerHtml(closeMenuButton, MENU_CLOSE_ICON);
 
-        // "Highlight search terms"
+        // "Highlight search terms" dummy
         function HighlightConnector() {};
         HighlightConnector.prototype.setButtonState = function(/*name, state*/) {
             // dummy for highlight() in org.eclipse.help.webapp/advanced/highlight.js
@@ -2151,7 +2151,8 @@
 
     }
 
-    function toggleHighlight(e, initalize) {
+    function toggleHighlight(_event, initalize) {
+
         var enableHighlighting = 'false' == getCookie('highlight');
         if (initalize) {
             enableHighlighting = !enableHighlighting;
@@ -2682,7 +2683,7 @@
     function getParams(queryPart) {
         var params = {};
         queryPart.replace(/(?:^|&+)([^=&]+)=([^&]*)/gi,
-                          function(m, param, value) { params[param] = decodeURIComponent(value); });
+            function(_match, group1Param, group2Value) { params[group1Param] = decodeURIComponent(group2Value); });
         return params;
     }
 
