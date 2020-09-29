@@ -947,6 +947,8 @@
         setInnerHtml(dropDownHandle, TREE_HANDLE);
         var booksDropDown = createElement(scopeButtonWrapper, 0, 'u');
         booksDropDown.s = function(show) {
+            var isOpen = booksDropDown.style.display == 'block';
+            if (!isOpen == !show) return;
             booksDropDown.style.display = show ? 'block' : 'none';
             if (!show) return;
             setInnerHtml(booksDropDown);
@@ -1034,24 +1036,27 @@
                 return;
             }
             if (searchScope.l != scopeData[0]) {
+                var scopeToRemove;
                 if (searchScope.l == 1 || searchScope.l == 2 || searchScope.l == 4) {
-                    var dummyScopeName = '%E2%80%8B' + (searchScope.l > 1 ? '%E2%80%8B' : '');
+                    scopeToRemove = '%E2%80%8B' + (searchScope.l > 1 ? '%E2%80%8B' : '');
                     for (var i = 0; searchScope.l == 4 && i <= searchScope.t; i++) {
-                        dummyScopeName += '%E2%80%8B';
+                        scopeToRemove += '%E2%80%8B';
                     }
-                    remoteRequest(  BASE_URL
-                                  + 'workingSetState.jsp?operation=remove&workingSet='
-                                  + dummyScopeName
-                                  + '&t=' + Date.now());
                 }
+                var scopeToAdd;
                 if (scopeData[0] == 1 || scopeData[0] == 2 || scopeData[0] == 4) {
-                    var dummyScopeName = '%E2%80%8B' + (scopeData[0] > 1 ? '%E2%80%8B' : '');
+                    scopeToAdd = '%E2%80%8B' + (scopeData[0] > 1 ? '%E2%80%8B' : '');
                     for (var i = 0; scopeData[0] == 4 && i <= scopeData[2]; i++) {
-                        dummyScopeName += '%E2%80%8B';
+                        scopeToAdd += '%E2%80%8B';
                     }
+                }
+                if (scopeToRemove || scopeToAdd) {
                     remoteRequest(  BASE_URL
-                                  + 'workingSetState.jsp?operation=add&workingSet='
-                                  + dummyScopeName
+                                  + 'workingSetState.jsp?operation='
+                                  + (scopeToRemove && scopeToAdd ? 'edit' : (scopeToRemove ? 'remove' : 'add'))
+                                  + (scopeToRemove && scopeToAdd ? '&oldName=' + scopeToRemove : '')
+                                  + '&workingSet='
+                                  + (!scopeToAdd ? scopeToRemove : scopeToAdd)
                                   + '&t=' + Date.now());
                 }
             }
