@@ -33,7 +33,7 @@
     var BOOKMARKS_DELETE_DESCRIPTION = 'Delete this bookmarks (cannot be undone)';
     var BOOKMARKS_DELETE_ALL = 'Delete all bookmarks';
     var BOOKMARKS_DELETE_ALL_DESCRIPTION = 'Delete all bookmarks (cannot be undone)';
-    var BOOKMARKS_PATTERN = new RegExp('<tr[^<]*<td[^<]*<a\\s+(?:(?!href)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*href\\s*=\\s*\'([^\']*)\'[^<]*<img[^>]*>\\s*([^<]*)</a>', 'g');
+    var BOOKMARKS_PATTERN = new RegExp('<tr[^<]*<td[^<]*<a\\s+(?:(?!href)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*href\\s*=\\s*\'([^\']*)\'[^<]*<img[^>]*>\\s*([^<]*)</a>', 'gi');
     var MENU_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="M 10 1.5 A 2 2 0 0 0 8 3.5 A 2 2 0 0 0 10 5.5 A 2 2 0 0 0 12 3.5 A 2 2 0 0 0 10 1.5 z M 10 8 A 2 2 0 0 0 8 10 A 2 2 0 0 0 10 12 A 2 2 0 0 0 12 10 A 2 2 0 0 0 10 8 z M 10 14.5 A 2 2 0 0 0 8 16.5 A 2 2 0 0 0 10 18.5 A 2 2 0 0 0 12 16.5 A 2 2 0 0 0 10 14.5 z"/></svg>';
     var MENU_ICON_DESCRIPTION = 'Show menu';
     var MENU_CLOSE_ICON = '<svg width="20" height="20" viewBox="0 0 20 20"><path fill="currentColor" d="M 4.34375 2.9296875 L 2.9296875 4.34375 L 8.5859375 10 L 2.9296875 15.65625 L 4.34375 17.070312 L 10 11.414062 L 15.65625 17.070312 L 17.070312 15.65625 L 11.414062 10 L 17.070312 4.34375 L 15.65625 2.9296875 L 10 8.5859375 L 4.34375 2.9296875 z"/></svg>';
@@ -50,8 +50,9 @@
     var SEARCH_BASE_URL;
     var SEARCH_HITS_MAX = 500;
     var SEARCH_AS_YOU_TYPE_PROPOSAL_MAX = 7;
-    var SEARCH_RESULTS_PATTERN = new RegExp('<tr[^<]*<td[^<]*<img[^<]*</td[^<]*<td[^<]*<a\\s+(?:(?!href)(?!title)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*(href|title)\\s*=\\s*"([^"]*)"\\s+(?:(?!href)(?!title)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*(href|title)\\s*=\\s*"([^"]*)"[^>]*>([^<]*)</a>(?:(?:(?!<[/]?tr)[\\s\\S])*</tr\\s*>\\s*<tr(?:(?!</tr)(?!class="location">)[\\s\\S])*class="location">((?:(?!</div)[\\s\\S])*))?(?:(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*</tr){1,2}(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*\\sclass=["\']description["\'][^>]*>([^<]*)', 'g');
-    var SEARCH_RESULTS_BREADCRUMB_SNIPPET_PATTERN = new RegExp('<a\\s+href="([^"]+)">([^<]+)</a>', 'g');
+    var SEARCH_RESULTS_INDEXING_PATTERN = new RegExp('[\'"]divProgress[\'"]\\s+STYLE\\s*=\\s*[\'"]width:([\\d]+)px', 'i');
+    var SEARCH_RESULTS_PATTERN = new RegExp('<tr[^<]*<td[^<]*<img[^<]*</td[^<]*<td[^<]*<a\\s+(?:(?!href)(?!title)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*(href|title)\\s*=\\s*"([^"]*)"\\s+(?:(?!href)(?!title)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*(href|title)\\s*=\\s*"([^"]*)"[^>]*>([^<]*)</a>(?:(?:(?!<[/]?tr)[\\s\\S])*</tr\\s*>\\s*<tr(?:(?!</tr)(?!class="location">)[\\s\\S])*class="location">((?:(?!</div)[\\s\\S])*))?(?:(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*</tr){1,2}(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*\\sclass=["\']description["\'][^>]*>([^<]*)', 'gi');
+    var SEARCH_RESULTS_BREADCRUMB_SNIPPET_PATTERN = new RegExp('<a\\s+href="([^"]+)">([^<]+)</a>', 'gi');
     var SEARCH_SCOPE_LABEL_NONE = 'All';
     var SEARCH_SCOPE_LABEL_BOOK = 'Book';
     var SEARCH_SCOPE_LABEL_CHAPTER = 'Chapter';
@@ -112,7 +113,8 @@
                 // read scopes
                 remoteRequest(BASE_URL + 'advanced/workingSetManager.jsp?t=' + Date.now(), function(responseText) {
                     var scopeIndex = 0;
-                    for (;(match = SEARCH_SCOPE_ALL_PATTERN.exec(responseText));) {
+                    SEARCH_SCOPE_ALL_PATTERN.lastIndex = 0;
+                    for (var match; (match = SEARCH_SCOPE_ALL_PATTERN.exec(responseText)) != null;) {
                          var scopeName = decodeHtml(match[1]);
                          if (scopeName.substring(0, 1) == '\u200B') {
                              if (scopeName.length < 3) {
@@ -206,7 +208,8 @@
                 var ol;
                 var element = createElement();
                 var deleteButtons = [];
-                for (; (match = BOOKMARKS_PATTERN.exec(responseText)) != null;) {
+                BOOKMARKS_PATTERN.lastIndex = 0;
+                for (var match; (match = BOOKMARKS_PATTERN.exec(responseText)) != null;) {
                     if (!ol) {
                         createElement(bookmarksPage, 0, 'g', 'Bookmarks:');
                         ol = createElement(bookmarksPage, 'ol');
@@ -294,6 +297,7 @@
                         var tree = [];
                         var allNodes = [];
                         var parentNode;
+                        SEARCH_SCOPE_HREFS_PATTERN.lastIndex = 0;
                         for (; (match = SEARCH_SCOPE_HREFS_PATTERN.exec(responseText)) != null;) {
                             var node = {n: {l: decodeHtml(match[3]), v: decodeHtml(match[2]), c: [], x: !!match[1]}, l: 1};
                             allNodes.push(node.n);
@@ -376,6 +380,7 @@
                     } else {
                         createElement(scopesPage, 0, 'g', 'Scopes:');
                         var ol = createElement(scopesPage, 'ol');
+                        SEARCH_SCOPE_ALL_PATTERN.lastIndex = 0;
                         for (var scopeIndex = 0; (match = SEARCH_SCOPE_ALL_PATTERN.exec(responseText)) != null;) {
                             var scopeName = decodeHtml(match[1]);
                             if (scopeName.substring(0, 1) == '\u200B') continue;
@@ -979,7 +984,8 @@
                 return function(responseText) {
                     var delimiter = 'l ';
                     var scopeIndex = 0;
-                    for (;(match = SEARCH_SCOPE_ALL_PATTERN.exec(responseText));) {
+                    SEARCH_SCOPE_ALL_PATTERN.lastIndex = 0;
+                    for (var match; (match = SEARCH_SCOPE_ALL_PATTERN.exec(responseText)) != null;) {
                          var label = decodeHtml(match[1]);
                          if (label.substring(0, 1) == '\u200B') continue;
                          var className = delimiter + (searchScope.l == 4 && searchScope.s == label ? 'x' : '');
@@ -1349,14 +1355,22 @@
         function callbackFor(fullSearch, query, searchWord, searchScope) {
             return function(data) {
 
-                // progress bar (not yet indexed)?
-                if (!new RegExp('window.location.replace[^\\?]*\\?([^"]*)').exec(data)) return;
+                // indexing in progress?
+                var match = SEARCH_RESULTS_INDEXING_PATTERN.exec(data);
+                if (match != null) {
+                    if (fullSearch) {
+                        setInnerHtml(searchPage, 'Indexing... ' + match[1] + '%');
+                    }
+                    return;
+                }
 
                 // parse HTML for results
                 var element = createElement();
                 var hasBreadcrumbs = 0;
                 var results = [];
-                for (; (match = SEARCH_RESULTS_PATTERN.exec(data)) != null;) {
+
+                SEARCH_RESULTS_PATTERN.lastIndex = 0;
+                for (var match; (match = SEARCH_RESULTS_PATTERN.exec(data)) != null;) {
                     var items = [];
                     for (var i = 2; i < 8; i++) {
                         element.innerHTML = match[i];
@@ -1364,7 +1378,8 @@
                     }
                     var breadcrumb = [];
                     if (match[6]) {
-                        for (; (breadcrumbMatch = SEARCH_RESULTS_BREADCRUMB_SNIPPET_PATTERN.exec(match[6])) != null;) {
+                        SEARCH_RESULTS_BREADCRUMB_SNIPPET_PATTERN.lastIndex = 0;
+                        for (var breadcrumbMatch; (breadcrumbMatch = SEARCH_RESULTS_BREADCRUMB_SNIPPET_PATTERN.exec(match[6])) != null;) {
                             for (var i = 1; i < 3; i++) {
                                 element.innerHTML = breadcrumbMatch[i];
                                 breadcrumb.push((element.textContent ? element.textContent : element.innerText).replace(/^\s+|\s+$/g,'').replace(/\s+/g,' '));
