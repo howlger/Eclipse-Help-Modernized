@@ -50,7 +50,7 @@
     var SEARCH_BASE_URL;
     var SEARCH_HITS_MAX = 500;
     var SEARCH_AS_YOU_TYPE_PROPOSAL_MAX = 7;
-    var SEARCH_RESULTS_INDEXING_PATTERN = new RegExp('[\'"]divProgress[\'"]\\s+STYLE\\s*=\\s*[\'"]width:([\\d]+)px', 'i');
+    var SEARCH_RESULTS_INDEXING_PATTERN = new RegExp('[\'"]divProgress[\'"]\\s+STYLE\\s*=\\s*[\'"]\\s*width\\s*:\\s*([\\d]+)\\s*px', 'i');
     var SEARCH_RESULTS_PATTERN = new RegExp('<tr[^<]*<td[^<]*<img[^<]*</td[^<]*<td[^<]*<a\\s+(?:(?!href)(?!title)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*(href|title)\\s*=\\s*"([^"]*)"\\s+(?:(?!href)(?!title)[\\w\\-]+\\s*=\\s*(?:(?:\'[^\']*\')|(?:"[^"]*"))\\s+)*(href|title)\\s*=\\s*"([^"]*)"[^>]*>([^<]*)</a>(?:(?:(?!<[/]?tr)[\\s\\S])*</tr\\s*>\\s*<tr(?:(?!</tr)(?!class="location">)[\\s\\S])*class="location">((?:(?!</div)[\\s\\S])*))?(?:(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*</tr){1,2}(?:(?!</tr)(?!\\sclass=["\']description["\'])[\\s\\S])*\\sclass=["\']description["\'][^>]*>([^<]*)', 'gi');
     var SEARCH_RESULTS_BREADCRUMB_SNIPPET_PATTERN = new RegExp('<a\\s+href="([^"]+)">([^<]+)</a>', 'gi');
     var SEARCH_SCOPE_LABEL_NONE = 'All';
@@ -1216,7 +1216,7 @@
                 if (searchPage.o && query == searchPage.q) return;
                 searchPage.s(1);
                 if (query == searchPage.q) {
-                    window.frames['c'].location = url;
+                    window.frames.c.location = url;
                     return;
                 }
                 setInnerHtml(searchPage, 'Searching...');
@@ -1233,7 +1233,7 @@
                 var r = cache[i];
                 if (query == r.q) {
                     if (fullSearch) {
-                        window.frames['c'].location = url;
+                        window.frames.c.location = url;
                     }
                     renderResults(fullSearch, r.r, r.b, query, searchWord, r.s);
                     return;
@@ -1242,7 +1242,7 @@
 
             // submit query to server
             if (fullSearch) {
-                window.frames['c'].location = url;
+                window.frames.c.location = url;
                 return;
             }
             var currentSearchScope = {
@@ -2055,7 +2055,7 @@
     function searchFullByHash(hash) {
         var url =   SEARCH_BASE_URL + hash.substring(3) + '&maxHits=' + SEARCH_HITS_MAX
                   + (hash.indexOf('&toc=') < 0 ? '' : '&quickSearch=true&quickSearchType=QuickSearchToc');
-        window.frames['c'].location = url;
+        window.frames.c.location = url;
 
         // fill search field
         var searchWord = getParams(hash)['#q'];
