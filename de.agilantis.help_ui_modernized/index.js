@@ -1160,14 +1160,13 @@
         function search(e, fullSearch) {
             var noPendingQueries = !currentSearch[getSearchTypeId(fullSearch)];
 
-            // get search word, query, URL and remember query to detect stale responses
-            var searchWord =  searchField.value
+            // get (trimmed) search word, query, URL and remember query to detect stale responses
+            var searchWord =  searchField.value.replace(/(^\s+|\s+$)/ig, '');
 
-                                  // trim
-                                  .replace(/(^\s+|\s+$)/ig, '')
-
-                                  // TODO if Eclipse bug 351077 (https://bugs.eclipse.org/351077), remove following line
-                                  .replace(/\-([^\-\s]*$)/ig, ' $1');
+            // TODO if Eclipse bug 351077 (https://bugs.eclipse.org/351077), remove following line
+            if (!fullSearch || searchWord.indexOf('*') >= 0 || searchWord.indexOf('?') >= 0) {
+                searchWord = searchWord.replace(/\-([^\-\s]*$)/ig, ' $1');
+            }
 
             var tocScope = currentTocLi ? currentTocLi.n : currentTocLi;
             for (var tocLi = currentTocLi; searchScope.l < 3 && tocLi && tocLi.n; tocLi = tocLi.p) {
