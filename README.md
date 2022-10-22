@@ -1,3 +1,18 @@
+
+The modernized Eclipse Help prototype
+**[became part of Eclipse in version 2020-12 (4.18)](https://bugs.eclipse.org/bugs/show_bug.cgi?id=501718)**.
+
+[It needs to be activated](https://github.com/eclipse-platform/eclipse.platform.ua/tree/master/org.eclipse.help.webapp/m)
+(it's not activated by default, e.g. the active help is missing and the UI lags behind the legacy UI in terms of
+accessibility).
+
+Please [report issues to the Eclipse Platform project here](https://github.com/eclipse-platform/eclipse.platform.ua/issues).
+
+The
+[**modernized Eclipse Help** prototype is already used by Remain Software here](https://remainsoftware.com/docs/openapi/help/index.jsp)
+(**vs. [legacy UI](https://remainsoftware.com/docs/openapi/help/index.jsp?legacy)**).
+
+
 # Modernized Eclipse Help (Prototype)
 
 Prototype of a modernized Eclipse help web UI (see [Eclipse bug 501718](https://bugs.eclipse.org/bugs/show_bug.cgi?id=501718)).
